@@ -1,206 +1,98 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Context Providers
 import { AuthProvider } from './contexts/AuthContext';
 import { UserProvider } from './contexts/UserContext';
+import { ClientProvider } from './contexts/ClientContext';
 import { ChatbotProvider } from './contexts/ChatbotContext';
-import { Toaster } from './components/ui/toaster';
-import Chatbot from './components/chatbot/Chatbot';
-import ChatbotButton from './components/chatbot/ChatbotButton';
 
-import './App.css';
-
-import LandingPage from './pages/LandingPage';
-import Index from './pages/Index';
-import Login from './pages/Login';
+// Pages
 import Dashboard from './pages/Dashboard';
-import Clients from './pages/Clients';
-import Cases from './pages/Cases';
-import Documents from './pages/Documents';
-import Files from './pages/Files';
+import Login from './pages/Login';
+import Clients from './frontend/pages/Clients';
+import Cases from './frontend/pages/Cases';
+import Calendar from './frontend/pages/Calendar';
+import Documents from './frontend/pages/Documents';
+import Files from './frontend/pages/Files';
+import Reports from './frontend/pages/Reports';
 import Medical from './pages/Medical';
 import Billing from './pages/Billing';
-import Calculator from './pages/Calculator';
-import Reports from './pages/Reports';
-import Calendar from './pages/Calendar';
 import Messages from './pages/Messages';
-import Admin from './pages/Admin';
-import Settings from './pages/Settings';
 import Depositions from './pages/Depositions';
+import Settings from './pages/Settings';
+import Admin from './pages/Admin';
 import Attorneys from './pages/Attorneys';
+import Patients from './pages/Patients';
+import Calculator from './pages/Calculator';
+import SuperAdmin from './frontend/pages/SuperAdmin';
 import NotFound from './pages/NotFound';
-import ProtectedRoute from './components/auth/ProtectedRoute';
+import Index from './pages/Index';
+import LandingPage from './pages/LandingPage';
 
-const queryClient = new QueryClient();
+// Component imports
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import { Toaster } from './components/ui/sonner';
+
+// Initialize QueryClient
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <HelmetProvider>
-        <Router>
-          <AuthProvider>
-            <UserProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <UserProvider>
+            <ClientProvider>
               <ChatbotProvider>
-                <Routes>
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/home" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  
-                  {/* Dashboard - accessible to all authenticated users */}
-                  <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                  
-                  {/* Client management - accessible to admin and attorney */}
-                  <Route 
-                    path="/clients/*" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['view:clients', 'access:all']}>
-                        <Clients />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Case management - accessible to admin and attorney */}
-                  <Route 
-                    path="/cases/*" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['view:cases', 'access:all']}>
-                        <Cases />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Documents - accessible to all, but functionality differs by role */}
-                  <Route 
-                    path="/documents/*" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['view:documents', 'access:all']}>
-                        <Documents />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* File management - accessible to admin and attorney */}
-                  <Route 
-                    path="/files/*" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['view:documents', 'access:all']}>
-                        <Files />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Medical records - accessible to admin and attorney */}
-                  <Route 
-                    path="/medical/*" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['view:medical', 'access:all']}>
-                        <Medical />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Billing - accessible to admin and attorney */}
-                  <Route 
-                    path="/billing/*" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['view:billing', 'access:all']}>
-                        <Billing />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Calculator - accessible to admin and attorney */}
-                  <Route 
-                    path="/calculator" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['view:cases', 'access:all']}>
-                        <Calculator />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Reports - accessible to admin and attorney */}
-                  <Route 
-                    path="/reports/*" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['view:cases', 'access:all']}>
-                        <Reports />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Calendar - accessible to all, but functionality differs by role */}
-                  <Route 
-                    path="/calendar/*" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['view:calendar', 'view:appointments', 'access:all']}>
-                        <Calendar />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Messages - accessible to all */}
-                  <Route 
-                    path="/messages/*" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['view:messages', 'access:all']}>
-                        <Messages />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Admin panel - accessible only to admin */}
-                  <Route 
-                    path="/admin/*" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['manage:users', 'access:all']}>
-                        <Admin />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Settings - accessible to all authenticated users */}
-                  <Route 
-                    path="/settings/*" 
-                    element={
-                      <ProtectedRoute>
-                        <Settings />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Depositions - accessible to admin and attorney */}
-                  <Route 
-                    path="/depositions/*" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['view:depositions', 'access:all']}>
-                        <Depositions />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* Attorneys - accessible to admin */}
-                  <Route 
-                    path="/attorneys/*" 
-                    element={
-                      <ProtectedRoute requiredPermissions={['manage:users', 'access:all']}>
-                        <Attorneys />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <Toaster />
-                <Chatbot />
-                <ChatbotButton />
+                <BrowserRouter>
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/login" element={<Login />} />
+                    
+                    {/* Protected routes */}
+                    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                    <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+                    <Route path="/cases" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
+                    <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+                    <Route path="/files" element={<ProtectedRoute><Files /></ProtectedRoute>} />
+                    <Route path="/medical" element={<ProtectedRoute><Medical /></ProtectedRoute>} />
+                    <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+                    <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />
+                    <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+                    <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+                    <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+                    <Route path="/admin" element={<ProtectedRoute roles={["admin"]}><Admin /></ProtectedRoute>} />
+                    <Route path="/attorneys" element={<ProtectedRoute roles={["admin", "superadmin"]}><Attorneys /></ProtectedRoute>} />
+                    <Route path="/depositions" element={<ProtectedRoute><Depositions /></ProtectedRoute>} />
+                    <Route path="/patients" element={<ProtectedRoute><Patients /></ProtectedRoute>} />
+                    <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                    <Route path="/super-admin" element={<ProtectedRoute roles={["superadmin"]}><SuperAdmin /></ProtectedRoute>} />
+                    
+                    {/* 404 route */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+
+                  {/* Toast notifications */}
+                  <Toaster />
+                </BrowserRouter>
               </ChatbotProvider>
-            </UserProvider>
-          </AuthProvider>
-        </Router>
-      </HelmetProvider>
-    </QueryClientProvider>
+            </ClientProvider>
+          </UserProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 
