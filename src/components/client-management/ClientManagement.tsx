@@ -12,13 +12,15 @@ import {
   SheetTitle 
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Search, Download, FileText } from 'lucide-react';
+import { Search, Download, FileText, AlertTriangle } from 'lucide-react';
 import ClientMedicalRecords from "./ClientMedicalRecords";
 import ClientDocuments from "./ClientDocuments";
 import ClientAppointments from "./ClientAppointments";
 import ClientCommunication from "./ClientCommunication";
 import ClientCaseReport from "./ClientCaseReport";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import RoleBasedLayout from "../layout/RoleBasedLayout";
 
 const ClientManagement = () => {
   const { 
@@ -38,6 +40,7 @@ const ClientManagement = () => {
     clearClientToEdit
   } = useClient();
   
+  const { hasPermission } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { toast } = useToast();
 
@@ -75,37 +78,69 @@ const ClientManagement = () => {
               <Search className="h-4 w-4" />
               <span>Search Clients</span>
             </Button>
-            <Button variant="outline" onClick={handleDownloadCaseSummary} className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              <span>Download Summary</span>
-            </Button>
-            <Button onClick={() => startEditClient(selectedClient)} className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span>Edit Client</span>
-            </Button>
+            
+            <RoleBasedLayout requiredPermissions={['edit:clients', 'access:all']}>
+              <Button variant="outline" onClick={handleDownloadCaseSummary} className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                <span>Download Summary</span>
+              </Button>
+            </RoleBasedLayout>
+            
+            <RoleBasedLayout requiredPermissions={['edit:clients', 'access:all']}>
+              <Button onClick={() => startEditClient(selectedClient)} className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                <span>Edit Client</span>
+              </Button>
+            </RoleBasedLayout>
           </div>
         </div>
 
         <Tabs value={activeDetailTab} onValueChange={setActiveDetailTab}>
           <TabsList className="grid grid-cols-6 gap-2 w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="medical">Medical Records</TabsTrigger>
+            
+            <RoleBasedLayout 
+              requiredPermissions={['view:medical', 'access:all']}
+              fallback={<TabsTrigger value="medical" disabled>Medical Records</TabsTrigger>}
+            >
+              <TabsTrigger value="medical">Medical Records</TabsTrigger>
+            </RoleBasedLayout>
+            
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="communication">Communication</TabsTrigger>
-            <TabsTrigger value="case-report">Case Report</TabsTrigger>
+            
+            <RoleBasedLayout 
+              requiredPermissions={['view:cases', 'access:all']}
+              fallback={<TabsTrigger value="case-report" disabled>Case Report</TabsTrigger>}
+            >
+              <TabsTrigger value="case-report">Case Report</TabsTrigger>
+            </RoleBasedLayout>
           </TabsList>
           
           <TabsContent value="overview">
             <ClientDetails 
               client={selectedClient}
               onBack={() => setActiveTab("view")}
-              onEdit={() => startEditClient(selectedClient)}
+              onEdit={() => hasPermission('edit:clients') ? startEditClient(selectedClient) : null}
             />
           </TabsContent>
           
           <TabsContent value="medical">
-            <ClientMedicalRecords clientId={selectedClient.id} />
+            <RoleBasedLayout 
+              requiredPermissions={['view:medical', 'access:all']}
+              fallback={
+                <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 flex flex-col items-center justify-center">
+                  <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
+                  <h3 className="text-lg font-medium text-yellow-800">Access Restricted</h3>
+                  <p className="text-yellow-600 text-center mt-2">
+                    You do not have permission to view medical records.
+                  </p>
+                </div>
+              }
+            >
+              <ClientMedicalRecords clientId={selectedClient.id} />
+            </RoleBasedLayout>
           </TabsContent>
           
           <TabsContent value="documents">
@@ -121,7 +156,20 @@ const ClientManagement = () => {
           </TabsContent>
           
           <TabsContent value="case-report">
-            <ClientCaseReport clientId={selectedClient.id} />
+            <RoleBasedLayout 
+              requiredPermissions={['view:cases', 'access:all']}
+              fallback={
+                <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 flex flex-col items-center justify-center">
+                  <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
+                  <h3 className="text-lg font-medium text-yellow-800">Access Restricted</h3>
+                  <p className="text-yellow-600 text-center mt-2">
+                    You do not have permission to view case reports.
+                  </p>
+                </div>
+              }
+            >
+              <ClientCaseReport clientId={selectedClient.id} />
+            </RoleBasedLayout>
           </TabsContent>
         </Tabs>
       </div>
@@ -138,29 +186,54 @@ const ClientManagement = () => {
         <div className="border-b px-6 py-2">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="view">View Clients</TabsTrigger>
-            <TabsTrigger value="add">{clientToEdit ? "Edit Client" : "Add Client"}</TabsTrigger>
+            <RoleBasedLayout 
+              requiredPermissions={['edit:clients', 'access:all']}
+              fallback={<TabsTrigger value="add" disabled>{clientToEdit ? "Edit Client" : "Add Client"}</TabsTrigger>}
+            >
+              <TabsTrigger value="add">{clientToEdit ? "Edit Client" : "Add Client"}</TabsTrigger>
+            </RoleBasedLayout>
           </TabsList>
         </div>
         
         <TabsContent value="view" className="p-6 space-y-4">
           <ClientList 
             clients={clients} 
-            onEditClient={startEditClient}
+            onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
             onViewClient={handleViewClient}
-            onDeleteClient={handleDeleteClient}
+            onDeleteClient={(client) => hasPermission('edit:clients') ? handleDeleteClient(client) : null}
             loading={loading}
           />
         </TabsContent>
         
         <TabsContent value="add" className="p-6">
-          <ClientForm 
-            initialData={clientToEdit} 
-            onSubmit={clientToEdit ? handleEditClient : handleAddClient} 
-            onCancel={() => {
-              clearClientToEdit();
-              setActiveTab("view");
-            }}
-          />
+          <RoleBasedLayout 
+            requiredPermissions={['edit:clients', 'access:all']}
+            fallback={
+              <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 flex flex-col items-center justify-center">
+                <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
+                <h3 className="text-lg font-medium text-yellow-800">Access Restricted</h3>
+                <p className="text-yellow-600 text-center mt-2">
+                  You do not have permission to {clientToEdit ? "edit" : "add"} clients.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4" 
+                  onClick={() => setActiveTab("view")}
+                >
+                  Back to Client List
+                </Button>
+              </div>
+            }
+          >
+            <ClientForm 
+              initialData={clientToEdit} 
+              onSubmit={clientToEdit ? handleEditClient : handleAddClient} 
+              onCancel={() => {
+                clearClientToEdit();
+                setActiveTab("view");
+              }}
+            />
+          </RoleBasedLayout>
         </TabsContent>
 
         <TabsContent value="details" className="p-6 space-y-4">
@@ -176,12 +249,12 @@ const ClientManagement = () => {
           <div className="mt-4">
             <ClientList 
               clients={clients} 
-              onEditClient={startEditClient}
+              onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
               onViewClient={(client) => {
                 handleViewClient(client);
                 setIsSearchOpen(false);
               }}
-              onDeleteClient={handleDeleteClient}
+              onDeleteClient={(client) => hasPermission('edit:clients') ? handleDeleteClient(client) : null}
               loading={loading}
             />
           </div>

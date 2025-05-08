@@ -1,582 +1,177 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
-import { useUser } from "@/contexts/UserContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Home,
-  FolderOpen,
-  FileText,
   Users,
-  BarChart4,
-  Calculator,
-  ChevronDown,
-  ChevronRight,
-  FileBarChart,
-  FileDigit,
-  FileCog,
+  FileText,
+  Folder,
+  Building2,
   Calendar,
   MessageSquare,
-  Bell,
   Settings,
-  FileCheck,
-  FileHeart,
-  DollarSign,
-  ClipboardList,
-  UserCog,
-  Building,
-  Briefcase,
-  Scale,
-  Mail,
-  LogOut,
-  File,
-  User
-} from "lucide-react";
+  BarChart,
+  Calculator,
+  FileSearch,
+  Gavel,
+  Shield
+} from 'lucide-react';
 
 interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isCollapsed: boolean;
+  setIsCollapsed: (value: boolean) => void;
 }
 
-interface NavItemProps {
-  icon: React.ReactNode;
-  label: string;
-  to?: string;
-  active?: boolean;
-  hasSubmenu?: boolean;
-  children?: React.ReactNode;
-  onClick?: () => void;
-}
-
-const NavItem = ({
-  icon,
-  label,
-  to,
-  active = false,
-  hasSubmenu = false,
-  children,
-  onClick,
-}: NavItemProps) => {
-  const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
-
-  const handleClick = () => {
-    if (hasSubmenu) {
-      setIsSubmenuOpen(!isSubmenuOpen);
-    } else if (onClick) {
-      onClick();
-    }
-  };
-
-  const buttonContent = (
-    <>
-      {icon}
-      <span className="text-sm">{label}</span>
-      {hasSubmenu && (
-        <span className="ml-auto">
-          {isSubmenuOpen ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-        </span>
-      )}
-    </>
-  );
-
-  return (
-    <div className="mb-1">
-      {to ? (
-        <Button
-          asChild
-          variant="ghost"
-          className={cn(
-            "w-full justify-start gap-3 px-3 font-normal",
-            active && "bg-lawfirm-blue text-lawfirm-dark-purple"
-          )}
-        >
-          <Link to={to}>{buttonContent}</Link>
-        </Button>
-      ) : (
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full justify-start gap-3 px-3 font-normal",
-            active && "bg-lawfirm-blue text-lawfirm-dark-purple",
-            !hasSubmenu && "hover:bg-lawfirm-blue hover:text-lawfirm-dark-purple"
-          )}
-          onClick={handleClick}
-        >
-          {buttonContent}
-        </Button>
-      )}
-      {hasSubmenu && isSubmenuOpen && (
-        <div className="ml-9 mt-1 space-y-1">{children}</div>
-      )}
-    </div>
-  );
-};
-
-const SubNavItem = ({ label, active = false, to }: { label: string; active?: boolean; to?: string }) => {
-  const content = <span>{label}</span>;
+const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
+  const { hasPermission, currentUser } = useAuth();
   
-  return to ? (
-    <Button
-      asChild
-      variant="ghost"
-      className={cn(
-        "h-8 w-full justify-start px-0 font-normal",
-        active && "text-lawfirm-light-blue",
-        "hover:bg-transparent hover:text-lawfirm-light-blue text-sm"
-      )}
-    >
-      <Link to={to}>{content}</Link>
-    </Button>
-  ) : (
-    <Button
-      variant="ghost"
-      className={cn(
-        "h-8 w-full justify-start px-0 font-normal",
-        active && "text-lawfirm-light-blue",
-        "hover:bg-transparent hover:text-lawfirm-light-blue text-sm"
-      )}
-    >
-      {content}
-    </Button>
-  );
-};
-
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const location = useLocation();
-  const pathname = location.pathname;
-  const urlParams = new URLSearchParams(location.search);
-  const documentsTab = urlParams.get('tab');
-  const filesTab = urlParams.get('tab');
-  const clientsTab = urlParams.get('tab');
-  const caseTab = urlParams.get('tab');
-  const medicalTab = urlParams.get('tab');
-  const billingTab = urlParams.get('tab');
-  const calendarTab = urlParams.get('tab');
-  const messagesTab = urlParams.get('tab');
-  const adminTab = urlParams.get('tab');
-  const { logout } = useAuth();
-  const { userProfile, isLoading } = useUser();
+  const navItems = [
+    { 
+      title: 'Dashboard', 
+      path: '/dashboard', 
+      icon: <Home size={20} />,
+      permissions: [] // Accessible to all
+    },
+    { 
+      title: 'Clients', 
+      path: '/clients', 
+      icon: <Users size={20} />,
+      permissions: ['view:clients', 'access:all'] 
+    },
+    { 
+      title: 'Cases', 
+      path: '/cases', 
+      icon: <Folder size={20} />,
+      permissions: ['view:cases', 'access:all'] 
+    },
+    { 
+      title: 'Documents', 
+      path: '/documents', 
+      icon: <FileText size={20} />,
+      permissions: ['view:documents', 'upload:documents', 'access:all'] 
+    },
+    { 
+      title: 'Files', 
+      path: '/files', 
+      icon: <FileSearch size={20} />,
+      permissions: ['view:documents', 'access:all'] 
+    },
+    { 
+      title: 'Medical', 
+      path: '/medical', 
+      icon: <Building2 size={20} />,
+      permissions: ['view:medical', 'access:all'] 
+    },
+    { 
+      title: 'Billing', 
+      path: '/billing', 
+      icon: <BarChart size={20} />,
+      permissions: ['view:billing', 'access:all'] 
+    },
+    { 
+      title: 'Calculator', 
+      path: '/calculator', 
+      icon: <Calculator size={20} />,
+      permissions: ['view:cases', 'access:all'] 
+    },
+    { 
+      title: 'Reports', 
+      path: '/reports', 
+      icon: <FileSearch size={20} />,
+      permissions: ['view:cases', 'access:all'] 
+    },
+    { 
+      title: 'Calendar', 
+      path: '/calendar', 
+      icon: <Calendar size={20} />,
+      permissions: ['view:calendar', 'view:appointments', 'access:all'] 
+    },
+    { 
+      title: 'Messages', 
+      path: '/messages', 
+      icon: <MessageSquare size={20} />,
+      permissions: ['view:messages', 'send:messages', 'access:all'] 
+    },
+    { 
+      title: 'Admin', 
+      path: '/admin', 
+      icon: <Shield size={20} />,
+      permissions: ['manage:users', 'access:all'] 
+    },
+    { 
+      title: 'Depositions', 
+      path: '/depositions', 
+      icon: <Gavel size={20} />,
+      permissions: ['view:depositions', 'access:all'] 
+    },
+    { 
+      title: 'Attorneys', 
+      path: '/attorneys', 
+      icon: <Users size={20} />,
+      permissions: ['manage:users', 'access:all'] 
+    },
+    { 
+      title: 'Settings', 
+      path: '/settings', 
+      icon: <Settings size={20} />,
+      permissions: [] // Accessible to all
+    }
+  ];
 
   return (
-    <>
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 md:hidden"
-          onClick={onClose}
-        />
+    <div 
+      className={cn(
+        "border-r border-border h-screen transition-all duration-300 flex flex-col bg-background",
+        isCollapsed ? "w-16" : "w-60"
       )}
-      
-      <aside
-        className={cn(
-          "fixed top-0 bottom-0 left-0 z-50 mt-16 w-64 border-r bg-white transition-transform md:translate-x-0",
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        <div className="flex flex-col h-full overflow-auto">
-          <nav className="flex-1 space-y-1 px-3 py-4">
-            <NavItem
-              icon={<Home className="h-5 w-5" />}
-              label="Dashboard"
-              to="/dashboard"
-              active={pathname === "/dashboard"}
-            />
+    >
+      <div className="p-3 flex items-center gap-2 border-b">
+        <div className="bg-lawfirm-light-blue text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg">
+          LYZ
+        </div>
+        {!isCollapsed && <div className="font-semibold">LYZ Law Firm</div>}
+      </div>
 
-            <NavItem
-              icon={<Users className="h-5 w-5" />}
-              label="Clients"
-              to="/clients"
-              active={pathname === "/clients" || pathname.startsWith("/clients/")}
-              hasSubmenu
+      <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
+        {navItems
+          .filter(item => item.permissions.length === 0 || item.permissions.some(perm => hasPermission(perm)))
+          .map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) => cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                "hover:bg-accent hover:text-accent-foreground",
+                isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
+                isCollapsed && "justify-center px-0"
+              )}
             >
-              <SubNavItem 
-                label="All Clients" 
-                to="/clients" 
-                active={pathname === "/clients" && !clientsTab} 
-              />
-              <SubNavItem 
-                label="Add Client" 
-                to="/clients/add" 
-                active={pathname === "/clients/add"} 
-              />
-              <SubNavItem 
-                label="Commercial" 
-                to="/clients?filter=commercial" 
-                active={pathname === "/clients" && urlParams.get('filter') === "commercial"} 
-              />
-              <SubNavItem 
-                label="Private" 
-                to="/clients?filter=private" 
-                active={pathname === "/clients" && urlParams.get('filter') === "private"} 
-              />
-              <SubNavItem 
-                label="Accident" 
-                to="/clients?filter=accident" 
-                active={pathname === "/clients" && urlParams.get('filter') === "accident"} 
-              />
-              <SubNavItem 
-                label="Personal Injuries" 
-                to="/clients?filter=personal-injuries" 
-                active={pathname === "/clients" && urlParams.get('filter') === "personal-injuries"} 
-              />
-            </NavItem>
+              {item.icon}
+              {!isCollapsed && <span>{item.title}</span>}
+            </NavLink>
+          ))}
+      </div>
 
-            <NavItem
-              icon={<User className="h-5 w-5" />}
-              label="Attorneys"
-              to="/attorneys"
-              active={pathname === "/attorneys" || pathname.startsWith("/attorneys/")}
-              hasSubmenu
-            >
-              <SubNavItem 
-                label="All Attorneys" 
-                to="/attorneys" 
-                active={pathname === "/attorneys" && !urlParams.has('tab')} 
-              />
-              <SubNavItem 
-                label="Partners" 
-                to="/attorneys?tab=partners" 
-                active={pathname === "/attorneys" && urlParams.get('tab') === "partners"} 
-              />
-              <SubNavItem 
-                label="Associates" 
-                to="/attorneys?tab=associates" 
-                active={pathname === "/attorneys" && urlParams.get('tab') === "associates"} 
-              />
-              <SubNavItem 
-                label="Paralegals" 
-                to="/attorneys?tab=paralegals" 
-                active={pathname === "/attorneys" && urlParams.get('tab') === "paralegals"} 
-              />
-              <SubNavItem 
-                label="Interns" 
-                to="/attorneys?tab=interns" 
-                active={pathname === "/attorneys" && urlParams.get('tab') === "interns"} 
-              />
-            </NavItem>
-
-            <NavItem
-              icon={<Briefcase className="h-5 w-5" />}
-              label="Cases"
-              to="/cases"
-              active={pathname === "/cases" || pathname.startsWith("/cases/")}
-              hasSubmenu
-            >
-              <SubNavItem 
-                label="All Cases" 
-                to="/cases" 
-                active={pathname === "/cases" && !caseTab} 
-              />
-              <SubNavItem 
-                label="Create Case" 
-                to="/cases/create" 
-                active={pathname === "/cases/create"} 
-              />
-              <SubNavItem 
-                label="Timeline" 
-                to="/cases?tab=timeline" 
-                active={pathname === "/cases" && caseTab === "timeline"} 
-              />
-              <SubNavItem 
-                label="Assigned Staff" 
-                to="/cases?tab=staff" 
-                active={pathname === "/cases" && caseTab === "staff"} 
-              />
-            </NavItem>
-
-            <NavItem
-              icon={<File className="h-5 w-5" />}
-              label="Depositions"
-              to="/depositions"
-              active={pathname === "/depositions" || pathname.startsWith("/depositions/")}
-              hasSubmenu
-            >
-              <SubNavItem 
-                label="All Depositions" 
-                to="/depositions" 
-                active={pathname === "/depositions" && !urlParams.has('tab')} 
-              />
-              <SubNavItem 
-                label="Create Deposition" 
-                to="/depositions/create" 
-                active={pathname === "/depositions/create"} 
-              />
-              <SubNavItem 
-                label="Scheduled" 
-                to="/depositions?status=scheduled" 
-                active={pathname === "/depositions" && urlParams.get('status') === "scheduled"} 
-              />
-              <SubNavItem 
-                label="Completed" 
-                to="/depositions?status=completed" 
-                active={pathname === "/depositions" && urlParams.get('status') === "completed"} 
-              />
-            </NavItem>
-
-            <NavItem
-              icon={<FileText className="h-5 w-5" />}
-              label="Documents"
-              to="/documents"
-              active={pathname === "/documents" || pathname.startsWith("/documents/")}
-              hasSubmenu
-            >
-              <SubNavItem 
-                label="Document Builder" 
-                to="/documents/builder" 
-                active={pathname === "/documents/builder"} 
-              />
-              <SubNavItem 
-                label="Templates" 
-                to="/documents/templates" 
-                active={pathname === "/documents/templates"} 
-              />
-              <SubNavItem 
-                label="LOP" 
-                to="/documents?tab=lop" 
-                active={pathname === "/documents" && documentsTab === "lop"} 
-              />
-              <SubNavItem 
-                label="LOR" 
-                to="/documents?tab=lor" 
-                active={pathname === "/documents" && documentsTab === "lor"} 
-              />
-              <SubNavItem 
-                label="Insurance" 
-                to="/documents?tab=insurance" 
-                active={pathname === "/documents" && documentsTab === "insurance"} 
-              />
-              <SubNavItem 
-                label="Bills" 
-                to="/documents?tab=bills" 
-                active={pathname === "/documents" && documentsTab === "bills"} 
-              />
-              <SubNavItem 
-                label="DocuSign" 
-                to="/documents/sign" 
-                active={pathname === "/documents/sign"} 
-              />
-            </NavItem>
-
-            <NavItem
-              icon={<FolderOpen className="h-5 w-5" />}
-              label="Files"
-              to="/files"
-              active={pathname === "/files"}
-              hasSubmenu
-            >
-              <SubNavItem 
-                label="Master Dependency View" 
-                to="/files?tab=dependency" 
-                active={pathname === "/files" && (!filesTab || filesTab === "dependency")} 
-              />
-            </NavItem>
-
-            <NavItem
-              icon={<FileHeart className="h-5 w-5" />}
-              label="Medicals"
-              to="/medical"
-              active={pathname === "/medical" || pathname.startsWith("/medical/")}
-              hasSubmenu
-            >
-              <SubNavItem 
-                label="Medical Records" 
-                to="/medical/records" 
-                active={pathname === "/medical/records"} 
-              />
-              <SubNavItem 
-                label="Upload Documents" 
-                to="/medical/upload" 
-                active={pathname === "/medical/upload"} 
-              />
-              <SubNavItem 
-                label="Treatment Timeline" 
-                to="/medical/timeline" 
-                active={pathname === "/medical/timeline"} 
-              />
-              <SubNavItem 
-                label="Providers" 
-                to="/medical/providers" 
-                active={pathname === "/medical/providers"} 
-              />
-              <SubNavItem 
-                label="Expenses Tracker" 
-                to="/medical/expenses" 
-                active={pathname === "/medical/expenses"} 
-              />
-            </NavItem>
-
-            <NavItem
-              icon={<DollarSign className="h-5 w-5" />}
-              label="Billings"
-              to="/billing"
-              active={pathname === "/billing" || pathname.startsWith("/billing/")}
-              hasSubmenu
-            >
-              <SubNavItem 
-                label="Invoices" 
-                to="/billing" 
-                active={pathname === "/billing" && !billingTab} 
-              />
-              <SubNavItem 
-                label="Add Invoice" 
-                to="/billing/add" 
-                active={pathname === "/billing/add"} 
-              />
-              <SubNavItem 
-                label="Settlements" 
-                to="/billing/settlements" 
-                active={pathname === "/billing/settlements"} 
-              />
-              <SubNavItem 
-                label="Letters" 
-                to="/billing/letters" 
-                active={pathname === "/billing/letters"} 
-              />
-            </NavItem>
-
-            <NavItem
-              icon={<Calculator className="h-5 w-5" />}
-              label="Lien Reduction Calculator"
-              to="/calculator"
-              active={pathname === "/calculator"}
-            />
-
-            <NavItem
-              icon={<BarChart4 className="h-5 w-5" />}
-              label="Reports"
-              to="/reports"
-              active={pathname === "/reports"}
-              hasSubmenu
-            >
-              <SubNavItem 
-                label="Medical Reports" 
-                to="/reports" 
-                active={pathname === "/reports" && (!urlParams.has('tab') || urlParams.get('tab') === 'medical')} 
-              />
-              <SubNavItem 
-                label="Reduction Statements" 
-                to="/reports?tab=reduction" 
-                active={pathname === "/reports" && urlParams.get('tab') === 'reduction'} 
-              />
-            </NavItem>
-
-            <NavItem
-              icon={<Calendar className="h-5 w-5" />}
-              label="Calendar & Tasks"
-              to="/calendar"
-              active={pathname === "/calendar" || pathname.startsWith("/calendar/")}
-              hasSubmenu
-            >
-              <SubNavItem 
-                label="Calendar View" 
-                to="/calendar" 
-                active={pathname === "/calendar" && !calendarTab} 
-              />
-              <SubNavItem 
-                label="Create Task" 
-                to="/calendar/task/create" 
-                active={pathname === "/calendar/task/create"} 
-              />
-              <SubNavItem 
-                label="Tasks by Staff" 
-                to="/calendar/tasks" 
-                active={pathname === "/calendar/tasks"} 
-              />
-              <SubNavItem 
-                label="Google Sync" 
-                to="/calendar/sync" 
-                active={pathname === "/calendar/sync"} 
-              />
-            </NavItem>
-
-            <NavItem
-              icon={<MessageSquare className="h-5 w-5" />}
-              label="Messaging"
-              to="/messages"
-              active={pathname === "/messages" || pathname.startsWith("/messages/")}
-              hasSubmenu
-            >
-              <SubNavItem 
-                label="Chat" 
-                to="/messages" 
-                active={pathname === "/messages" && !messagesTab} 
-              />
-              <SubNavItem 
-                label="SMS Logs" 
-                to="/messages/sms" 
-                active={pathname === "/messages/sms"} 
-              />
-              <SubNavItem 
-                label="Email Logs" 
-                to="/messages/email" 
-                active={pathname === "/messages/email"} 
-              />
-            </NavItem>
-
-            <NavItem
-              icon={<UserCog className="h-5 w-5" />}
-              label="Admin Panel"
-              to="/admin"
-              active={pathname === "/admin" || pathname.startsWith("/admin/")}
-              hasSubmenu
-            >
-              <SubNavItem 
-                label="Users & Permissions" 
-                to="/admin/users" 
-                active={pathname === "/admin/users"} 
-              />
-              <SubNavItem 
-                label="Roles" 
-                to="/admin/roles" 
-                active={pathname === "/admin/roles"} 
-              />
-              <SubNavItem 
-                label="Audit Logs" 
-                to="/admin/logs" 
-                active={pathname === "/admin/logs"} 
-              />
-            </NavItem>
-          </nav>
-          
-          <div className="border-t border-gray-200 pt-2 mt-auto">
-            <div className="px-3 py-2">
-              <NavItem
-                icon={<Settings className="h-5 w-5 text-gray-600" />}
-                label="Settings"
-                to="/settings"
-                active={pathname === "/settings" && !urlParams.has('tab')}
-              />
-              
-              <NavItem
-                icon={<LogOut className="h-5 w-5 text-red-500" />}
-                label="Sign Out"
-                onClick={logout}
-              />
-            </div>
-            
-            <div className="px-4 py-3 border-t border-gray-200">
-              <div className="flex items-center">
-                <Avatar className="w-8 h-8 rounded-full">
-                  <AvatarImage src={userProfile?.avatar || `https://i.pravatar.cc/150?u=${userProfile?.userId}`} />
-                  <AvatarFallback className="bg-lawfirm-light-blue text-white text-xs font-bold">
-                    {userProfile?.name ? userProfile.name.slice(0, 2).toUpperCase() : 'US'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-700">{userProfile?.name || 'User Name'}</p>
-                  <p className="text-xs text-gray-500">{userProfile?.email || `${userProfile?.userId}@example.com`}</p>
-                </div>
-              </div>
+      <div className="p-3 border-t mt-auto">
+        {!isCollapsed && currentUser && (
+          <div className="text-xs text-muted-foreground mb-2">
+            <div className="font-medium">{currentUser.name}</div>
+            <div>{currentUser.email}</div>
+            <div className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs inline-block mt-1">
+              {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
             </div>
           </div>
-        </div>
-      </aside>
-    </>
+        )}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="w-full flex items-center justify-center h-10 border rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+        >
+          {isCollapsed ? "→" : "←"}
+        </button>
+      </div>
+    </div>
   );
 };
 

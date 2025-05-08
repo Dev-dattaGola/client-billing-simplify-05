@@ -46,21 +46,150 @@ function App() {
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/home" element={<Index />} />
                   <Route path="/login" element={<Login />} />
+                  
+                  {/* Dashboard - accessible to all authenticated users */}
                   <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                  <Route path="/clients/*" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-                  <Route path="/cases/*" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
-                  <Route path="/documents/*" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
-                  <Route path="/files/*" element={<ProtectedRoute><Files /></ProtectedRoute>} />
-                  <Route path="/medical/*" element={<ProtectedRoute><Medical /></ProtectedRoute>} />
-                  <Route path="/billing/*" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-                  <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />
-                  <Route path="/reports/*" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-                  <Route path="/calendar/*" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-                  <Route path="/messages/*" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-                  <Route path="/admin/*" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-                  <Route path="/settings/*" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                  <Route path="/depositions/*" element={<ProtectedRoute><Depositions /></ProtectedRoute>} />
-                  <Route path="/attorneys/*" element={<ProtectedRoute><Attorneys /></ProtectedRoute>} />
+                  
+                  {/* Client management - accessible to admin and attorney */}
+                  <Route 
+                    path="/clients/*" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['view:clients', 'access:all']}>
+                        <Clients />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Case management - accessible to admin and attorney */}
+                  <Route 
+                    path="/cases/*" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['view:cases', 'access:all']}>
+                        <Cases />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Documents - accessible to all, but functionality differs by role */}
+                  <Route 
+                    path="/documents/*" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['view:documents', 'access:all']}>
+                        <Documents />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* File management - accessible to admin and attorney */}
+                  <Route 
+                    path="/files/*" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['view:documents', 'access:all']}>
+                        <Files />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Medical records - accessible to admin and attorney */}
+                  <Route 
+                    path="/medical/*" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['view:medical', 'access:all']}>
+                        <Medical />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Billing - accessible to admin and attorney */}
+                  <Route 
+                    path="/billing/*" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['view:billing', 'access:all']}>
+                        <Billing />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Calculator - accessible to admin and attorney */}
+                  <Route 
+                    path="/calculator" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['view:cases', 'access:all']}>
+                        <Calculator />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Reports - accessible to admin and attorney */}
+                  <Route 
+                    path="/reports/*" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['view:cases', 'access:all']}>
+                        <Reports />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Calendar - accessible to all, but functionality differs by role */}
+                  <Route 
+                    path="/calendar/*" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['view:calendar', 'view:appointments', 'access:all']}>
+                        <Calendar />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Messages - accessible to all */}
+                  <Route 
+                    path="/messages/*" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['view:messages', 'access:all']}>
+                        <Messages />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Admin panel - accessible only to admin */}
+                  <Route 
+                    path="/admin/*" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['manage:users', 'access:all']}>
+                        <Admin />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Settings - accessible to all authenticated users */}
+                  <Route 
+                    path="/settings/*" 
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Depositions - accessible to admin and attorney */}
+                  <Route 
+                    path="/depositions/*" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['view:depositions', 'access:all']}>
+                        <Depositions />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Attorneys - accessible to admin */}
+                  <Route 
+                    path="/attorneys/*" 
+                    element={
+                      <ProtectedRoute requiredPermissions={['manage:users', 'access:all']}>
+                        <Attorneys />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <Toaster />

@@ -9,13 +9,26 @@ const apiClient = axios.create({
   },
 });
 
-// Request interceptor for adding auth token
+// Request interceptor for adding auth token and role information
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth_token');
+    const userData = localStorage.getItem('userData');
+    
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
+    
+    // Add user role to headers if available
+    if (userData) {
+      try {
+        const { role } = JSON.parse(userData);
+        config.headers['X-User-Role'] = role;
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+    
     return config;
   },
   (error) => {
@@ -35,7 +48,13 @@ apiClient.interceptors.response.use(
       if (error.response.status === 401) {
         // Auth error, redirect to login
         localStorage.removeItem('auth_token');
-        // Redirect to login can be added here if needed
+        localStorage.removeItem('userData');
+        localStorage.removeItem('isAuthenticated');
+        
+        // Redirect to login if not already there
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
       }
       
       if (error.response.status === 403) {

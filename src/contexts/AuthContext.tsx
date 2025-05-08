@@ -6,20 +6,57 @@ import { useToast } from "@/components/ui/use-toast";
 interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   currentUser: UserData | null;
+  hasPermission: (permission: string) => boolean;
 }
 
 interface UserData {
   name?: string;
   email: string;
-  isVerified: boolean;
-  role?: string;
-  permissions?: string[];
+  role: 'admin' | 'attorney' | 'client';
+  permissions: string[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Predefined users with roles and permissions
+const predefinedUsers = [
+  {
+    email: 'admin@lawerp.com',
+    password: 'admin123',
+    name: 'Administrator',
+    role: 'admin',
+    permissions: ['all', 'create:users', 'manage:users', 'access:all'],
+  },
+  {
+    email: 'attorney@lawerp.com',
+    password: 'admin123',
+    name: 'Attorney User',
+    role: 'attorney',
+    permissions: [
+      'view:clients', 'edit:clients', 
+      'view:cases', 'edit:cases',
+      'view:documents', 'edit:documents',
+      'view:calendar', 'edit:calendar',
+      'view:billing', 'edit:billing',
+      'view:depositions', 'edit:depositions',
+      'view:medical', 'edit:medical',
+      'view:messages', 'send:messages'
+    ],
+  },
+  {
+    email: 'client@lawerp.com',
+    password: 'admin123',
+    name: 'Client User',
+    role: 'client',
+    permissions: [
+      'view:documents', 'upload:documents',
+      'view:messages', 'send:messages',
+      'view:appointments'
+    ],
+  }
+];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -42,95 +79,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
-    // For demo purposes, we'll just set isAuthenticated to true
-    // In a real app, you would validate credentials with a backend service
     return new Promise<void>((resolve, reject) => {
-      // Simulate API call
-      setTimeout(() => {
-        // Check if user exists in localStorage
-        const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-        const user = registeredUsers.find((u: any) => u.email === email);
+      // Find user in predefined users
+      const user = predefinedUsers.find(u => u.email === email);
+      
+      if (user && user.password === password) {
+        const userData: UserData = {
+          name: user.name,
+          email: user.email,
+          role: user.role as 'admin' | 'attorney' | 'client',
+          permissions: user.permissions
+        };
 
-        if (user && user.password === password) {
-          if (!user.isVerified) {
-            reject(new Error('Email not verified. Please check your inbox.'));
-            return;
-          }
-
-          const userData: UserData = {
-            name: user.name,
-            email: user.email,
-            isVerified: user.isVerified,
-            role: user.role || 'staff',
-            permissions: user.permissions || []
-          };
-
-          localStorage.setItem('isAuthenticated', 'true');
-          localStorage.setItem('userData', JSON.stringify(userData));
-          setIsAuthenticated(true);
-          setCurrentUser(userData);
-          resolve();
-        } else {
-          reject(new Error('Invalid credentials'));
-        }
-      }, 1000);
-    });
-  };
-
-  const register = async (name: string, email: string, password: string): Promise<void> => {
-    return new Promise<void>((resolve, reject) => {
-      // Simulate API call
-      setTimeout(() => {
-        try {
-          // Check if user already exists
-          const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-          const existingUser = registeredUsers.find((u: any) => u.email === email);
-          
-          if (existingUser) {
-            reject(new Error('User with this email already exists'));
-            return;
-          }
-          
-          // Create new user with verification status
-          const newUser = {
-            name,
-            email,
-            password,
-            isVerified: false,
-            role: 'staff', // Default role
-            permissions: ['access:client-portal', 'view:clients', 'access:patient-portal', 'view:patients'], // Default permissions
-            registeredAt: new Date().toISOString()
-          };
-          
-          registeredUsers.push(newUser);
-          localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
-          
-          // Simulate sending verification email
-          console.log(`Verification email sent to ${email}`);
-          
-          // For demo purposes, we'll automatically verify the user after 5 seconds
-          setTimeout(() => {
-            const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-            const updatedUsers = users.map((u: any) => {
-              if (u.email === email) {
-                return { ...u, isVerified: true };
-              }
-              return u;
-            });
-            localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
-            
-            // If user is currently in the verification waiting state, notify them
-            toast({
-              title: "Email Verified",
-              description: "Your email has been verified. You can now log in.",
-            });
-          }, 5000);
-          
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      }, 1000);
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userData', JSON.stringify(userData));
+        setIsAuthenticated(true);
+        setCurrentUser(userData);
+        resolve();
+      } else {
+        reject(new Error('Invalid credentials'));
+      }
     });
   };
 
@@ -142,8 +110,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     navigate('/login');
   };
 
+  const hasPermission = (permission: string): boolean => {
+    if (!currentUser) return false;
+    
+    // Admin has all permissions
+    if (currentUser.role === 'admin' || currentUser.permissions.includes('all')) {
+      return true;
+    }
+    
+    // Check if user has the specific permission
+    return currentUser.permissions.includes(permission);
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, register, logout, currentUser }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      login, 
+      logout, 
+      currentUser,
+      hasPermission 
+    }}>
       {children}
     </AuthContext.Provider>
   );
