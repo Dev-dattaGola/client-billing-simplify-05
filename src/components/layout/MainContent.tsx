@@ -20,7 +20,7 @@ const MainContent: React.FC<MainContentProps> = ({ children, isSidebarOpen, isMo
         <div className="h-full flex flex-col items-center justify-center gap-4 p-4">
           <h1 className="text-2xl font-bold text-gray-900">Welcome to LYZ Law Firm</h1>
           <p className="text-gray-600 text-center max-w-md">
-            Please log in or create an account to access the dashboard
+            Please log in to access the dashboard
           </p>
           <div className="flex gap-4">
             <Button 
@@ -38,12 +38,10 @@ const MainContent: React.FC<MainContentProps> = ({ children, isSidebarOpen, isMo
   return (
     <main 
       className={`flex-1 bg-gray-50 overflow-y-auto transition-all duration-300 ${
-        isSidebarOpen && !isMobile ? 'ml-64' : 'ml-0'
+        isSidebarOpen && !isMobile ? 'ml-60' : 'ml-0'
       }`}
     >
-      <div className="px-6 py-8 max-w-7xl mx-auto">
-        {children}
-      </div>
+      {children}
     </main>
   );
 };
