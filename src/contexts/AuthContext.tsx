@@ -1,260 +1,183 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from "@/components/ui/use-toast";
-import { User } from '@/types/user';
-import apiClient from '@/lib/api/api-client';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 
-interface AuthContextType {
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  currentUser: User | null;
-  hasPermission: (permission: string) => boolean;
-  assignClientToAttorney: (clientId: string, attorneyId: string) => Promise<boolean>;
-  getAssignedClients: (attorneyId: string) => Promise<string[]>;
-  getAssignedAttorney: (clientId: string) => Promise<string | null>;
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  firmId?: string;
+  permissions?: string[];
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+interface LoginCredentials {
+  email: string;
+  password: string;
+  remember?: boolean;
+}
 
-// Predefined users with roles and permissions
-const predefinedUsers = [
-  {
-    id: 'superadmin1',
-    email: 'superadmin@lawerp.com',
-    password: 'super@admin$$',
-    name: 'Super Administrator',
-    role: 'superadmin',
-    permissions: ['all', 'manage:firms', 'manage:admins', 'view:all'],
-  },
-  {
-    id: 'admin1',
-    email: 'admin@lawerp.com',
-    password: 'admin123',
-    name: 'Administrator',
-    role: 'admin',
-    firmId: 'firm1',
-    permissions: ['all', 'create:users', 'manage:users', 'access:all'],
-  },
-  {
-    id: 'attorney1',
-    email: 'attorney@lawerp.com',
-    password: 'admin123',
-    name: 'Attorney User',
-    role: 'attorney',
-    firmId: 'firm1',
-    assignedClientIds: ['client1'],
-    permissions: [
-      'view:clients', 'edit:clients', 
-      'view:cases', 'edit:cases',
-      'view:documents', 'edit:documents',
-      'view:calendar', 'edit:calendar',
-      'view:billing', 'edit:billing',
-      'view:depositions', 'edit:depositions',
-      'view:medical', 'edit:medical',
-      'view:messages', 'send:messages'
-    ],
-  },
-  {
-    id: 'client1',
-    email: 'client@lawerp.com',
-    password: 'admin123',
-    name: 'Client User',
-    role: 'client',
-    firmId: 'firm1',
-    assignedAttorneyId: 'attorney1',
-    permissions: [
-      'view:documents', 'upload:documents',
-      'view:messages', 'send:messages',
-      'view:appointments'
-    ],
-  }
-];
+interface AuthContextType {
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  currentUser: User | null;
+  login: (credentials: LoginCredentials) => Promise<User | null>;
+  logout: () => void;
+  hasPermission: (permission: string) => boolean;
+  updateAuthState: () => void;
+}
 
-// Mock firm data
-const mockFirms = [
-  {
-    id: 'firm1',
-    name: 'LYZ Law Firm',
-    adminId: 'admin1',
-    address: '123 Legal St, Lawtown, CA 90210',
-    contactNumber: '(555) 123-4567',
-    email: 'contact@lyzlawfirm.com',
-    website: 'www.lyzlawfirm.com',
-    createdAt: new Date().toISOString(),
-    createdBy: 'superadmin1'
-  }
-];
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const location = useLocation();
 
-  // Check if user is already authenticated on mount
-  useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated');
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
+  // Enhanced Authentication Management
+  const updateAuthState = () => {
+    try {
+      const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+      const userDataStr = localStorage.getItem('userData') || sessionStorage.getItem('userData');
       
-      // Get stored user data
-      const userData = localStorage.getItem('userData');
-      if (userData) {
-        setCurrentUser(JSON.parse(userData));
+      if (token && userDataStr) {
+        const userData = JSON.parse(userDataStr);
+        setCurrentUser(userData);
+        setIsAuthenticated(true);
+      } else {
+        setCurrentUser(null);
+        setIsAuthenticated(false);
       }
+    } catch (error) {
+      console.error('Failed to restore authentication state:', error);
+      setCurrentUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    updateAuthState();
   }, []);
 
-  const login = async (email: string, password: string): Promise<void> => {
-    return new Promise<void>((resolve, reject) => {
-      // Find user in predefined users
-      const user = predefinedUsers.find(u => u.email === email);
+  // Mock login function - in a real app, this would call an API
+  const login = async (credentials: LoginCredentials): Promise<User | null> => {
+    setIsLoading(true);
+    
+    try {
+      // For demo purposes - would be an actual API call
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      if (user && user.password === password) {
-        const userData: User = {
-          id: user.id,
-          name: user.name || '',
-          email: user.email,
-          role: user.role as 'superadmin' | 'admin' | 'attorney' | 'client',
-          firmId: user.firmId,
-          assignedAttorneyId: user.assignedAttorneyId,
-          assignedClientIds: user.assignedClientIds,
-          permissions: user.permissions
+      let user = null;
+      
+      // Use demo credentials for test logins
+      if (credentials.email === 'admin@lyzlawfirm.com' && credentials.password === 'admin123') {
+        user = {
+          id: 'admin1',
+          name: 'Admin User',
+          email: 'admin@lyzlawfirm.com',
+          role: 'admin',
+          firmId: 'lyz001',
+          permissions: ['admin:access', 'manage:users', 'manage:cases']
         };
-
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('userData', JSON.stringify(userData));
-        localStorage.setItem('auth_token', 'mock_jwt_token'); // In production, this would be a real JWT
-        
-        setIsAuthenticated(true);
-        setCurrentUser(userData);
-        
-        // In a real app, we would also want to store the JWT token
-        // and use it for API requests
-        
-        resolve();
+      } else if (credentials.email === 'attorney@lyzlawfirm.com' && credentials.password === 'attorney123') {
+        user = {
+          id: 'attorney1',
+          name: 'Attorney Smith',
+          email: 'attorney@lyzlawfirm.com',
+          role: 'attorney',
+          firmId: 'lyz001',
+          permissions: ['view:cases', 'edit:cases', 'view:clients']
+        };
+      } else if (credentials.email === 'client@example.com' && credentials.password === 'client123') {
+        user = {
+          id: 'client1',
+          name: 'John Client',
+          email: 'client@example.com',
+          role: 'client',
+          permissions: ['view:own_cases', 'upload:documents']
+        };
       } else {
-        reject(new Error('Invalid credentials'));
+        toast.error('Invalid email or password');
+        setIsLoading(false);
+        return null;
       }
-    });
+
+      // Save authentication data
+      const token = 'mock-jwt-token-' + Math.random().toString(36).substr(2);
+      
+      // Store in localStorage or sessionStorage based on remember me
+      if (credentials.remember) {
+        localStorage.setItem('auth_token', token);
+        localStorage.setItem('userData', JSON.stringify(user));
+        localStorage.setItem('isAuthenticated', 'true');
+      } else {
+        sessionStorage.setItem('auth_token', token);
+        sessionStorage.setItem('userData', JSON.stringify(user));
+        sessionStorage.setItem('isAuthenticated', 'true');
+      }
+      
+      // Update state
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      
+      toast.success(`Welcome back, ${user.name}!`);
+      
+      // Navigate to dashboard or originally requested page
+      const origin = location.state?.from?.pathname || '/dashboard';
+      navigate(origin);
+      
+      return user;
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('An error occurred during login');
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userData');
+    // Clear all auth data
     localStorage.removeItem('auth_token');
-    setIsAuthenticated(false);
+    localStorage.removeItem('userData');
+    localStorage.removeItem('isAuthenticated');
+    sessionStorage.removeItem('auth_token');
+    sessionStorage.removeItem('userData');
+    sessionStorage.removeItem('isAuthenticated');
+    
     setCurrentUser(null);
+    setIsAuthenticated(false);
+    
+    toast.success('You have been logged out');
     navigate('/login');
   };
 
   const hasPermission = (permission: string): boolean => {
-    if (!currentUser) return false;
+    if (!currentUser || !currentUser.permissions) return false;
     
-    // Super Admin and Admin have all permissions
-    if (currentUser.role === 'superadmin' || 
-        (currentUser.role === 'admin' && currentUser.permissions.includes('all'))) {
-      return true;
-    }
+    if (currentUser.role === 'superadmin') return true;
     
-    // Check if user has the specific permission
     return currentUser.permissions.includes(permission);
   };
 
-  const assignClientToAttorney = async (clientId: string, attorneyId: string): Promise<boolean> => {
-    try {
-      // In a real app, this would make an API call to update the database
-      // For now, we'll just update our in-memory storage
-      
-      // Update the client's assignedAttorneyId
-      const clientIndex = predefinedUsers.findIndex(user => user.id === clientId && user.role === 'client');
-      if (clientIndex !== -1) {
-        predefinedUsers[clientIndex].assignedAttorneyId = attorneyId;
-      }
-      
-      // Update the attorney's assignedClientIds
-      const attorneyIndex = predefinedUsers.findIndex(user => user.id === attorneyId && user.role === 'attorney');
-      if (attorneyIndex !== -1) {
-        if (!predefinedUsers[attorneyIndex].assignedClientIds) {
-          predefinedUsers[attorneyIndex].assignedClientIds = [];
-        }
-        
-        if (!predefinedUsers[attorneyIndex].assignedClientIds!.includes(clientId)) {
-          predefinedUsers[attorneyIndex].assignedClientIds!.push(clientId);
-        }
-      }
-      
-      // If the current user is the client or attorney that was updated, update the currentUser state
-      if (currentUser?.id === clientId) {
-        setCurrentUser({
-          ...currentUser,
-          assignedAttorneyId: attorneyId
-        });
-        localStorage.setItem('userData', JSON.stringify({
-          ...currentUser,
-          assignedAttorneyId: attorneyId
-        }));
-      }
-      
-      if (currentUser?.id === attorneyId) {
-        const updatedClientIds = [...(currentUser.assignedClientIds || [])];
-        if (!updatedClientIds.includes(clientId)) {
-          updatedClientIds.push(clientId);
-        }
-        
-        setCurrentUser({
-          ...currentUser,
-          assignedClientIds: updatedClientIds
-        });
-        
-        localStorage.setItem('userData', JSON.stringify({
-          ...currentUser,
-          assignedClientIds: updatedClientIds
-        }));
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error assigning client to attorney:', error);
-      return false;
-    }
-  };
-
-  const getAssignedClients = async (attorneyId: string): Promise<string[]> => {
-    try {
-      // In a real app, this would make an API call to fetch from the database
-      const attorney = predefinedUsers.find(user => user.id === attorneyId && user.role === 'attorney');
-      return attorney?.assignedClientIds || [];
-    } catch (error) {
-      console.error('Error getting assigned clients:', error);
-      return [];
-    }
-  };
-
-  const getAssignedAttorney = async (clientId: string): Promise<string | null> => {
-    try {
-      // In a real app, this would make an API call to fetch from the database
-      const client = predefinedUsers.find(user => user.id === clientId && user.role === 'client');
-      return client?.assignedAttorneyId || null;
-    } catch (error) {
-      console.error('Error getting assigned attorney:', error);
-      return null;
-    }
-  };
-
   return (
-    <AuthContext.Provider value={{ 
-      isAuthenticated, 
-      login, 
-      logout, 
-      currentUser,
-      hasPermission,
-      assignClientToAttorney,
-      getAssignedClients,
-      getAssignedAttorney
-    }}>
+    <AuthContext.Provider
+      value={{
+        isLoading,
+        isAuthenticated,
+        currentUser,
+        login,
+        logout,
+        hasPermission,
+        updateAuthState
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -262,8 +185,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
+
+export default AuthContext;
