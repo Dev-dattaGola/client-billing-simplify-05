@@ -1,23 +1,26 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import MainContent from './MainContent';
-import { useLayoutSize } from '@/hooks/useLayoutSize';
 
 interface PageLayoutProps {
   children: React.ReactNode;
 }
 
 const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
-  const { isSidebarOpen, isMobile, setIsSidebarOpen, toggleSidebar } = useLayoutSize();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const isMobile = window.innerWidth < 768;
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar toggleSidebar={toggleSidebar} />
+      <Navbar toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
       <div className="flex flex-1 mt-16 h-[calc(100vh-4rem)]">
-        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <MainContent isSidebarOpen={isSidebarOpen} isMobile={isMobile}>
+        <Sidebar 
+          isCollapsed={isSidebarCollapsed} 
+          setIsCollapsed={setIsSidebarCollapsed} 
+        />
+        <MainContent isSidebarOpen={!isSidebarCollapsed} isMobile={isMobile}>
           {children}
         </MainContent>
       </div>

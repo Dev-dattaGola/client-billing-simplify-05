@@ -19,11 +19,15 @@ apiClient.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     
-    // Add user role to headers if available
+    // Add user role and firmId to headers if available
     if (userData) {
       try {
-        const { role } = JSON.parse(userData);
+        const { role, firmId, id } = JSON.parse(userData);
         config.headers['X-User-Role'] = role;
+        if (firmId) {
+          config.headers['X-Firm-ID'] = firmId;
+        }
+        config.headers['X-User-ID'] = id;
       } catch (error) {
         console.error('Error parsing user data:', error);
       }

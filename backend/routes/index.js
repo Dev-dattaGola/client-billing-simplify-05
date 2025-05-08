@@ -1,15 +1,16 @@
 
 const clientRoutes = require('./clientRoutes');
-
-// Import other route files here when they're created
-const attorneyRoutes = require('express').Router();
-const caseRoutes = require('express').Router();
-const medicalRoutes = require('express').Router();
-const chatbotRoutes = require('express').Router();
-const depositionRoutes = require('express').Router();
-const messageRoutes = require('express').Router();
-const calendarRoutes = require('express').Router();
-const userRoutes = require('express').Router();
+const caseRoutes = require('./caseRoutes');
+const medicalRoutes = require('./medicalRoutes');
+const chatbotRoutes = require('./chatbotRoutes');
+const depositionRoutes = require('./depositionRoutes');
+const attorneyRoutes = require('./attorneyRoutes');
+const messageRoutes = require('./messageRoutes');
+const calendarRoutes = require('./calendarRoutes');
+const userRoutes = require('./userRoutes');
+const firmRoutes = require('./firmRoutes');
+const adminRoutes = require('./adminRoutes');
+const systemRoutes = require('./systemRoutes');
 
 module.exports = {
   clientRoutes,
@@ -20,5 +21,8 @@ module.exports = {
   attorneyRoutes,
   messageRoutes,
   calendarRoutes,
-  userRoutes
+  userRoutes,
+  firmRoutes,
+  adminRoutes,
+  systemRoutes
 };
