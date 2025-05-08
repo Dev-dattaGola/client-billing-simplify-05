@@ -35,6 +35,7 @@ export interface CalendarEvent {
   participants?: string[];
   relatedTaskId?: string;
   relatedCaseId?: string;
+  createdBy?: string; // ID of the user who created the event
   createdAt: Date;
   updatedAt: Date;
 }

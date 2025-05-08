@@ -1,36 +1,56 @@
 
 import React, { useState, useEffect } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { 
+  Table, TableHeader, TableRow, TableHead, 
+  TableBody, TableCell 
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Building, Plus, Edit, Trash2, Users } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { 
+  Dialog, DialogContent, DialogHeader, 
+  DialogTitle, DialogFooter 
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Firm } from '@/types/firm';
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { Firm } from "@/types/firm";
+import { Building2, PlusCircle, Edit, Trash2 } from "lucide-react";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-// This would be replaced with an actual API call in a real app
-const mockFirms: Firm[] = [
-  {
-    id: 'firm1',
-    name: 'LYZ Law Firm',
-    adminId: 'admin1',
-    address: '123 Legal St, Lawtown, CA 90210',
-    contactNumber: '(555) 123-4567',
-    email: 'contact@lyzlawfirm.com',
-    website: 'www.lyzlawfirm.com',
-    createdAt: new Date().toISOString(),
-    createdBy: 'superadmin1'
-  }
-];
+// Mock API call for firms - this would be replaced with actual MongoDB API calls
+const fetchFirms = async (): Promise<Firm[]> => {
+  return [
+    {
+      id: 'firm1',
+      name: 'LYZ Law Firm',
+      address: '123 Legal St, Lawtown, CA 90210',
+      contactNumber: '(555) 123-4567',
+      email: 'contact@lyzlawfirm.com',
+      website: 'www.lyzlawfirm.com',
+      adminId: 'admin1',
+      status: 'active',
+      subscriptionPlan: 'Premium',
+      subscriptionStatus: 'active',
+      createdAt: new Date(),
+      createdBy: 'superadmin1'
+    }
+  ];
+};
 
 const FirmManagement: React.FC = () => {
   const [firms, setFirms] = useState<Firm[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedFirm, setSelectedFirm] = useState<Firm | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [currentFirm, setCurrentFirm] = useState<Firm | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -38,134 +58,134 @@ const FirmManagement: React.FC = () => {
     email: '',
     website: ''
   });
-  
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchFirms = async () => {
-      setIsLoading(true);
+    const loadFirms = async () => {
       try {
-        // In a real app this would be an API call
-        // const response = await apiClient.get('/firms');
-        // const data = response.data;
-        setFirms(mockFirms);
+        setIsLoading(true);
+        const data = await fetchFirms();
+        setFirms(data);
       } catch (error) {
-        console.error('Error fetching firms:', error);
+        console.error('Error loading firms:', error);
         toast({
-          title: "Error",
-          description: "Failed to load firms. Please try again.",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Failed to load firms. Please try again later.',
+          variant: 'destructive',
         });
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchFirms();
+    loadFirms();
   }, [toast]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleCreateFirm = async () => {
     try {
-      // In a real app this would be an API call
+      // This would be replaced with an actual API call to MongoDB
       const newFirm: Firm = {
-        id: `firm${firms.length + 1}`,
+        id: `firm-${Date.now()}`,
         name: formData.name,
-        adminId: '', // This would be set when an admin is assigned
         address: formData.address,
         contactNumber: formData.contactNumber,
         email: formData.email,
         website: formData.website,
-        createdAt: new Date().toISOString(),
-        createdBy: 'superadmin1' // This would be the current user's ID
+        status: 'active',
+        createdAt: new Date(),
+        createdBy: 'superadmin1'
       };
-      
-      // In a real app: await apiClient.post('/firms', newFirm);
-      
+
       setFirms(prev => [...prev, newFirm]);
-      setIsCreateDialogOpen(false);
+      setIsDialogOpen(false);
       resetForm();
-      
+
       toast({
-        title: "Success",
-        description: "Firm created successfully.",
+        title: 'Success',
+        description: 'Law firm has been created successfully.',
       });
     } catch (error) {
       console.error('Error creating firm:', error);
       toast({
-        title: "Error",
-        description: "Failed to create firm. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create law firm. Please try again.',
+        variant: 'destructive',
       });
     }
   };
 
-  const handleEditFirm = async () => {
-    if (!selectedFirm) return;
-    
+  const handleUpdateFirm = async () => {
+    if (!currentFirm) return;
+
     try {
-      // In a real app this would be an API call
-      const updatedFirm: Firm = {
-        ...selectedFirm,
-        name: formData.name,
-        address: formData.address,
-        contactNumber: formData.contactNumber,
-        email: formData.email,
-        website: formData.website
-      };
-      
-      // In a real app: await apiClient.put(`/firms/${selectedFirm.id}`, updatedFirm);
-      
-      setFirms(prev => prev.map(firm => firm.id === updatedFirm.id ? updatedFirm : firm));
-      setIsEditDialogOpen(false);
+      // This would be replaced with an actual API call to MongoDB
+      const updatedFirms = firms.map(firm => 
+        firm.id === currentFirm.id 
+          ? { 
+              ...firm, 
+              name: formData.name, 
+              address: formData.address, 
+              contactNumber: formData.contactNumber, 
+              email: formData.email, 
+              website: formData.website,
+              updatedAt: new Date()
+            } 
+          : firm
+      );
+
+      setFirms(updatedFirms);
+      setIsDialogOpen(false);
+      setCurrentFirm(null);
       resetForm();
-      
+
       toast({
-        title: "Success",
-        description: "Firm updated successfully.",
+        title: 'Success',
+        description: 'Law firm has been updated successfully.',
       });
     } catch (error) {
       console.error('Error updating firm:', error);
       toast({
-        title: "Error",
-        description: "Failed to update firm. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update law firm. Please try again.',
+        variant: 'destructive',
       });
     }
   };
 
   const handleDeleteFirm = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this firm? This action cannot be undone.")) return;
-    
     try {
-      // In a real app this would be an API call
-      // await apiClient.delete(`/firms/${id}`);
-      
+      // This would be replaced with an actual API call to MongoDB
       setFirms(prev => prev.filter(firm => firm.id !== id));
-      
+
       toast({
-        title: "Success",
-        description: "Firm deleted successfully.",
+        title: 'Success',
+        description: 'Law firm has been deleted successfully.',
       });
     } catch (error) {
       console.error('Error deleting firm:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete firm. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete law firm. Please try again.',
+        variant: 'destructive',
       });
     }
   };
 
   const openEditDialog = (firm: Firm) => {
-    setSelectedFirm(firm);
+    setCurrentFirm(firm);
     setFormData({
       name: firm.name,
-      address: firm.address || '',
-      contactNumber: firm.contactNumber || '',
-      email: firm.email || '',
+      address: firm.address,
+      contactNumber: firm.contactNumber,
+      email: firm.email,
       website: firm.website || ''
     });
-    setIsEditDialogOpen(true);
+    setIsDialogOpen(true);
   };
 
   const resetForm = () => {
@@ -176,226 +196,182 @@ const FirmManagement: React.FC = () => {
       email: '',
       website: ''
     });
-    setSelectedFirm(null);
+  };
+
+  const openCreateDialog = () => {
+    setCurrentFirm(null);
+    resetForm();
+    setIsDialogOpen(true);
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Firm Management</h2>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Firm
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Firm</DialogTitle>
-              <DialogDescription>
-                Add a new law firm to the system.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Firm Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter firm name"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  placeholder="Enter firm address"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="contact">Contact Number</Label>
-                <Input
-                  id="contact"
-                  value={formData.contactNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, contactNumber: e.target.value }))}
-                  placeholder="Enter contact number"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Enter email address"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="website">Website</Label>
-                <Input
-                  id="website"
-                  value={formData.website}
-                  onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                  placeholder="Enter website URL"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                resetForm();
-                setIsCreateDialogOpen(false);
-              }}>Cancel</Button>
-              <Button 
-                onClick={handleCreateFirm}
-                disabled={!formData.name}
-              >
-                Create Firm
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Law Firms</h3>
+        <Button onClick={openCreateDialog}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Law Firm
+        </Button>
       </div>
 
-      <div className="border rounded-md">
-        {isLoading ? (
-          <div className="p-4 space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-5 w-[250px]" />
-                <Skeleton className="h-4 w-[400px]" />
-              </div>
-            ))}
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+        </div>
+      ) : firms.length === 0 ? (
+        <div className="text-center py-8">
+          <Building2 className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No law firms</h3>
+          <p className="mt-1 text-sm text-gray-500">Get started by adding a new law firm.</p>
+          <div className="mt-6">
+            <Button onClick={openCreateDialog}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Law Firm
+            </Button>
           </div>
-        ) : (
+        </div>
+      ) : (
+        <div className="border rounded-md">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Firm Name</TableHead>
-                <TableHead>Address</TableHead>
-                <TableHead>Contact</TableHead>
+                <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Admin</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {firms.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
-                    No firms found. Add a new firm to get started.
+              {firms.map((firm) => (
+                <TableRow key={firm.id}>
+                  <TableCell className="font-medium">{firm.name}</TableCell>
+                  <TableCell>{firm.email}</TableCell>
+                  <TableCell>{firm.contactNumber}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        firm.status === 'active'
+                          ? 'bg-green-100 text-green-800'
+                          : firm.status === 'inactive'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {firm.status.charAt(0).toUpperCase() + firm.status.slice(1)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditDialog(firm)}
+                      >
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="text-red-500">
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Delete</span>
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete the law firm and all associated data.
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteFirm(firm.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ) : (
-                firms.map(firm => (
-                  <TableRow key={firm.id}>
-                    <TableCell className="font-medium">{firm.name}</TableCell>
-                    <TableCell>{firm.address || 'N/A'}</TableCell>
-                    <TableCell>{firm.contactNumber || 'N/A'}</TableCell>
-                    <TableCell>{firm.email || 'N/A'}</TableCell>
-                    <TableCell>
-                      {firm.adminId ? (
-                        <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                          Admin Assigned
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
-                          No Admin
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button variant="ghost" size="icon" title="Edit Firm" onClick={() => openEditDialog(firm)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" title="Manage Users" onClick={() => {/* Navigate to user management for this firm */}}>
-                          <Users className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" title="Delete Firm" onClick={() => handleDeleteFirm(firm.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+              ))}
             </TableBody>
           </Table>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Edit Firm Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Firm</DialogTitle>
-            <DialogDescription>
-              Update firm information
-            </DialogDescription>
+            <DialogTitle>
+              {currentFirm ? 'Edit Law Firm' : 'Add New Law Firm'}
+            </DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="edit-name">Firm Name</Label>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Firm Name</Label>
               <Input
-                id="edit-name"
+                id="name"
+                name="name"
                 value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={handleInputChange}
                 placeholder="Enter firm name"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-address">Address</Label>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address</Label>
               <Input
-                id="edit-address"
+                id="address"
+                name="address"
                 value={formData.address}
-                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                onChange={handleInputChange}
                 placeholder="Enter firm address"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-contact">Contact Number</Label>
+            <div className="space-y-2">
+              <Label htmlFor="contactNumber">Contact Number</Label>
               <Input
-                id="edit-contact"
+                id="contactNumber"
+                name="contactNumber"
                 value={formData.contactNumber}
-                onChange={(e) => setFormData(prev => ({ ...prev, contactNumber: e.target.value }))}
+                onChange={handleInputChange}
                 placeholder="Enter contact number"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-email">Email</Label>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="edit-email"
+                id="email"
+                name="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                onChange={handleInputChange}
                 placeholder="Enter email address"
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="edit-website">Website</Label>
+            <div className="space-y-2">
+              <Label htmlFor="website">Website (Optional)</Label>
               <Input
-                id="edit-website"
+                id="website"
+                name="website"
                 value={formData.website}
-                onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                onChange={handleInputChange}
                 placeholder="Enter website URL"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              resetForm();
-              setIsEditDialogOpen(false);
-            }}>Cancel</Button>
-            <Button 
-              onClick={handleEditFirm}
-              disabled={!formData.name}
-            >
-              Save Changes
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={currentFirm ? handleUpdateFirm : handleCreateFirm}>
+              {currentFirm ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>

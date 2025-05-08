@@ -1,14 +1,17 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageLayout from '@/components/layout/PageLayout';
-import { Building2, Users, Shield, PieChart } from 'lucide-react';
+import { Building2, Users, Shield, PieChart, Activity, Settings } from 'lucide-react';
 import FirmManagement from '@/components/super-admin/FirmManagement';
+import AdminManagement from '@/components/super-admin/AdminManagement';
+import ActivityLogs from '@/components/super-admin/ActivityLogs';
+import SystemSettings from '@/components/super-admin/SystemSettings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const SuperAdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = React.useState('firms');
+  const [activeTab, setActiveTab] = useState('firms');
 
   return (
     <PageLayout>
@@ -16,7 +19,7 @@ const SuperAdminDashboard: React.FC = () => {
         <title>Super Admin - LAW ERP 500</title>
       </Helmet>
       
-      <div className="space-y-4">
+      <div className="container mx-auto px-4 py-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Super Admin Dashboard</h1>
           <p className="text-muted-foreground">
@@ -24,7 +27,7 @@ const SuperAdminDashboard: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -84,42 +87,47 @@ const SuperAdminDashboard: React.FC = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList>
-            <TabsTrigger value="firms">Firms</TabsTrigger>
-            <TabsTrigger value="admins">Firm Admins</TabsTrigger>
-            <TabsTrigger value="activity">Activity Logs</TabsTrigger>
-            <TabsTrigger value="settings">System Settings</TabsTrigger>
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="firms" className="flex items-center gap-2">
+              <Building2 className="h-4 w-4" /> Firms
+            </TabsTrigger>
+            <TabsTrigger value="admins" className="flex items-center gap-2">
+              <Users className="h-4 w-4" /> Firm Admins
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" /> Activity Logs
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" /> System Settings
+            </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="firms" className="border rounded-lg p-4 mt-4">
+          <TabsContent value="firms" className="bg-white border rounded-lg p-6 mt-6 shadow-sm">
             <FirmManagement />
           </TabsContent>
           
-          <TabsContent value="admins" className="border rounded-lg p-4 mt-4">
-            <div className="text-center p-8 text-muted-foreground">
-              <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">Firm Admin Management</h3>
-              <p>Manage firm administrators and their permissions</p>
-            </div>
+          <TabsContent value="admins" className="bg-white border rounded-lg p-6 mt-6 shadow-sm">
+            <AdminManagement />
           </TabsContent>
           
-          <TabsContent value="activity" className="border rounded-lg p-4 mt-4">
-            <div className="text-center p-8 text-muted-foreground">
-              <PieChart className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">System Activity</h3>
-              <p>Monitor system activity and audit logs</p>
-            </div>
+          <TabsContent value="activity" className="bg-white border rounded-lg p-6 mt-6 shadow-sm">
+            <ActivityLogs />
           </TabsContent>
           
-          <TabsContent value="settings" className="border rounded-lg p-4 mt-4">
-            <div className="text-center p-8 text-muted-foreground">
-              <Shield className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">System Settings</h3>
-              <p>Configure global system settings and security options</p>
-            </div>
+          <TabsContent value="settings" className="bg-white border rounded-lg p-6 mt-6 shadow-sm">
+            <SystemSettings />
           </TabsContent>
         </Tabs>
       </div>
+      
+      <footer className="px-4 py-6 border-t text-sm text-muted-foreground mt-8">
+        <div className="container mx-auto flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">LAW ERP 500</span> | Super Admin Panel
+          </div>
+          <div className="text-sm">© 2023-2025 All rights reserved.</div>
+        </div>
+      </footer>
     </PageLayout>
   );
 };
