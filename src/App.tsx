@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -13,7 +13,7 @@ import { ChatbotProvider } from './contexts/ChatbotContext';
 // Pages
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
-import Clients from './pages/Clients'; // Use regular pages for Clients
+import Clients from './pages/Clients';
 import Cases from './frontend/pages/Cases';
 import Calendar from './frontend/pages/Calendar';
 import Documents from './frontend/pages/Documents';
@@ -51,11 +51,11 @@ function App() {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <UserProvider>
-            <ClientProvider>
-              <ChatbotProvider>
-                <BrowserRouter>
+        <BrowserRouter>
+          <AuthProvider>
+            <UserProvider>
+              <ClientProvider>
+                <ChatbotProvider>
                   <Routes>
                     {/* Public routes */}
                     <Route path="/" element={<LandingPage />} />
@@ -86,11 +86,11 @@ function App() {
 
                   {/* Toast notifications */}
                   <Toaster />
-                </BrowserRouter>
-              </ChatbotProvider>
-            </ClientProvider>
-          </UserProvider>
-        </AuthProvider>
+                </ChatbotProvider>
+              </ClientProvider>
+            </UserProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </QueryClientProvider>
     </HelmetProvider>
   );
