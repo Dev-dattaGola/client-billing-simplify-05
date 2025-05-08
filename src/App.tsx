@@ -13,7 +13,7 @@ import { ChatbotProvider } from './contexts/ChatbotContext';
 // Pages
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
-import Clients from './frontend/pages/Clients';
+import Clients from './pages/Clients'; // Use regular pages for Clients
 import Cases from './frontend/pages/Cases';
 import Calendar from './frontend/pages/Calendar';
 import Documents from './frontend/pages/Documents';
@@ -73,12 +73,12 @@ function App() {
                     <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
                     <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
                     <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-                    <Route path="/admin" element={<ProtectedRoute roles={["admin"]}><Admin /></ProtectedRoute>} />
-                    <Route path="/attorneys" element={<ProtectedRoute roles={["admin", "superadmin"]}><Attorneys /></ProtectedRoute>} />
+                    <Route path="/admin" element={<ProtectedRoute requiredPermissions={["admin:access"]} roles={["admin"]}><Admin /></ProtectedRoute>} />
+                    <Route path="/attorneys" element={<ProtectedRoute requiredPermissions={["manage:users"]} roles={["admin", "superadmin"]}><Attorneys /></ProtectedRoute>} />
                     <Route path="/depositions" element={<ProtectedRoute><Depositions /></ProtectedRoute>} />
                     <Route path="/patients" element={<ProtectedRoute><Patients /></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                    <Route path="/super-admin" element={<ProtectedRoute roles={["superadmin"]}><SuperAdmin /></ProtectedRoute>} />
+                    <Route path="/super-admin" element={<ProtectedRoute requiredPermissions={["manage:system"]} roles={["superadmin"]}><SuperAdmin /></ProtectedRoute>} />
                     
                     {/* 404 route */}
                     <Route path="*" element={<NotFound />} />
