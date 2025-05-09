@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -26,96 +27,97 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const { hasPermission, currentUser } = useAuth();
   
-  const navItems = [
+  // Define which roles can access which items
+  const roleBasedNavItems = [
     { 
       title: 'Dashboard', 
       path: '/dashboard', 
       icon: <Home size={20} />,
-      permissions: [] // Accessible to all
+      roles: ['admin', 'attorney', 'client'] // All users
     },
     { 
       title: 'Clients', 
       path: '/clients', 
       icon: <Users size={20} />,
-      permissions: ['view:clients', 'access:all'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Cases', 
       path: '/cases', 
       icon: <Folder size={20} />,
-      permissions: ['view:cases', 'access:all'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Documents', 
       path: '/documents', 
       icon: <FileText size={20} />,
-      permissions: ['view:documents', 'upload:documents', 'access:all'] 
+      roles: ['admin', 'attorney', 'client'] // All users
     },
     { 
       title: 'Files', 
       path: '/files', 
       icon: <FileSearch size={20} />,
-      permissions: ['view:documents', 'access:all'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Medical', 
       path: '/medical', 
       icon: <Building2 size={20} />,
-      permissions: ['view:medical', 'access:all'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Billing', 
       path: '/billing', 
       icon: <BarChart size={20} />,
-      permissions: ['view:billing', 'access:all'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Calculator', 
       path: '/calculator', 
       icon: <Calculator size={20} />,
-      permissions: ['view:cases', 'access:all'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Reports', 
       path: '/reports', 
       icon: <FileSearch size={20} />,
-      permissions: ['view:cases', 'access:all'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Calendar', 
       path: '/calendar', 
       icon: <Calendar size={20} />,
-      permissions: ['view:calendar', 'view:appointments', 'access:all'] 
+      roles: ['admin', 'attorney', 'client'] // All users - clients can see appointments
     },
     { 
       title: 'Messages', 
       path: '/messages', 
       icon: <MessageSquare size={20} />,
-      permissions: ['view:messages', 'send:messages', 'access:all'] 
+      roles: ['admin', 'attorney', 'client'] // All users - clients can message attorneys
     },
     { 
       title: 'Admin', 
       path: '/admin', 
       icon: <Shield size={20} />,
-      permissions: ['manage:users', 'access:all'] 
+      roles: ['admin'] // Admin only
     },
     { 
       title: 'Depositions', 
       path: '/depositions', 
       icon: <Gavel size={20} />,
-      permissions: ['view:depositions', 'access:all'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Attorneys', 
       path: '/attorneys', 
       icon: <Users size={20} />,
-      permissions: ['manage:users', 'access:all'] 
+      roles: ['admin'] // Admin only
     },
     { 
       title: 'Settings', 
       path: '/settings', 
       icon: <Settings size={20} />,
-      permissions: [] // Accessible to all
+      roles: ['admin', 'attorney', 'client'] // All users
     }
   ];
 
@@ -134,8 +136,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       </div>
 
       <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
-        {navItems
-          .filter(item => item.permissions.length === 0 || item.permissions.some(perm => hasPermission(perm)))
+        {roleBasedNavItems
+          .filter(item => !currentUser || item.roles.includes(currentUser.role))
           .map((item) => (
             <NavLink
               key={item.path}

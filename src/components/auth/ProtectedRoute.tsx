@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 interface ProtectedRouteProps {
   children: ReactNode;
   requiredPermissions?: string[];
-  roles?: string[]; // Added roles prop
+  roles?: string[];
 }
 
 const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: ProtectedRouteProps) => {
@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
         variant: "destructive",
       });
     } else if (
-      (requiredPermissions.length > 0 && !requiredPermissions.some(perm => hasPermission(perm))) ||
+      (requiredPermissions.length > 0 && !requiredPermissions.some(perm => hasPermission(perm))) &&
       (roles.length > 0 && !roles.includes(currentUser?.role || ''))
     ) {
       toast({
@@ -39,10 +39,14 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
   }
   
   // Check if user has any of the required permissions or roles
-  if (
-    (requiredPermissions.length > 0 && !requiredPermissions.some(perm => hasPermission(perm))) ||
-    (roles.length > 0 && !roles.includes(currentUser?.role || ''))
-  ) {
+  const hasPermissionAccess = requiredPermissions.length === 0 || 
+    requiredPermissions.some(perm => hasPermission(perm));
+  
+  const hasRoleAccess = roles.length === 0 ||
+    (currentUser && roles.includes(currentUser.role || ''));
+  
+  // Grant access if either permission or role checks pass
+  if (!hasPermissionAccess && !hasRoleAccess) {
     return <Navigate to="/dashboard" replace />;
   }
   

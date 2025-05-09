@@ -83,8 +83,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: 'admin@lyzlawfirm.com',
           role: 'admin',
           firmId: 'lyz001',
-          // Fix: Added view:communications permission to admin
-          permissions: ['admin:access', 'manage:users', 'manage:cases', 'view:communications', 'view:medical', 'view:cases', 'access:all']
+          permissions: [
+            'admin:access',
+            'manage:users',
+            'manage:cases',
+            'view:communications',
+            'view:medical', 
+            'view:cases',
+            'access:all',
+            'create:users',
+            'edit:users',
+            'delete:users',
+            'view:clients',
+            'edit:clients',
+            'view:documents',
+            'upload:documents',
+            'view:calendar',
+            'view:appointments',
+            'view:messages',
+            'send:messages',
+            'view:billing',
+            'manage:billing',
+            'view:depositions'
+          ]
         };
       } else if (credentials.email === 'attorney@lyzlawfirm.com' && credentials.password === 'attorney123') {
         user = {
@@ -93,8 +114,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: 'attorney@lyzlawfirm.com',
           role: 'attorney',
           firmId: 'lyz001',
-          // Fix: Added view:communications permission to attorney
-          permissions: ['view:cases', 'edit:cases', 'view:clients', 'view:communications', 'view:medical', 'access:all']
+          permissions: [
+            'view:cases',
+            'edit:cases',
+            'view:clients',
+            'edit:clients',
+            'view:communications',
+            'view:medical',
+            'access:all',
+            'view:documents',
+            'upload:documents',
+            'view:calendar',
+            'view:appointments', 
+            'view:messages',
+            'send:messages',
+            'view:billing',
+            'view:depositions'
+          ]
         };
       } else if (credentials.email === 'client@example.com' && credentials.password === 'client123') {
         user = {
@@ -102,8 +138,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: 'John Client',
           email: 'client@example.com',
           role: 'client',
-          // Fix: Added view:communications permission to client
-          permissions: ['view:own_cases', 'upload:documents', 'view:communications']
+          permissions: [
+            'view:own_cases',
+            'upload:documents',
+            'view:communications',
+            'view:documents',
+            'view:appointments',
+            'view:messages',
+            'send:messages'
+          ]
         };
       } else {
         toast.error('Invalid email or password');
@@ -164,11 +207,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const hasPermission = (permission: string): boolean => {
     if (!currentUser || !currentUser.permissions) return false;
     
-    if (currentUser.role === 'superadmin') return true;
+    // Super admin and admin have all permissions
+    if (currentUser.role === 'superadmin' || currentUser.role === 'admin') return true;
     
-    // Fix: Always grant access to communication features
-    if (permission === 'view:communications') return true;
+    // Communication access is special case for clients
+    if (permission === 'view:communications' || 
+        permission === 'view:messages' || 
+        permission === 'send:messages' || 
+        permission === 'view:documents' || 
+        permission === 'upload:documents' ||
+        permission === 'view:appointments') {
+      return true; // Allow for all roles
+    }
     
+    // Check specific permission
     return currentUser.permissions.includes(permission);
   };
 
