@@ -61,10 +61,7 @@ const Login = () => {
               LYZ
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">LYZ Law Firm</CardTitle>
-          <CardDescription className="text-center text-xs text-gray-500">
-            LAW EMR
-          </CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
