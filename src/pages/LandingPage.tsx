@@ -54,7 +54,7 @@ const LandingPage: React.FC = () => {
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8 text-left">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-lawfirm-dark-purple mb-6 leading-tight">
-                LYZ Law Firm Management System
+                LAWerp500 Firm Management System
               </h1>
               <p className="text-xl text-gray-700 mb-8 leading-relaxed max-w-2xl">
                 Streamline your law practice with our comprehensive case management system.
