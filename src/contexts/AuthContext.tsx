@@ -14,23 +14,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Enhanced Authentication Management
   const updateAuthState = () => {
-    console.log("Updating auth state...");
     const { user, isAuthenticated: isAuth } = restoreAuthState();
-    
-    console.log("Auth state updated:", { 
-      isAuthenticated: isAuth, 
-      userExists: !!user,
-      userName: user?.name,
-      userRole: user?.role 
-    });
-    
     setCurrentUser(user);
     setIsAuthenticated(isAuth);
     setIsLoading(false);
   };
 
   useEffect(() => {
-    console.log("AuthProvider initialized");
     updateAuthState();
   }, []);
 

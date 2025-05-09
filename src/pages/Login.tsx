@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { AlertCircle, Building, Loader2 } from "lucide-react";
+import { AlertCircle, Building } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Login = () => {
@@ -19,7 +19,7 @@ const Login = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { login, isAuthenticated } = useAuth();
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" />;
@@ -37,25 +37,16 @@ const Login = () => {
     }
 
     try {
-      console.log("Attempting login with:", { email, remember });
-      const user = await login({ email, password, remember });
-      
-      if (!user) {
-        setError("Login failed. Please check your credentials.");
-        setIsLoading(false);
-        return;
-      }
+      // Fix: Pass a single object with email, password and remember properties
+      await login({ email, password, remember });
       
       toast({
-        title: "Login Successful",
-        description: `Welcome back, ${user.name}!`,
+        title: "Success",
+        description: "You have successfully logged in",
       });
-      
-      console.log("Login successful, navigating to dashboard");
       navigate("/dashboard");
     } catch (error) {
-      console.error("Login error:", error);
-      setError(typeof error === 'string' ? error : "Authentication failed. Please try again.");
+      setError("Invalid credentials. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +57,6 @@ const Login = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
-            {/* Logo could be added here */}
           </div>
           <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle>
         </CardHeader>
@@ -88,8 +78,6 @@ const Login = () => {
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                disabled={isLoading}
                 required
               />
             </div>
@@ -102,8 +90,6 @@ const Login = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                disabled={isLoading}
                 required
               />
             </div>
@@ -115,7 +101,6 @@ const Login = () => {
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 text-lawfirm-light-blue focus:ring-lawfirm-light-blue"
-                disabled={isLoading}
               />
               <Label htmlFor="remember" className="text-sm text-gray-600">
                 Remember me
@@ -139,12 +124,7 @@ const Login = () => {
               className="w-full bg-lawfirm-light-blue hover:bg-lawfirm-light-blue/90"
               disabled={isLoading}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : "Sign In"}
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         </CardContent>
