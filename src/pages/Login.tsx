@@ -85,7 +85,7 @@ const Login = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="color-white">Email</Label>
+              <Label htmlFor="email" className="text-white">Email</Label>
               <Input 
                 id="email" 
                 type="email" 
