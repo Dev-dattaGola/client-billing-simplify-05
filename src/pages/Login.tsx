@@ -69,7 +69,7 @@ const Login = () => {
             <img 
                 src="/lovable-uploads/f821edb6-2ada-465d-a812-7f4c9e81f81d.png" 
                 alt="LAWerp500 Logo" 
-                className="h-44"
+                className="h-44 object-cover"
               />
           </div>
           {/* <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle> */}
