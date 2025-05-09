@@ -66,9 +66,13 @@ const Login = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
-            {/* Logo could be added here */}
+            <img 
+                src="/lovable-uploads/f821edb6-2ada-465d-a812-7f4c9e81f81d.png" 
+                alt="LAWerp500 Logo" 
+                className="h-32"
+              />
           </div>
-          <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle>
+          {/* <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle> */}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -149,7 +153,7 @@ const Login = () => {
           </form>
         </CardContent>
         <CardFooter className="text-center text-sm text-muted-foreground">
-          <div>© 2023 LYZ Law Firm. All rights reserved.</div>
+          <div>© 2025 LAWerp500. All rights reserved.</div>
         </CardFooter>
       </Card>
     </div>
