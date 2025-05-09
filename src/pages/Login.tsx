@@ -62,17 +62,13 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-purple-50 px-4">
-      <Card className="w-full max-w-md bg-violet-600">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
-            <img 
-                src="/lovable-uploads/f821edb6-2ada-465d-a812-7f4c9e81f81d.png" 
-                alt="LAWerp500 Logo" 
-                className="h-44"
-              />
+            {/* Logo could be added here */}
           </div>
-          {/* <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle> */}
+          <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -85,7 +81,7 @@ const Login = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">Email</Label>
+              <Label htmlFor="email">Email</Label>
               <Input 
                 id="email" 
                 type="email" 
@@ -99,7 +95,7 @@ const Login = () => {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-white" >Password</Label>
+                <Label htmlFor="password">Password</Label>
               </div>
               <Input 
                 id="password" 
@@ -121,7 +117,7 @@ const Login = () => {
                 className="h-4 w-4 rounded border-gray-300 text-lawfirm-light-blue focus:ring-lawfirm-light-blue"
                 disabled={isLoading}
               />
-              <Label htmlFor="remember" className="text-sm text-white">
+              <Label htmlFor="remember" className="text-sm text-gray-600">
                 Remember me
               </Label>
             </div>
@@ -153,7 +149,7 @@ const Login = () => {
           </form>
         </CardContent>
         <CardFooter className="text-center text-sm text-muted-foreground">
-          <div className="text-white">© 2025 LAWerp500. All rights reserved.</div>
+          <div>© 2023 LYZ Law Firm. All rights reserved.</div>
         </CardFooter>
       </Card>
     </div>
