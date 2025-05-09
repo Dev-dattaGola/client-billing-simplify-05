@@ -69,7 +69,7 @@ const Login = () => {
             <img 
                 src="/lovable-uploads/f821edb6-2ada-465d-a812-7f4c9e81f81d.png" 
                 alt="LAWerp500 Logo" 
-                className="h-44 object-cover"
+                className="h-44"
               />
           </div>
           {/* <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle> */}
@@ -99,7 +99,7 @@ const Login = () => {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-white" >Password</Label>
               </div>
               <Input 
                 id="password" 
