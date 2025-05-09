@@ -139,7 +139,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
               <img 
                 src="/lovable-uploads/f821edb6-2ada-465d-a812-7f4c9e81f81d.png" 
                 alt="LAWerp500 Logo" 
-                className="h-10"
+                className="h-32"
               />
               
             </div>
