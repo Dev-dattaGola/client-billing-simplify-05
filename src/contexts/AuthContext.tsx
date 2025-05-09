@@ -140,9 +140,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role: 'client',
           permissions: [
             'view:own_cases',
-            'upload:documents',
-            'view:communications',
             'view:documents',
+            'upload:documents',
+            'view:calendar',
             'view:appointments',
             'view:messages',
             'send:messages'
@@ -205,23 +205,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const hasPermission = (permission: string): boolean => {
-    if (!currentUser || !currentUser.permissions) return false;
+    if (!currentUser) return false;
     
-    // Super admin and admin have all permissions
-    if (currentUser.role === 'superadmin' || currentUser.role === 'admin') return true;
+    // Admin has all permissions
+    if (currentUser.role === 'admin') return true;
     
-    // Communication access is special case for clients
-    if (permission === 'view:communications' || 
-        permission === 'view:messages' || 
-        permission === 'send:messages' || 
-        permission === 'view:documents' || 
-        permission === 'upload:documents' ||
-        permission === 'view:appointments') {
-      return true; // Allow for all roles
+    // Attorney has all permissions except user management
+    if (currentUser.role === 'attorney') {
+      if (permission.includes('create:users') || 
+          permission.includes('edit:users') || 
+          permission.includes('delete:users') ||
+          permission.includes('admin:access')) {
+        return false;
+      }
+      return true;
+    }
+
+    // Client permissions
+    if (currentUser.role === 'client') {
+      // Explicitly define what clients can access
+      const clientPermissions = [
+        'view:documents',
+        'upload:documents',
+        'view:calendar', 
+        'view:appointments',
+        'view:messages',
+        'send:messages'
+      ];
+      
+      return clientPermissions.includes(permission);
     }
     
-    // Check specific permission
-    return currentUser.permissions.includes(permission);
+    // Check specific permission if user has permissions array
+    if (currentUser.permissions) {
+      return currentUser.permissions.includes(permission);
+    }
+    
+    return false;
   };
 
   return (

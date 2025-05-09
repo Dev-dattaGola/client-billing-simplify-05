@@ -17,22 +17,59 @@ const RoleBasedLayout: React.FC<RoleBasedLayoutProps> = ({
 }) => {
   const { hasPermission, currentUser } = useAuth();
   
-  // Check if the user has any of the required permissions
-  const hasPermissionAccess = requiredPermissions.length === 0 || 
-    requiredPermissions.some(permission => hasPermission(permission));
+  // Admin always has access to everything
+  if (currentUser?.role === 'admin') {
+    return <>{children}</>;
+  }
+  
+  // Attorney has access to everything except admin features
+  if (currentUser?.role === 'attorney') {
+    const isAdminFeature = requiredRoles.includes('admin') || 
+                           requiredPermissions.some(p => p.includes('admin:') || 
+                                                       p.includes('create:users') ||
+                                                       p.includes('edit:users') ||
+                                                       p.includes('delete:users'));
     
-  // Check if user has required role
-  const hasRoleAccess = requiredRoles.length === 0 ||
-    (currentUser && requiredRoles.includes(currentUser.role));
-  
-  // User has access if they meet permission OR role requirements
-  const hasAccess = hasPermissionAccess || hasRoleAccess;
-  
-  if (!hasAccess) {
+    if (!isAdminFeature) {
+      return <>{children}</>;
+    }
+    
     return <>{fallback}</>;
   }
   
-  return <>{children}</>;
+  // Client has restricted access
+  if (currentUser?.role === 'client') {
+    const clientPermissions = [
+      'view:documents',
+      'upload:documents',
+      'view:calendar', 
+      'view:appointments',
+      'view:messages',
+      'send:messages'
+    ];
+    
+    const hasAccess = requiredPermissions.some(perm => clientPermissions.includes(perm)) || 
+                     requiredRoles.includes('client');
+    
+    if (hasAccess) {
+      return <>{children}</>;
+    }
+    
+    return <>{fallback}</>;
+  }
+  
+  // For other roles, check specific permissions and roles
+  const hasPermissionAccess = requiredPermissions.length === 0 || 
+    requiredPermissions.some(permission => hasPermission(permission));
+    
+  const hasRoleAccess = requiredRoles.length === 0 ||
+    (currentUser && requiredRoles.includes(currentUser.role));
+  
+  if (hasPermissionAccess || hasRoleAccess) {
+    return <>{children}</>;
+  }
+  
+  return <>{fallback}</>;
 };
 
 export default RoleBasedLayout;

@@ -38,7 +38,12 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
-  // Check if user has any of the required permissions or roles
+  // Admin has access to everything
+  if (currentUser?.role === 'admin') {
+    return <>{children}</>;
+  }
+  
+  // Check permissions for other users
   const hasPermissionAccess = requiredPermissions.length === 0 || 
     requiredPermissions.some(perm => hasPermission(perm));
   
