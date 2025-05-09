@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import Navbar from '../components/layout/PageLayout';
+import Navbar from '..src/components/layout/PageLayout';
 import Sidebar from './Sidebar';
 import MainContent from './MainContent';
 
