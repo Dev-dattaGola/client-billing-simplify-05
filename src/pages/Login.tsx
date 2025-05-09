@@ -63,7 +63,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-green-50 px-4">
-      <Card className="w-full max-w-md bg-violet-900">
+      <Card className="w-full max-w-md bg-violet-800">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
             <img 
@@ -85,7 +85,7 @@ const Login = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="color-white">Email</Label>
               <Input 
                 id="email" 
                 type="email" 
