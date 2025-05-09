@@ -15,6 +15,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [remember, setRemember] = useState(false);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -36,7 +37,9 @@ const Login = () => {
     }
 
     try {
-      await login(email, password);
+      // Fix: Pass a single object with email, password and remember properties
+      await login({ email, password, remember });
+      
       toast({
         title: "Success",
         description: "You have successfully logged in",
@@ -96,6 +99,19 @@ const Login = () => {
                 required
               />
             </div>
+            
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="remember"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-lawfirm-light-blue focus:ring-lawfirm-light-blue"
+              />
+              <Label htmlFor="remember" className="text-sm text-gray-600">
+                Remember me
+              </Label>
+            </div>
 
             <div className="bg-blue-50 p-3 rounded-md mt-4">
               <h3 className="text-sm font-medium text-blue-800 flex items-center">
@@ -103,9 +119,9 @@ const Login = () => {
                 Available test accounts:
               </h3>
               <div className="mt-2 space-y-1 text-xs text-blue-700">
-                <p><strong>Admin:</strong> admin@lawerp.com / admin123</p>
-                <p><strong>Attorney:</strong> attorney@lawerp.com / admin123</p>
-                <p><strong>Client:</strong> client@lawerp.com / admin123</p>
+                <p><strong>Admin:</strong> admin@lyzlawfirm.com / admin123</p>
+                <p><strong>Attorney:</strong> attorney@lyzlawfirm.com / attorney123</p>
+                <p><strong>Client:</strong> client@example.com / client123</p>
               </div>
             </div>
 
