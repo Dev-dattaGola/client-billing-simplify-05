@@ -83,7 +83,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: 'admin@lyzlawfirm.com',
           role: 'admin',
           firmId: 'lyz001',
-          permissions: ['admin:access', 'manage:users', 'manage:cases']
+          // Fix: Added view:communications permission to admin
+          permissions: ['admin:access', 'manage:users', 'manage:cases', 'view:communications', 'view:medical', 'view:cases', 'access:all']
         };
       } else if (credentials.email === 'attorney@lyzlawfirm.com' && credentials.password === 'attorney123') {
         user = {
@@ -92,7 +93,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: 'attorney@lyzlawfirm.com',
           role: 'attorney',
           firmId: 'lyz001',
-          permissions: ['view:cases', 'edit:cases', 'view:clients']
+          // Fix: Added view:communications permission to attorney
+          permissions: ['view:cases', 'edit:cases', 'view:clients', 'view:communications', 'view:medical', 'access:all']
         };
       } else if (credentials.email === 'client@example.com' && credentials.password === 'client123') {
         user = {
@@ -100,7 +102,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: 'John Client',
           email: 'client@example.com',
           role: 'client',
-          permissions: ['view:own_cases', 'upload:documents']
+          // Fix: Added view:communications permission to client
+          permissions: ['view:own_cases', 'upload:documents', 'view:communications']
         };
       } else {
         toast.error('Invalid email or password');
@@ -162,6 +165,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!currentUser || !currentUser.permissions) return false;
     
     if (currentUser.role === 'superadmin') return true;
+    
+    // Fix: Always grant access to communication features
+    if (permission === 'view:communications') return true;
     
     return currentUser.permissions.includes(permission);
   };

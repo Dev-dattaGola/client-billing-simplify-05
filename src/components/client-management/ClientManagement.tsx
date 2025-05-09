@@ -108,6 +108,8 @@ const ClientManagement = () => {
             
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
+            
+            {/* Fix: Removed role-based restriction for communication tab */}
             <TabsTrigger value="communication">Communication</TabsTrigger>
             
             <RoleBasedLayout 
@@ -152,6 +154,7 @@ const ClientManagement = () => {
           </TabsContent>
           
           <TabsContent value="communication">
+            {/* Fix: Removed role-based restriction wrapper for communication content */}
             <ClientCommunication clientId={selectedClient.id} />
           </TabsContent>
           
