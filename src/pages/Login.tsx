@@ -121,7 +121,7 @@ const Login = () => {
                 className="h-4 w-4 rounded border-gray-300 text-lawfirm-light-blue focus:ring-lawfirm-light-blue"
                 disabled={isLoading}
               />
-              <Label htmlFor="remember" className="text-sm text-gray-600">
+              <Label htmlFor="remember" className="text-sm text-white">
                 Remember me
               </Label>
             </div>
@@ -153,7 +153,7 @@ const Login = () => {
           </form>
         </CardContent>
         <CardFooter className="text-center text-sm text-muted-foreground">
-          <div>© 2025 LAWerp500. All rights reserved.</div>
+          <div className="text-white">© 2025 LAWerp500. All rights reserved.</div>
         </CardFooter>
       </Card>
     </div>
