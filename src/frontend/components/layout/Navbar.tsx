@@ -24,7 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import CommandSearch from "./CommandSearch";
+// import CommandSearch from ".//CommandSearch";
 
 interface NavbarProps {
   toggleSidebar: () => void;
