@@ -48,9 +48,12 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
           </Button>
           <div className="font-semibold text-xl flex items-center gap-2">
             <div className="w-8 h-8 bg-white/20 rounded-md flex items-center justify-center text-white">
-              <img/>
+              LYZ
             </div>
-            
+            <div className="flex flex-col">
+              <span className="hidden md:inline-block leading-tight text-white">LYZ LAW FIRM</span>
+              <span className="hidden md:inline-block text-xs text-white/70">LAW ERP 500</span>
+            </div>
           </div>
         </div>
         
