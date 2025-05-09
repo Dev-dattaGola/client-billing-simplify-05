@@ -141,10 +141,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
                 alt="LAWerp500 Logo" 
                 className="h-10"
               />
-              <div className="flex flex-col">
-                <span className="hidden md:inline-block leading-tight text-white">LYZ LAW FIRM</span>
-                <span className="hidden md:inline-block text-xs text-white/70">LAW ERP 500</span>
-              </div>
+              
             </div>
           </div>
           
