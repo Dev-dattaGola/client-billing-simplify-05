@@ -17,6 +17,7 @@ export const useAuthActions = () => {
 
   const login = async (credentials: LoginCredentials): Promise<User | null> => {
     setIsLoading(true);
+    console.log("useAuthActions login attempt with:", credentials.email);
     
     try {
       // Simulate API call
@@ -24,19 +25,23 @@ export const useAuthActions = () => {
       
       // Get mock user for demo
       const user = getMockUser(credentials.email, credentials.password);
+      console.log("Mock user result:", user ? "User found" : "User not found");
       
       if (!user) {
+        console.error("Login failed: Invalid credentials");
         toast.error('Invalid email or password');
         return null;
       }
 
       // Save authentication data
       saveAuthData(user, credentials.remember || false);
+      console.log("Auth data saved for user:", user.name);
       
       toast.success(`Welcome back, ${user.name}!`);
       
       // Navigate to dashboard or originally requested page
       const origin = location.state?.from?.pathname || '/dashboard';
+      console.log("Navigating to:", origin);
       navigate(origin);
       
       return user;
@@ -56,13 +61,14 @@ export const useAuthActions = () => {
   };
 
   const hasPermission = (permission: string): boolean => {
-    const userDataStr = localStorage.getItem('userData') || sessionStorage.getItem('userData');
-    if (!userDataStr) return false;
-    
     try {
+      const userDataStr = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+      if (!userDataStr) return false;
+      
       const userData = JSON.parse(userDataStr);
       return checkPermission(userData, permission);
-    } catch {
+    } catch (error) {
+      console.error("Error checking permission:", error);
       return false;
     }
   };
