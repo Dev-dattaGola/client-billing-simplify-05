@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, Plus, Mail, User, Settings, Search, Menu, LogOut } from "lucide-react";
@@ -135,9 +136,11 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
               <span className="sr-only">Toggle menu</span>
             </Button>
             <div className="font-semibold text-xl flex items-center gap-2">
-              <div className="w-8 h-8 bg-white/20 rounded-md flex items-center justify-center text-white">
-                LYZ
-              </div>
+              <img 
+                src="/lovable-uploads/f821edb6-2ada-465d-a812-7f4c9e81f81d.png" 
+                alt="LAWerp500 Logo" 
+                className="h-10"
+              />
               <div className="flex flex-col">
                 <span className="hidden md:inline-block leading-tight text-white">LYZ LAW FIRM</span>
                 <span className="hidden md:inline-block text-xs text-white/70">LAW ERP 500</span>
@@ -146,17 +149,19 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
           </div>
           
           <div className="hidden md:flex flex-1 mx-8 relative">
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/70" />
-              <Input
-                type="search"
-                placeholder="Search cases, clients, documents... (Ctrl+K)"
-                className="w-full bg-white/20 text-white placeholder:text-white pl-8 md:w-[300px] lg:w-[400px] border-white/30 focus:border-white/40 hover:bg-white/30"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                onFocus={handleSearchFocus}
-              />
-            </div>
+            <form onSubmit={(e) => e.preventDefault()} className="w-full max-w-md">
+              <div className="relative w-full">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/70" />
+                <Input
+                  type="search"
+                  placeholder="Search cases, clients, documents... (Ctrl+K)"
+                  className="w-full bg-white/20 text-white placeholder:text-white pl-8 md:w-[300px] lg:w-[400px] border-white/30 focus:border-white/40"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  onFocus={handleSearchFocus}
+                />
+              </div>
+            </form>
           </div>
           
           <div className="flex items-center gap-2 md:gap-4">
