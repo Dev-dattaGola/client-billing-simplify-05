@@ -57,9 +57,6 @@ const Login = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 bg-lawfirm-light-blue rounded-md flex items-center justify-center text-white text-xl font-bold">
-              LYZ
-            </div>
           </div>
           <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle>
         </CardHeader>
