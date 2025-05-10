@@ -1,87 +1,90 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, AuthContextType } from '@/types/auth';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { User } from '@/types/auth';
 import { useAuthActions } from '@/hooks/useAuthActions';
 import { restoreAuthState } from '@/lib/utils/auth-utils';
 
-const AuthContext = createContext<AuthContextType | null>(null);
+// Define the shape of our auth context
+interface AuthContextProps {
+  currentUser: User | null;
+  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (credentials: { email: string; password: string; remember?: boolean }) => Promise<User | null>;
+  logout: () => void;
+  updateAuthState: () => void;
+  hasPermission: (permission: string) => boolean;
+}
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+// Create the context with a default value
+export const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+
+// Create a provider component
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { login, logout, hasPermission: checkPermission, isLoading: actionLoading } = useAuthActions();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { login, logout: logoutAction, hasPermission, isLoading: actionLoading } = useAuthActions();
+  const navigate = useNavigate();
 
-  // Enhanced Authentication Management
+  // Function to update auth state based on stored tokens
   const updateAuthState = () => {
-    console.log("Updating auth state...");
+    console.log('Updating auth state...');
     try {
-      const { user, isAuthenticated: isAuth } = restoreAuthState();
-      
-      console.log("Auth state updated:", { 
-        isAuthenticated: isAuth, 
+      const { user, isAuthenticated: authStatus } = restoreAuthState();
+      setCurrentUser(user);
+      setIsAuthenticated(authStatus);
+      console.log('Auth state updated:', { 
+        isAuthenticated: authStatus, 
         userExists: !!user,
         userName: user?.name,
-        userRole: user?.role 
+        userRole: user?.role
       });
-      
-      setCurrentUser(user);
-      setIsAuthenticated(isAuth);
     } catch (error) {
-      console.error("Error updating auth state:", error);
-      // If there's an error, clear any potentially corrupt data
+      console.error('Error updating auth state:', error);
       setCurrentUser(null);
       setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
     }
   };
 
+  // Initialize auth state on component mount
   useEffect(() => {
-    console.log("AuthProvider initialized");
+    console.log('AuthProvider initialized');
     updateAuthState();
-    
-    // Check auth state when window becomes visible again
-    // This helps when user switches tabs and comes back
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        updateAuthState();
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    setIsLoading(false);
   }, []);
 
-  // Combine loading states
-  const combinedIsLoading = isLoading || actionLoading;
+  // Custom logout function that handles navigation after logout
+  const logout = () => {
+    logoutAction();
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    // Force navigation to login page
+    navigate('/login', { replace: true });
+  };
 
   return (
-    <AuthContext.Provider
-      value={{
-        isLoading: combinedIsLoading,
-        isAuthenticated,
-        currentUser,
-        login,
-        logout,
-        hasPermission: checkPermission,
-        updateAuthState
-      }}
-    >
+    <AuthContext.Provider value={{
+      currentUser,
+      setCurrentUser,
+      isAuthenticated,
+      isLoading: isLoading || actionLoading,
+      login,
+      logout,
+      updateAuthState,
+      hasPermission
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+// Create a custom hook for using the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
-
-export default AuthContext;

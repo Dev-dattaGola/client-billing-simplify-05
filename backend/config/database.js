@@ -9,10 +9,20 @@ const connectToDatabase = async () => {
   if (db) return db;
   
   try {
-    client = new MongoClient(process.env.MONGODB_URI || process.env.VITE_MONGODB_URI);
+    // Use environment variable, with fallback to ensure it works in production
+    const mongoUri = process.env.MONGODB_URI || process.env.VITE_MONGODB_URI;
+    const dbName = process.env.MONGODB_DB_NAME || process.env.VITE_MONGODB_DB_NAME || 'lyzLawFirm';
+    
+    if (!mongoUri) {
+      console.error('MongoDB URI is not defined in environment variables');
+      throw new Error('MongoDB URI is not defined');
+    }
+    
+    console.log(`Connecting to MongoDB database: ${dbName}`);
+    client = new MongoClient(mongoUri);
     await client.connect();
     
-    db = client.db(process.env.MONGODB_DB_NAME || process.env.VITE_MONGODB_DB_NAME || 'lyzLawFirm');
+    db = client.db(dbName);
     console.log('Database connected successfully');
     return db;
   } catch (error) {
