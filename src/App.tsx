@@ -1,5 +1,6 @@
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -24,43 +25,45 @@ import { ChatbotProvider } from './contexts/ChatbotContext';
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <UserProvider>
-          <ClientProvider>
-            <ChatbotProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                
-                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-                <Route path="/clients/:id" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-                <Route path="/clients/new" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-                <Route path="/clients/:id/edit" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-                
-                <Route path="/cases" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
-                <Route path="/cases/:id" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
-                <Route path="/cases/create" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
-                <Route path="/cases/:id/edit" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
-                
-                <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-                <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
-                <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-                <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-                <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </ChatbotProvider>
-          </ClientProvider>
-        </UserProvider>
-      </AuthProvider>
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <AuthProvider>
+          <UserProvider>
+            <ClientProvider>
+              <ChatbotProvider>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  
+                  <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                  <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+                  <Route path="/clients/:id" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+                  <Route path="/clients/new" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+                  <Route path="/clients/:id/edit" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+                  
+                  <Route path="/cases" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
+                  <Route path="/cases/:id" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
+                  <Route path="/cases/create" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
+                  <Route path="/cases/:id/edit" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
+                  
+                  <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+                  <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+                  <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+                  <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+                  <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+                  <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </ChatbotProvider>
+            </ClientProvider>
+          </UserProvider>
+        </AuthProvider>
+      </Router>
+    </HelmetProvider>
   );
 }
 
