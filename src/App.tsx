@@ -19,7 +19,7 @@ import Index from './pages/Index';
 import { AuthProvider } from './contexts/AuthContext';
 import { UserProvider } from './contexts/UserContext';
 import { ClientProvider } from './contexts/ClientContext';
-import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import { ChatbotProvider } from './contexts/ChatbotContext';
 
 function App() {
