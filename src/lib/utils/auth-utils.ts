@@ -1,184 +1,146 @@
 
 import { User } from '@/types/auth';
 
-// Utility function to check if a user has a specific permission
-export const checkPermission = (user: User | null, permission: string): boolean => {
-  if (!user) return false;
-  
-  // Admin has all permissions
-  if (user.role === 'admin') return true;
-  
-  // Attorney has all permissions except user management
-  if (user.role === 'attorney') {
-    if (permission.includes('create:users') || 
-        permission.includes('edit:users') || 
-        permission.includes('delete:users') ||
-        permission.includes('admin:access')) {
-      return false;
+// Save authentication data to localStorage or sessionStorage
+export const saveAuthData = (user: User, remember: boolean): void => {
+  try {
+    const userData = JSON.stringify(user);
+    const authToken = generateAuthToken(user);
+    
+    if (remember) {
+      localStorage.setItem('userData', userData);
+      localStorage.setItem('authToken', authToken);
+      // Clean up any session storage to avoid conflicts
+      sessionStorage.removeItem('userData');
+      sessionStorage.removeItem('authToken');
+    } else {
+      sessionStorage.setItem('userData', userData);
+      sessionStorage.setItem('authToken', authToken);
+      // Clean up any local storage to avoid conflicts
+      localStorage.removeItem('userData');
+      localStorage.removeItem('authToken');
     }
+    
+    console.log(`Auth data saved for ${user.name} in ${remember ? 'localStorage' : 'sessionStorage'}`);
+  } catch (error) {
+    console.error('Error saving auth data:', error);
+    throw new Error('Failed to save authentication data');
+  }
+};
+
+// Clear authentication data from both storages
+export const clearAuthData = (): void => {
+  try {
+    localStorage.removeItem('userData');
+    localStorage.removeItem('authToken');
+    sessionStorage.removeItem('userData');
+    sessionStorage.removeItem('authToken');
+    console.log('Auth data cleared');
+  } catch (error) {
+    console.error('Error clearing auth data:', error);
+  }
+};
+
+// Restore authentication state from localStorage or sessionStorage
+export const restoreAuthState = (): { user: User | null; isAuthenticated: boolean } => {
+  try {
+    // Check if token exists in either storage
+    const tokenExists = !!localStorage.getItem('authToken') || !!sessionStorage.getItem('authToken');
+    console.log(`Restoring auth state, token exists: ${tokenExists} user data exists: ${!!localStorage.getItem('userData') || !!sessionStorage.getItem('userData')}`);
+    
+    // Prioritize session storage for user data
+    const userDataStr = sessionStorage.getItem('userData') || localStorage.getItem('userData');
+    
+    if (!userDataStr) {
+      return { user: null, isAuthenticated: false };
+    }
+    
+    const userData: User = JSON.parse(userDataStr);
+    
+    if (!userData || !userData.id || !userData.role) {
+      console.warn('Invalid user data found in storage');
+      clearAuthData(); // Clear invalid data
+      return { user: null, isAuthenticated: false };
+    }
+    
+    return { user: userData, isAuthenticated: true };
+  } catch (error) {
+    console.error('Error restoring auth state:', error);
+    clearAuthData(); // Clear potentially corrupted data
+    return { user: null, isAuthenticated: false };
+  }
+};
+
+// Generate a mock auth token (in a real app, this would come from the backend)
+const generateAuthToken = (user: User): string => {
+  const payload = {
+    id: user.id,
+    role: user.role,
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hour expiration
+  };
+  
+  return btoa(JSON.stringify(payload));
+};
+
+// Check if a user has a specific permission
+export const checkPermission = (user: User, permission: string): boolean => {
+  // Admin always has all permissions
+  if (user.role === 'admin' || user.role === 'superadmin') {
     return true;
   }
-
-  // Client permissions
-  if (user.role === 'client') {
-    // Explicitly define what clients can access
-    const clientPermissions = [
-      'view:documents',
-      'upload:documents',
-      'view:calendar', 
-      'view:appointments',
-      'view:messages',
-      'send:messages'
-    ];
-    
-    return clientPermissions.includes(permission);
-  }
   
-  // Check specific permission if user has permissions array
+  // For other roles, check the permissions array
   if (user.permissions) {
-    return user.permissions.includes(permission);
+    return user.permissions.includes(permission) || user.permissions.includes('all');
   }
   
   return false;
 };
 
-// Mock user data for demo logins with case-insensitive email matching
+// Mock users for demonstration
 export const getMockUser = (email: string, password: string): User | null => {
-  console.log("Attempting to get mock user for:", email);
+  // Normalize email for comparison to avoid case sensitivity issues
+  const normalizedEmail = email.toLowerCase().trim();
   
-  // Convert email to lowercase for comparison
-  const normalizedEmail = email.toLowerCase();
-  
-  if (normalizedEmail === 'admin@lyzlawfirm.com' && password === 'admin123') {
-    console.log("Admin credentials match");
-    return {
+  const users = [
+    {
       id: 'admin1',
       name: 'Admin User',
       email: 'admin@lyzlawfirm.com',
       role: 'admin',
-      firmId: 'lyz001',
-      permissions: [
-        'admin:access',
-        'manage:users',
-        'manage:cases',
-        'view:communications',
-        'view:medical', 
-        'view:cases',
-        'access:all',
-        'create:users',
-        'edit:users',
-        'delete:users',
-        'view:clients',
-        'edit:clients',
-        'view:documents',
-        'upload:documents',
-        'view:calendar',
-        'view:appointments',
-        'view:messages',
-        'send:messages',
-        'view:billing',
-        'manage:billing',
-        'view:depositions'
-      ]
-    };
-  } else if (normalizedEmail === 'attorney@lyzlawfirm.com' && password === 'attorney123') {
-    console.log("Attorney credentials match");
-    return {
+      firmId: 'firm1',
+      permissions: ['all'],
+      password: 'admin123'
+    },
+    {
       id: 'attorney1',
-      name: 'Attorney Smith',
+      name: 'Attorney User',
       email: 'attorney@lyzlawfirm.com',
       role: 'attorney',
-      firmId: 'lyz001',
-      permissions: [
-        'view:cases',
-        'edit:cases',
-        'view:clients',
-        'edit:clients',
-        'view:communications',
-        'view:medical',
-        'access:all',
-        'view:documents',
-        'upload:documents',
-        'view:calendar',
-        'view:appointments', 
-        'view:messages',
-        'send:messages',
-        'view:billing',
-        'view:depositions'
-      ]
-    };
-  } else if (normalizedEmail === 'client@example.com' && password === 'client123') {
-    console.log("Client credentials match");
-    return {
+      firmId: 'firm1',
+      permissions: ['view:clients', 'edit:clients', 'view:cases', 'edit:cases'],
+      password: 'attorney123'
+    },
+    {
       id: 'client1',
-      name: 'John Client',
+      name: 'Client User',
       email: 'client@example.com',
       role: 'client',
-      permissions: [
-        'view:own_cases',
-        'view:documents',
-        'upload:documents',
-        'view:calendar',
-        'view:appointments',
-        'view:messages',
-        'send:messages'
-      ]
-    };
+      assignedAttorneyId: 'attorney1',
+      permissions: ['view:documents', 'upload:documents'],
+      password: 'client123'
+    },
+    // Add more mock users as needed
+  ];
+
+  const user = users.find(u => u.email.toLowerCase() === normalizedEmail && u.password === password);
+  
+  if (user) {
+    // Don't return the password
+    const { password: _, ...userWithoutPassword } = user;
+    return userWithoutPassword as User;
   }
   
-  console.log("No matching credentials found");
   return null;
-};
-
-// Helper function to save authentication data
-export const saveAuthData = (user: User, remember: boolean): string => {
-  const token = 'mock-jwt-token-' + Math.random().toString(36).substr(2);
-  
-  // Store in localStorage or sessionStorage based on remember me
-  const storage = remember ? localStorage : sessionStorage;
-  
-  try {
-    storage.setItem('auth_token', token);
-    storage.setItem('userData', JSON.stringify(user));
-    storage.setItem('isAuthenticated', 'true');
-    console.log("Auth data saved successfully to", remember ? "localStorage" : "sessionStorage");
-  } catch (error) {
-    console.error("Error saving auth data:", error);
-  }
-  
-  return token;
-};
-
-// Helper function to clear authentication data
-export const clearAuthData = (): void => {
-  try {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('userData');
-    localStorage.removeItem('isAuthenticated');
-    sessionStorage.removeItem('auth_token');
-    sessionStorage.removeItem('userData');
-    sessionStorage.removeItem('isAuthenticated');
-    console.log("Auth data cleared successfully");
-  } catch (error) {
-    console.error("Error clearing auth data:", error);
-  }
-};
-
-// Helper function to restore authentication state
-export const restoreAuthState = (): { user: User | null; isAuthenticated: boolean } => {
-  try {
-    const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
-    const userDataStr = localStorage.getItem('userData') || sessionStorage.getItem('userData');
-    
-    console.log("Restoring auth state, token exists:", !!token, "user data exists:", !!userDataStr);
-    
-    if (token && userDataStr) {
-      const userData = JSON.parse(userDataStr);
-      return { user: userData, isAuthenticated: true };
-    }
-  } catch (error) {
-    console.error('Failed to restore authentication state:', error);
-  }
-  
-  return { user: null, isAuthenticated: false };
 };

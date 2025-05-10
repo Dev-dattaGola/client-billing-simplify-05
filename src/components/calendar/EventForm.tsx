@@ -1,377 +1,267 @@
 
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue 
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CalendarIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
+import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, set, addHours } from "date-fns";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { CalendarEvent } from '@/types/calendar';
-import { User } from '@/types/user';
-
-// Mock user API
-const fetchClients = async (attorneyId: string): Promise<User[]> => {
-  // In a real app, this would fetch from the database
-  return [
-    {
-      id: 'client1',
-      name: 'Client User',
-      email: 'client@lawerp.com',
-      role: 'client',
-      firmId: 'firm1',
-      assignedAttorneyId: attorneyId,
-      permissions: []
-    }
-  ];
-};
+import { CalendarIcon, X } from "lucide-react";
+import { CalendarEvent } from "@/lib/api/calendar-api";
 
 interface EventFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (event: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onSubmit: (event: Omit<CalendarEvent, "id" | "createdAt" | "updatedAt">) => void;
   isLoading: boolean;
   initialDate?: Date | null;
-  editingEvent?: CalendarEvent | null;
+  initialEvent?: CalendarEvent;
 }
 
-interface TimeOption {
-  label: string;
-  value: string;
-}
+const EVENT_TYPES = [
+  { value: "meeting", label: "Meeting" },
+  { value: "appointment", label: "Appointment" },
+  { value: "deposition", label: "Deposition" },
+  { value: "deadline", label: "Deadline" },
+  { value: "reminder", label: "Reminder" },
+];
 
-const generateTimeOptions = (): TimeOption[] => {
-  const options: TimeOption[] = [];
-  for (let hour = 0; hour < 24; hour++) {
-    for (let minute = 0; minute < 60; minute += 30) {
-      const h = hour % 12 || 12;
-      const m = minute.toString().padStart(2, '0');
-      const ampm = hour < 12 ? 'AM' : 'PM';
-      const label = `${h}:${m} ${ampm}`;
-      options.push({
-        label,
-        value: `${hour.toString().padStart(2, '0')}:${m}`
-      });
-    }
-  }
-  return options;
-};
-
-const EventForm: React.FC<EventFormProps> = ({
-  isOpen,
-  onClose,
-  onSubmit,
+const EventForm = ({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
   isLoading,
   initialDate,
-  editingEvent
-}) => {
-  const { currentUser } = useAuth();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [date, setDate] = useState<Date | undefined>(initialDate || new Date());
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('10:00');
-  const [allDay, setAllDay] = useState(false);
-  const [location, setLocation] = useState('');
-  const [color, setColor] = useState('#4f46e5'); // Default: indigo
-  const [reminderTime, setReminderTime] = useState<Date | undefined>(undefined);
-  const [clients, setClients] = useState<User[]>([]);
-  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
-  
-  const timeOptions = generateTimeOptions();
+  initialEvent
+}: EventFormProps) => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [eventType, setEventType] = useState("meeting");
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("10:00");
+  const [location, setLocation] = useState("");
+  const [attendees, setAttendees] = useState<string[]>([]);
+  const [newAttendee, setNewAttendee] = useState("");
 
   useEffect(() => {
-    // If editing an existing event
-    if (editingEvent) {
-      setTitle(editingEvent.title);
-      setDescription(editingEvent.description || '');
-      setDate(new Date(editingEvent.start));
-      
-      if (!editingEvent.allDay) {
-        const startDate = new Date(editingEvent.start);
-        const endDate = new Date(editingEvent.end);
-        setStartTime(format(startDate, 'HH:mm'));
-        setEndTime(format(endDate, 'HH:mm'));
-      }
-      
-      setAllDay(editingEvent.allDay);
-      setLocation(editingEvent.location || '');
-      setColor(editingEvent.color || '#4f46e5');
-      
-      if (editingEvent.reminderTime) {
-        setReminderTime(new Date(editingEvent.reminderTime));
-      }
-      
-      // Set participants if they exist
-      if (editingEvent.participants && editingEvent.participants.length > 0) {
-        setSelectedClientIds(editingEvent.participants);
-      }
+    if (initialDate) {
+      setDate(initialDate);
     }
-  }, [editingEvent]);
-
-  useEffect(() => {
-    // Load assigned clients if user is an attorney
-    const loadClients = async () => {
-      if (currentUser?.role === 'attorney' && currentUser?.id) {
-        try {
-          const clientList = await fetchClients(currentUser.id);
-          setClients(clientList);
-        } catch (err) {
-          console.error("Error loading clients:", err);
-        }
-      }
-    };
     
-    loadClients();
-  }, [currentUser]);
-
-  const handleSubmit = () => {
-    if (!date) return;
-    
-    let startDate: Date;
-    let endDate: Date;
-    
-    if (allDay) {
-      // Set start and end to the selected date (ignoring time)
-      startDate = new Date(date);
-      endDate = new Date(date);
-    } else {
-      // Combine date with time
-      const [startHour, startMinute] = startTime.split(':').map(Number);
-      const [endHour, endMinute] = endTime.split(':').map(Number);
+    if (initialEvent) {
+      setTitle(initialEvent.title);
+      setDescription(initialEvent.description || "");
+      setEventType(initialEvent.type);
+      setLocation(initialEvent.location || "");
       
-      startDate = set(new Date(date), {
-        hours: startHour,
-        minutes: startMinute,
-        seconds: 0,
-        milliseconds: 0
-      });
+      // Set date
+      const startDate = new Date(initialEvent.startDate);
+      setDate(startDate);
       
-      endDate = set(new Date(date), {
-        hours: endHour,
-        minutes: endMinute,
-        seconds: 0,
-        milliseconds: 0
-      });
+      // Set times
+      setStartTime(format(startDate, "HH:mm"));
+      setEndTime(format(new Date(initialEvent.endDate), "HH:mm"));
       
-      // If end time is before start time, assume it's the next day
-      if (endDate < startDate) {
-        endDate = addHours(endDate, 24);
-      }
+      // Set attendees
+      setAttendees(initialEvent.attendees || []);
     }
+  }, [initialDate, initialEvent, isOpen]);
 
-    // Create the event object
-    const eventData: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'> = {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!title || !date) {
+      return;
+    }
+    
+    // Create start and end date objects
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+    
+    const startDate = new Date(date);
+    startDate.setHours(startHour, startMinute, 0);
+    
+    const endDate = new Date(date);
+    endDate.setHours(endHour, endMinute, 0);
+    
+    const eventData: Omit<CalendarEvent, "id" | "createdAt" | "updatedAt"> = {
       title,
-      description,
-      start: startDate,
-      end: endDate,
-      allDay,
-      color,
+      description: description || undefined,
+      type: eventType as CalendarEvent["type"],
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
       location: location || undefined,
-      reminderTime: reminderTime,
-      participants: selectedClientIds.length > 0 ? selectedClientIds : undefined
+      attendees: attendees.length > 0 ? attendees : undefined,
     };
     
     onSubmit(eventData);
   };
 
-  const toggleClientSelection = (clientId: string) => {
-    setSelectedClientIds(prev => {
-      if (prev.includes(clientId)) {
-        return prev.filter(id => id !== clientId);
-      } else {
-        return [...prev, clientId];
-      }
-    });
+  const addAttendee = () => {
+    if (newAttendee.trim()) {
+      setAttendees([...attendees, newAttendee.trim()]);
+      setNewAttendee("");
+    }
+  };
+
+  const removeAttendee = (index: number) => {
+    setAttendees(attendees.filter((_, i) => i !== index));
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px]">
-        <DialogHeader>
-          <DialogTitle>{editingEvent ? 'Edit Event' : 'Create New Event'}</DialogTitle>
-        </DialogHeader>
-        
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Event Title</Label>
-            <Input
-              id="title"
-              placeholder="Enter event title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
-            <Textarea
-              id="description"
-              placeholder="Enter event description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Select date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="allDay" className="flex-grow">All Day Event</Label>
-            <Switch 
-              id="allDay" 
-              checked={allDay} 
-              onCheckedChange={setAllDay} 
-            />
-          </div>
-          
-          {!allDay && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="startTime">Start Time</Label>
-                <Select value={startTime} onValueChange={setStartTime}>
-                  <SelectTrigger id="startTime">
-                    <SelectValue placeholder="Select start time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {timeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="endTime">End Time</Label>
-                <Select value={endTime} onValueChange={setEndTime}>
-                  <SelectTrigger id="endTime">
-                    <SelectValue placeholder="Select end time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {timeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-          
-          <div className="space-y-2">
-            <Label htmlFor="location">Location (Optional)</Label>
-            <Input
-              id="location"
-              placeholder="Enter location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-            />
-          </div>
-          
-          {currentUser?.role === 'attorney' && clients.length > 0 && (
-            <div className="space-y-2">
-              <Label>Select Clients</Label>
-              <div className="border rounded-md p-3 space-y-2">
-                {clients.map((client) => (
-                  <div key={client.id} className="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
-                      id={`client-${client.id}`} 
-                      checked={selectedClientIds.includes(client.id)}
-                      onChange={() => toggleClientSelection(client.id)}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                    <label htmlFor={`client-${client.id}`} className="text-sm">
-                      {client.name}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          <div className="space-y-2">
-            <Label>Event Color</Label>
-            <RadioGroup 
-              value={color} 
-              onValueChange={setColor}
-              className="flex space-x-2"
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="title">Title *</Label>
+        <Input 
+          id="title" 
+          placeholder="Event title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="event-type">Event Type *</Label>
+        <Select value={eventType} onValueChange={setEventType}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select event type" />
+          </SelectTrigger>
+          <SelectContent>
+            {EVENT_TYPES.map((type) => (
+              <SelectItem key={type.value} value={type.value}>
+                {type.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="space-y-2">
+        <Label>Date *</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !date && "text-muted-foreground"
+              )}
             >
-              <div className="flex items-center space-x-1">
-                <RadioGroupItem value="#ef4444" id="color-red" className="bg-red-500 border-red-500" />
-                <Label htmlFor="color-red" className="sr-only">Red</Label>
-              </div>
-              <div className="flex items-center space-x-1">
-                <RadioGroupItem value="#f97316" id="color-orange" className="bg-orange-500 border-orange-500" />
-                <Label htmlFor="color-orange" className="sr-only">Orange</Label>
-              </div>
-              <div className="flex items-center space-x-1">
-                <RadioGroupItem value="#4f46e5" id="color-indigo" className="bg-indigo-500 border-indigo-500" />
-                <Label htmlFor="color-indigo" className="sr-only">Indigo</Label>
-              </div>
-              <div className="flex items-center space-x-1">
-                <RadioGroupItem value="#10b981" id="color-emerald" className="bg-emerald-500 border-emerald-500" />
-                <Label htmlFor="color-emerald" className="sr-only">Emerald</Label>
-              </div>
-            </RadioGroup>
-          </div>
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, "MMMM d, yyyy") : "Select date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="start-time">Start Time *</Label>
+          <Input
+            id="start-time"
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="end-time">End Time *</Label>
+          <Input
+            id="end-time"
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="location">Location</Label>
+        <Input 
+          id="location" 
+          placeholder="Event location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea 
+          id="description" 
+          placeholder="Event description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="attendees">Attendees</Label>
+        <div className="flex space-x-2">
+          <Input 
+            id="attendees" 
+            placeholder="Add attendee"
+            value={newAttendee}
+            onChange={(e) => setNewAttendee(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addAttendee();
+              }
+            }}
+          />
+          <Button type="button" onClick={addAttendee}>
+            Add
+          </Button>
         </div>
         
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={isLoading || !title || !date}>
-            {isLoading ? "Saving..." : editingEvent ? "Update Event" : "Create Event"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        {attendees.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {attendees.map((attendee, index) => (
+              <div 
+                key={index}
+                className="flex items-center justify-between bg-gray-100 p-2 rounded"
+              >
+                <span>{attendee}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeAttendee(index)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      <div className="flex justify-end space-x-3 pt-4">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Saving..." : initialEvent ? "Update Event" : "Create Event"}
+        </Button>
+      </div>
+    </form>
   );
 };
 

@@ -15,23 +15,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Enhanced Authentication Management
   const updateAuthState = () => {
     console.log("Updating auth state...");
-    const { user, isAuthenticated: isAuth } = restoreAuthState();
-    
-    console.log("Auth state updated:", { 
-      isAuthenticated: isAuth, 
-      userExists: !!user,
-      userName: user?.name,
-      userRole: user?.role 
-    });
-    
-    setCurrentUser(user);
-    setIsAuthenticated(isAuth);
-    setIsLoading(false);
+    try {
+      const { user, isAuthenticated: isAuth } = restoreAuthState();
+      
+      console.log("Auth state updated:", { 
+        isAuthenticated: isAuth, 
+        userExists: !!user,
+        userName: user?.name,
+        userRole: user?.role 
+      });
+      
+      setCurrentUser(user);
+      setIsAuthenticated(isAuth);
+    } catch (error) {
+      console.error("Error updating auth state:", error);
+      // If there's an error, clear any potentially corrupt data
+      setCurrentUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
     console.log("AuthProvider initialized");
     updateAuthState();
+    
+    // Check auth state when window becomes visible again
+    // This helps when user switches tabs and comes back
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        updateAuthState();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   // Combine loading states

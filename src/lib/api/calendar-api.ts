@@ -1,189 +1,317 @@
 
-import { CalendarEvent, Task, TaskPriority, TaskStatus } from "@/types/calendar";
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from 'uuid';
 
-// Mock data for calendar events
-let events: CalendarEvent[] = [
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  type: 'meeting' | 'appointment' | 'deposition' | 'deadline' | 'reminder';
+  startDate: string;
+  endDate: string;
+  location?: string;
+  attendees?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  dueDate?: string;
+  priority: 'low' | 'medium' | 'high';
+  status: 'todo' | 'in-progress' | 'completed';
+  assignedTo?: string;
+  associatedCaseId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Mock data for events
+const mockEvents: CalendarEvent[] = [
   {
-    id: uuidv4(),
-    title: "Client Meeting",
-    description: "Initial consultation with new client",
-    start: new Date(2025, 3, 20, 10, 0),
-    end: new Date(2025, 3, 20, 11, 0),
-    allDay: false,
-    color: "#4f46e5",
-    location: "Office",
-    participants: ["John Doe", "Jane Smith"],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    id: '1',
+    title: 'Client Meeting - John Doe',
+    description: 'Initial consultation regarding personal injury case',
+    type: 'meeting',
+    startDate: new Date(new Date().setHours(10, 0, 0, 0)).toISOString(),
+    endDate: new Date(new Date().setHours(11, 0, 0, 0)).toISOString(),
+    location: 'Office - Conference Room A',
+    attendees: ['John Doe', 'Jane Smith'],
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000).toISOString(),
   },
   {
-    id: uuidv4(),
-    title: "Court Hearing",
-    description: "Case #12345 preliminary hearing",
-    start: new Date(2025, 3, 22, 9, 0),
-    end: new Date(2025, 3, 22, 12, 0),
-    allDay: false,
-    color: "#ef4444",
-    location: "County Courthouse",
-    participants: ["John Doe", "Client A"],
-    reminderTime: new Date(2025, 3, 21, 9, 0),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    id: '2',
+    title: 'Deposition - Williams v. City Transport',
+    description: 'Deposition of key witness Dr. Johnson',
+    type: 'deposition',
+    startDate: new Date(new Date().setDate(new Date().getDate() + 1)).setHours(14, 0, 0, 0).toISOString(),
+    endDate: new Date(new Date().setDate(new Date().getDate() + 1)).setHours(17, 0, 0, 0).toISOString(),
+    location: 'Smith & Associates - Deposition Room',
+    createdAt: new Date(Date.now() - 172800000).toISOString(),
+    updatedAt: new Date(Date.now() - 172800000).toISOString(),
   },
   {
-    id: uuidv4(),
-    title: "Document Filing Deadline",
-    description: "File motion for case #54321",
-    start: new Date(2025, 3, 25),
-    end: new Date(2025, 3, 25),
-    allDay: true,
-    color: "#f97316",
-    reminderTime: new Date(2025, 3, 24, 12, 0),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    id: '3',
+    title: 'Filing Deadline - Johnson Case',
+    description: 'Last day to file motion for summary judgment',
+    type: 'deadline',
+    startDate: new Date(new Date().setDate(new Date().getDate() + 5)).setHours(17, 0, 0, 0).toISOString(),
+    endDate: new Date(new Date().setDate(new Date().getDate() + 5)).setHours(17, 0, 0, 0).toISOString(),
+    createdAt: new Date(Date.now() - 259200000).toISOString(),
+    updatedAt: new Date(Date.now() - 259200000).toISOString(),
+  },
+  {
+    id: '4',
+    title: 'Case Review - Smith v. Insurance Co.',
+    description: 'Internal review of case progress and strategy',
+    type: 'meeting',
+    startDate: new Date(new Date().setDate(new Date().getDate() - 1)).setHours(15, 30, 0, 0).toISOString(),
+    endDate: new Date(new Date().setDate(new Date().getDate() - 1)).setHours(16, 30, 0, 0).toISOString(),
+    location: 'Conference Room B',
+    attendees: ['Jane Smith', 'Michael Johnson', 'Sarah Williams'],
+    createdAt: new Date(Date.now() - 345600000).toISOString(),
+    updatedAt: new Date(Date.now() - 345600000).toISOString(),
   },
 ];
 
 // Mock data for tasks
-let tasks: Task[] = [
+const mockTasks: Task[] = [
   {
-    id: uuidv4(),
-    title: "Prepare client documents",
-    description: "Gather and organize all necessary client documentation for case filing",
-    dueDate: new Date(2025, 3, 18),
-    priority: "high",
-    status: "in-progress",
-    assignedTo: "Jane Smith",
-    reminder: new Date(2025, 3, 17, 9, 0),
-    caseId: "case-123",
-    clientId: "client-456",
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    id: '1',
+    title: 'Draft Motion for Discovery',
+    description: 'Prepare initial draft of motion to compel discovery responses',
+    dueDate: new Date(new Date().setDate(new Date().getDate() + 3)).toISOString(),
+    priority: 'high',
+    status: 'todo',
+    assignedTo: 'Jane Smith',
+    associatedCaseId: 'case123',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000).toISOString(),
   },
   {
-    id: uuidv4(),
-    title: "Research precedent cases",
-    description: "Find relevant precedents for the Johnson case",
-    dueDate: new Date(2025, 3, 21),
-    priority: "medium",
-    status: "pending",
-    assignedTo: "John Doe",
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    id: '2',
+    title: 'Review Medical Records',
+    description: 'Review client medical records for inconsistencies',
+    dueDate: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
+    priority: 'medium',
+    status: 'in-progress',
+    assignedTo: 'Michael Johnson',
+    associatedCaseId: 'case456',
+    createdAt: new Date(Date.now() - 172800000).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000).toISOString(),
   },
   {
-    id: uuidv4(),
-    title: "Send follow-up emails",
-    description: "Contact clients who haven't responded in the last 2 weeks",
-    dueDate: new Date(2025, 3, 16),
-    priority: "low",
-    status: "completed",
-    assignedTo: "Jane Smith",
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    id: '3',
+    title: 'File Court Documents',
+    description: 'File response to defendant\'s motion to dismiss',
+    dueDate: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString(),
+    priority: 'high',
+    status: 'todo',
+    assignedTo: 'Sarah Williams',
+    associatedCaseId: 'case789',
+    createdAt: new Date(Date.now() - 259200000).toISOString(),
+    updatedAt: new Date(Date.now() - 259200000).toISOString(),
+  },
+  {
+    id: '4',
+    title: 'Schedule Client Meeting',
+    description: 'Set up meeting with client to discuss settlement options',
+    dueDate: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString(),
+    priority: 'low',
+    status: 'completed',
+    assignedTo: 'Jane Smith',
+    associatedCaseId: 'case123',
+    createdAt: new Date(Date.now() - 345600000).toISOString(),
+    updatedAt: new Date(Date.now() - 172800000).toISOString(),
   },
 ];
 
-// Calendar Events API
+// Calendar Event API functions
 export const calendarApi = {
+  // Get all events
   getEvents: async (): Promise<CalendarEvent[]> => {
-    return Promise.resolve([...events]);
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return [...mockEvents];
   },
-  
-  getEventById: async (id: string): Promise<CalendarEvent | undefined> => {
-    return Promise.resolve(events.find(event => event.id === id));
+
+  // Get a single event by ID
+  getEvent: async (id: string): Promise<CalendarEvent> => {
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const event = mockEvents.find(e => e.id === id);
+    
+    if (!event) {
+      throw new Error('Event not found');
+    }
+    
+    return event;
   },
-  
-  createEvent: async (event: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>): Promise<CalendarEvent> => {
+
+  // Create a new event
+  createEvent: async (eventData: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>): Promise<CalendarEvent> => {
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const now = new Date().toISOString();
     const newEvent: CalendarEvent = {
-      ...event,
-      id: uuidv4(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    events.push(newEvent);
-    return Promise.resolve(newEvent);
-  },
-  
-  updateEvent: async (id: string, eventData: Partial<CalendarEvent>): Promise<CalendarEvent | undefined> => {
-    const index = events.findIndex(event => event.id === id);
-    if (index === -1) return undefined;
-    
-    const updatedEvent = {
-      ...events[index],
       ...eventData,
-      updatedAt: new Date(),
+      id: uuidv4(),
+      createdAt: now,
+      updatedAt: now,
     };
     
-    events[index] = updatedEvent;
-    return Promise.resolve(updatedEvent);
+    mockEvents.push(newEvent);
+    
+    return newEvent;
   },
-  
+
+  // Update an existing event
+  updateEvent: async (id: string, eventData: Partial<Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>>): Promise<CalendarEvent> => {
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const eventIndex = mockEvents.findIndex(e => e.id === id);
+    
+    if (eventIndex === -1) {
+      throw new Error('Event not found');
+    }
+    
+    const updatedEvent: CalendarEvent = {
+      ...mockEvents[eventIndex],
+      ...eventData,
+      updatedAt: new Date().toISOString(),
+    };
+    
+    mockEvents[eventIndex] = updatedEvent;
+    
+    return updatedEvent;
+  },
+
+  // Delete an event
   deleteEvent: async (id: string): Promise<boolean> => {
-    const initialLength = events.length;
-    events = events.filter(event => event.id !== id);
-    return Promise.resolve(events.length < initialLength);
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const eventIndex = mockEvents.findIndex(e => e.id === id);
+    
+    if (eventIndex === -1) {
+      return false;
+    }
+    
+    mockEvents.splice(eventIndex, 1);
+    
+    return true;
+  },
+
+  // Get events by date range
+  getEventsByDateRange: async (startDate: string, endDate: string): Promise<CalendarEvent[]> => {
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    return mockEvents.filter(event => {
+      const eventDate = new Date(event.startDate);
+      return eventDate >= start && eventDate <= end;
+    });
   },
 };
 
-// Tasks API
+// Task API functions
 export const tasksApi = {
+  // Get all tasks
   getTasks: async (): Promise<Task[]> => {
-    return Promise.resolve([...tasks]);
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return [...mockTasks];
   },
-  
-  getTaskById: async (id: string): Promise<Task | undefined> => {
-    return Promise.resolve(tasks.find(task => task.id === id));
+
+  // Get a single task by ID
+  getTask: async (id: string): Promise<Task> => {
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const task = mockTasks.find(t => t.id === id);
+    
+    if (!task) {
+      throw new Error('Task not found');
+    }
+    
+    return task;
   },
-  
-  createTask: async (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> => {
+
+  // Create a new task
+  createTask: async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> => {
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const now = new Date().toISOString();
     const newTask: Task = {
-      ...task,
-      id: uuidv4(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    tasks.push(newTask);
-    return Promise.resolve(newTask);
-  },
-  
-  updateTask: async (id: string, taskData: Partial<Task>): Promise<Task | undefined> => {
-    const index = tasks.findIndex(task => task.id === id);
-    if (index === -1) return undefined;
-    
-    const updatedTask = {
-      ...tasks[index],
       ...taskData,
-      updatedAt: new Date(),
+      id: uuidv4(),
+      createdAt: now,
+      updatedAt: now,
     };
     
-    tasks[index] = updatedTask;
-    return Promise.resolve(updatedTask);
+    mockTasks.push(newTask);
+    
+    return newTask;
   },
-  
+
+  // Update an existing task
+  updateTask: async (id: string, taskData: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Task> => {
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const taskIndex = mockTasks.findIndex(t => t.id === id);
+    
+    if (taskIndex === -1) {
+      throw new Error('Task not found');
+    }
+    
+    const updatedTask: Task = {
+      ...mockTasks[taskIndex],
+      ...taskData,
+      updatedAt: new Date().toISOString(),
+    };
+    
+    mockTasks[taskIndex] = updatedTask;
+    
+    return updatedTask;
+  },
+
+  // Delete a task
   deleteTask: async (id: string): Promise<boolean> => {
-    const initialLength = tasks.length;
-    tasks = tasks.filter(task => task.id !== id);
-    return Promise.resolve(tasks.length < initialLength);
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const taskIndex = mockTasks.findIndex(t => t.id === id);
+    
+    if (taskIndex === -1) {
+      return false;
+    }
+    
+    mockTasks.splice(taskIndex, 1);
+    
+    return true;
   },
-  
-  getTasksByStatus: async (status: TaskStatus): Promise<Task[]> => {
-    return Promise.resolve(tasks.filter(task => task.status === status));
+
+  // Get tasks by status
+  getTasksByStatus: async (status: Task['status']): Promise<Task[]> => {
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    return mockTasks.filter(task => task.status === status);
   },
-  
-  getTasksByPriority: async (priority: TaskPriority): Promise<Task[]> => {
-    return Promise.resolve(tasks.filter(task => task.priority === priority));
-  },
-  
-  getTasksByAssignee: async (assignedTo: string): Promise<Task[]> => {
-    return Promise.resolve(tasks.filter(task => task.assignedTo === assignedTo));
-  },
-  
-  getTasksByDueDate: async (date: Date): Promise<Task[]> => {
-    const dateStr = date.toDateString();
-    return Promise.resolve(tasks.filter(task => 
-      task.dueDate.toDateString() === dateStr
-    ));
+
+  // Get tasks by assigned user
+  getTasksByAssignedUser: async (userId: string): Promise<Task[]> => {
+    // Simulate API latency
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    return mockTasks.filter(task => task.assignedTo === userId);
   },
 };

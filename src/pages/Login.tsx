@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,9 +19,18 @@ const Login = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { login, isAuthenticated, isLoading: authLoading, updateAuthState } = useAuth();
 
-  if (isAuthenticated) {
+  // Check authentication status on component mount and when auth state changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log("User is authenticated, redirecting to dashboard");
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (isAuthenticated && !isLoading) {
+    console.log("Redirecting to dashboard from render");
     return <Navigate to="/dashboard" />;
   }
 
@@ -38,7 +47,11 @@ const Login = () => {
 
     try {
       console.log("Attempting login with:", { email, remember });
-      const user = await login({ email, password, remember });
+      const user = await login({ 
+        email: email.toLowerCase().trim(), // Normalize email to avoid case sensitivity issues
+        password, 
+        remember 
+      });
       
       if (!user) {
         setError("Login failed. Please check your credentials.");
@@ -51,8 +64,13 @@ const Login = () => {
         description: `Welcome back, ${user.name}!`,
       });
       
-      console.log("Login successful, navigating to dashboard");
-      navigate("/dashboard");
+      console.log("Login successful, updating auth state");
+      
+      // Explicitly update auth state after successful login
+      updateAuthState();
+      
+      console.log("Navigating to dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error("Login error:", error);
       setError(typeof error === 'string' ? error : "Authentication failed. Please try again.");
@@ -67,7 +85,7 @@ const Login = () => {
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
             <img 
-                src="/lovable-uploads/f821edb6-2ada-465d-a812-7f4c9e81f81d.png" 
+                src="/lovable-uploads/1d5c7458-1307-40b3-93c7-a63e609301c6.png" 
                 alt="LAWerp500 Logo" 
                 className="h-44"
               />
@@ -93,7 +111,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                disabled={isLoading}
+                disabled={isLoading || authLoading}
                 required
               />
             </div>
@@ -107,7 +125,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
-                disabled={isLoading}
+                disabled={isLoading || authLoading}
                 required
               />
             </div>
@@ -119,7 +137,7 @@ const Login = () => {
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 text-lawfirm-light-blue focus:ring-lawfirm-light-blue"
-                disabled={isLoading}
+                disabled={isLoading || authLoading}
               />
               <Label htmlFor="remember" className="text-sm text-white">
                 Remember me
@@ -141,9 +159,9 @@ const Login = () => {
             <Button 
               type="submit" 
               className="w-full bg-lawfirm-light-blue hover:bg-lawfirm-light-blue/90"
-              disabled={isLoading}
+              disabled={isLoading || authLoading}
             >
-              {isLoading ? (
+              {isLoading || authLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Signing in...

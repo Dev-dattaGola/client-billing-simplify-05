@@ -1,383 +1,242 @@
-import { useState, useMemo } from "react";
-import { 
-  Table, TableHeader, TableRow, TableHead, 
-  TableBody, TableCell 
-} from "@/components/ui/table";
+
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Download, Search, Filter, FileText, Eye } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-
-// Define the dependency record type
-type DependencyRecord = {
-  record_id: string;
-  type: "LOP" | "LOR" | "Insurance" | "Bill";
-  client_id: string;
-  client_name: string;
-  case_number: string;
-  provider_name: string;
-  document_title: string;
-  status: string;
-  amount?: number;
-  date_of_service: string;
-  document_url: string;
-  uploaded_by: string;
-  created_at: string;
-  updated_at: string;
-  notes?: string;
-};
-
-// Mock data for initial development
-const mockDependencyRecords: DependencyRecord[] = [
-  {
-    record_id: "lop1",
-    type: "LOP",
-    client_id: "c1",
-    client_name: "John Doe",
-    case_number: "CASE-2023-001",
-    provider_name: "City General Hospital",
-    document_title: "Letter of Protection - City General",
-    status: "Signed",
-    date_of_service: "2023-03-15",
-    document_url: "/documents/lop1.pdf",
-    uploaded_by: "Sarah Admin",
-    created_at: "2023-03-15T14:30:00Z",
-    updated_at: "2023-03-15T14:30:00Z",
-    notes: "Patient requires ongoing treatment"
-  },
-  {
-    record_id: "ins1",
-    type: "Insurance",
-    client_id: "c1",
-    client_name: "John Doe",
-    case_number: "CASE-2023-001",
-    provider_name: "BlueCross BlueShield",
-    document_title: "Insurance Policy BC-12345-XYZ",
-    status: "Approved",
-    date_of_service: "2023-02-15",
-    document_url: "/documents/insurance1.pdf",
-    uploaded_by: "Mark Handler",
-    created_at: "2023-02-15T10:30:00Z",
-    updated_at: "2023-02-15T10:30:00Z",
-    notes: "Full coverage policy"
-  },
-  {
-    record_id: "bill1",
-    type: "Bill",
-    client_id: "c1",
-    client_name: "John Doe",
-    case_number: "CASE-2023-001",
-    provider_name: "City General Hospital",
-    document_title: "ER Visit Bill",
-    status: "Pending",
-    amount: 5000.00,
-    date_of_service: "2023-02-10",
-    document_url: "/documents/bill1.pdf",
-    uploaded_by: "Sarah Admin",
-    created_at: "2023-02-15T14:30:00Z",
-    updated_at: "2023-02-15T14:30:00Z",
-    notes: "Initial ER visit"
-  },
-  {
-    record_id: "lor1",
-    type: "LOR",
-    client_id: "c2",
-    client_name: "Jane Smith",
-    case_number: "CASE-2023-002",
-    provider_name: "Dr. Robert Chen",
-    document_title: "Referral to Orthopedic Specialist",
-    status: "Sent",
-    date_of_service: "2023-04-05",
-    document_url: "/documents/lor1.pdf",
-    uploaded_by: "Mark Handler",
-    created_at: "2023-04-05T09:15:00Z",
-    updated_at: "2023-04-05T09:15:00Z",
-    notes: "Patient needs specialized treatment"
-  },
-];
+import { Label } from "@/components/ui/label";
+import { Search, Filter, Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import FileUploader from "./FileUploader";
+import FileViewer from "./FileViewer";
+import { FileMetadata, useFileStorage } from "@/lib/services/FileStorageService";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const DependencyViewSheet = () => {
-  const [records, setRecords] = useState<DependencyRecord[]>(mockDependencyRecords);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [clientFilter, setClientFilter] = useState<string>("all");
-  const [selectedRecord, setSelectedRecord] = useState<DependencyRecord | null>(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [isUploaderOpen, setIsUploaderOpen] = useState(false);
+  const [files, setFiles] = useState<FileMetadata[]>([]);
+  const [categories, setCategories] = useState<string[]>([
+    "Legal Documents",
+    "Medical Reports",
+    "Case Files",
+    "Client Records",
+    "Insurance Documents",
+    "Billing Records",
+    "Miscellaneous"
+  ]);
+  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   
   const { toast } = useToast();
+  const { getAllFiles } = useFileStorage();
+  const { currentUser } = useAuth();
 
-  // Get unique clients for filter dropdown
-  const uniqueClients = useMemo(() => {
-    const clients = records.map(record => ({ 
-      id: record.client_id, 
-      name: record.client_name 
-    }));
+  useEffect(() => {
+    loadFiles();
+  }, []);
+
+  const loadFiles = () => {
+    const allFiles = getAllFiles();
+    setFiles(allFiles);
     
-    return Array.from(new Map(clients.map(client => 
-      [client.id, client])).values());
-  }, [records]);
-
-  // Filter records based on search term and filters
-  const filteredRecords = useMemo(() => {
-    return records.filter(
-      (record) => {
-        const matchesSearch = 
-          record.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          record.provider_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          record.document_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          record.case_number.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesTypeFilter = typeFilter === "all" || record.type === typeFilter;
-        const matchesClientFilter = clientFilter === "all" || record.client_id === clientFilter;
-        
-        return matchesSearch && matchesTypeFilter && matchesClientFilter;
-      }
-    );
-  }, [records, searchTerm, typeFilter, clientFilter]);
-
-  const handleDownload = (id: string) => {
-    toast({
-      title: "Downloading document",
-      description: "Your document will be downloaded shortly.",
-    });
-  };
-
-  const handleViewRecord = (record: DependencyRecord) => {
-    setSelectedRecord(record);
-    setIsViewModalOpen(true);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
-
-  const formatCurrency = (amount: number | undefined) => {
-    if (amount === undefined) return "-";
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
-
-  const getStatusBadgeColor = (status: string, type: string): "default" | "secondary" | "destructive" => {
-    if (status.includes("Approved")) return "default";
-    if (status.includes("Pending")) return "secondary";
-    if (status.includes("Signed") || status.includes("Sent")) return "default";
-    if (status.includes("Rejected") || status.includes("Disputed")) return "destructive";
-    return "secondary";
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "LOP":
-        return "bg-blue-100 text-blue-800";
-      case "LOR":
-        return "bg-green-100 text-green-800";
-      case "Insurance":
-        return "bg-purple-100 text-purple-800";
-      case "Bill":
-        return "bg-orange-100 text-orange-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+    // Extract unique categories from files
+    const fileCategories = Array.from(new Set(allFiles.map(file => file.category)));
+    if (fileCategories.length > 0) {
+      setCategories(prev => {
+        const newCategories = [...new Set([...prev, ...fileCategories])];
+        return newCategories;
+      });
     }
   };
 
+  const filteredFiles = files.filter(file => {
+    // Filter by search query
+    const matchesSearch = 
+      searchQuery === "" || 
+      file.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      file.uploadedBy.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Filter by category
+    const matchesCategory = !categoryFilter || file.category === categoryFilter;
+    
+    // Filter by tab
+    let matchesTab = true;
+    if (activeTab === "documents") {
+      matchesTab = file.fileType === "document" || file.fileType === "pdf";
+    } else if (activeTab === "images") {
+      matchesTab = file.fileType === "image";
+    } else if (activeTab === "other") {
+      matchesTab = file.fileType === "other";
+    }
+    
+    return matchesSearch && matchesCategory && matchesTab;
+  });
+
+  const handleUploadComplete = (fileId: string) => {
+    loadFiles();
+    setIsUploaderOpen(false);
+    
+    toast({
+      title: "Upload Complete",
+      description: "File has been uploaded successfully.",
+    });
+  };
+
+  const handleDeleteFile = (fileId: string) => {
+    loadFiles();
+  };
+
+  const handleEditFile = (file: FileMetadata) => {
+    // In a real app, this would open an edit dialog
+    toast({
+      title: "Edit File",
+      description: `Editing functionality would be implemented here for: ${file.name}`,
+    });
+  };
+  
+  // Check if user can upload files
+  const canUploadFiles = () => {
+    if (!currentUser) return false;
+    
+    // Admin, superadmin, and attorneys can upload files
+    if (['admin', 'superadmin', 'attorney'].includes(currentUser.role)) {
+      return true;
+    }
+    
+    // Clients can upload only if they have the proper permission
+    if (currentUser.role === 'client' && currentUser.permissions && currentUser.permissions.includes('upload:documents')) {
+      return true;
+    }
+    
+    return false;
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-          <div className="relative w-full md:w-60">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search records..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 w-full"
-            />
-          </div>
-          <div className="flex gap-2">
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="LOP">LOP</SelectItem>
-                <SelectItem value="LOR">LOR</SelectItem>
-                <SelectItem value="Insurance">Insurance</SelectItem>
-                <SelectItem value="Bill">Bill</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by client" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Clients</SelectItem>
-                {uniqueClients.map((client) => (
-                  <SelectItem key={client.id} value={client.id}>
-                    {client.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+    <div className="space-y-6 p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search files..."
+            className="pl-8 h-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Select 
+            value={categoryFilter || ''} 
+            onValueChange={(value) => setCategoryFilter(value || null)}
+          >
+            <SelectTrigger className="w-full sm:w-40 h-10">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Categories</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          {canUploadFiles() && (
+            <Dialog open={isUploaderOpen} onOpenChange={setIsUploaderOpen}>
+              <DialogTrigger asChild>
+                <Button className="h-10">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Upload
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Upload File</DialogTitle>
+                </DialogHeader>
+                
+                <div className="mt-4">
+                  <div className="mb-4">
+                    <Label htmlFor="category">Category</Label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="w-full mt-1">
+                        <SelectValue placeholder="Select Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <FileUploader 
+                    category={selectedCategory}
+                    onUploadComplete={handleUploadComplete}
+                    associatedId={currentUser?.id}
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
-      {filteredRecords.length === 0 ? (
-        <div className="text-center py-10">
-          <FileText className="h-12 w-12 mx-auto text-gray-300" />
-          <h3 className="mt-2 text-sm font-medium">No Documents Found</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {searchTerm || typeFilter !== "all" || clientFilter !== "all" ? 
-              "No documents match your search criteria." : 
-              "There are no documents in the system yet."}
-          </p>
-        </div>
-      ) : (
-        <div className="border rounded-md overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Type</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Case #</TableHead>
-                <TableHead>Provider</TableHead>
-                <TableHead>Document Title</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRecords.map((record) => (
-                <TableRow key={record.record_id}>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(record.type)}`}>
-                      {record.type}
-                    </span>
-                  </TableCell>
-                  <TableCell className="font-medium">{record.client_name}</TableCell>
-                  <TableCell>{record.case_number}</TableCell>
-                  <TableCell>{record.provider_name}</TableCell>
-                  <TableCell>{record.document_title}</TableCell>
-                  <TableCell>{formatDate(record.date_of_service)}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeColor(record.status, record.type)}>
-                      {record.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewRecord(record)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownload(record.record_id)}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-
-      {/* View Record Modal */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedRecord?.document_title}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedRecord && (
-            <div className="mt-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Document Type</h4>
-                  <p className="mt-1">{selectedRecord.type}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Status</h4>
-                  <p className="mt-1">
-                    <Badge variant={getStatusBadgeColor(selectedRecord.status, selectedRecord.type)}>
-                      {selectedRecord.status}
-                    </Badge>
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Client</h4>
-                  <p className="mt-1">{selectedRecord.client_name}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Case Number</h4>
-                  <p className="mt-1">{selectedRecord.case_number}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Provider</h4>
-                  <p className="mt-1">{selectedRecord.provider_name}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Date of Service</h4>
-                  <p className="mt-1">{formatDate(selectedRecord.date_of_service)}</p>
-                </div>
-                {selectedRecord.amount !== undefined && (
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500">Amount</h4>
-                    <p className="mt-1">{formatCurrency(selectedRecord.amount)}</p>
-                  </div>
-                )}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500">Created By</h4>
-                  <p className="mt-1">{selectedRecord.uploaded_by}</p>
-                </div>
-                <div className="md:col-span-2">
-                  <h4 className="text-sm font-medium text-gray-500">Notes</h4>
-                  <p className="mt-1">{selectedRecord.notes || "No notes available."}</p>
-                </div>
-              </div>
-              
-              <div className="pt-4 border-t">
-                <div className="flex justify-end">
-                  <Button onClick={() => handleDownload(selectedRecord.record_id)} className="mr-2">
-                    <Download className="h-4 w-4 mr-2" /> Download Document
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsViewModalOpen(false)}>
-                    Close
-                  </Button>
-                </div>
-              </div>
+      <Card>
+        <CardContent className="p-0">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <div className="border-b px-4">
+              <TabsList className="h-14">
+                <TabsTrigger value="all">All Files</TabsTrigger>
+                <TabsTrigger value="documents">Documents</TabsTrigger>
+                <TabsTrigger value="images">Images</TabsTrigger>
+                <TabsTrigger value="other">Other</TabsTrigger>
+              </TabsList>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+            
+            <div className="p-6">
+              <TabsContent value="all" className="mt-0">
+                <FileViewer 
+                  files={filteredFiles} 
+                  onDelete={handleDeleteFile} 
+                  onEdit={handleEditFile}
+                />
+              </TabsContent>
+              
+              <TabsContent value="documents" className="mt-0">
+                <FileViewer 
+                  files={filteredFiles} 
+                  onDelete={handleDeleteFile} 
+                  onEdit={handleEditFile}
+                />
+              </TabsContent>
+              
+              <TabsContent value="images" className="mt-0">
+                <FileViewer 
+                  files={filteredFiles} 
+                  onDelete={handleDeleteFile} 
+                  onEdit={handleEditFile}
+                />
+              </TabsContent>
+              
+              <TabsContent value="other" className="mt-0">
+                <FileViewer 
+                  files={filteredFiles} 
+                  onDelete={handleDeleteFile} 
+                  onEdit={handleEditFile}
+                />
+              </TabsContent>
+            </div>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };
