@@ -10,6 +10,7 @@ import { CalendarEvent, calendarApi } from "@/lib/api/calendar-api";
 import { ChevronLeft, ChevronRight, Loader2, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
+import { DayPickerBase } from "react-day-picker";
 
 interface CalendarScheduleProps {
   onAddEvent?: () => void;
@@ -67,8 +68,7 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
 
   // Get dates with events for highlighting in the calendar
   const getDatesWithEvents = () => {
-    const dates = events.map(event => new Date(event.startDate));
-    return dates;
+    return events.map(event => new Date(event.startDate));
   };
 
   // Calculate event dots for the calendar
@@ -100,6 +100,20 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
       </Card>
     );
   }
+
+  // Prepare the modifiers in the format expected by react-day-picker
+  const modifiers = {
+    eventDay: eventDates
+  };
+
+  // Prepare the modifiers styles
+  const modifiersStyles = {
+    eventDay: {
+      fontWeight: 'bold',
+      textDecoration: 'underline',
+      color: 'var(--primary)'
+    }
+  };
 
   return (
     <>
@@ -143,22 +157,13 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
               </Button>
             </div>
             
-            {/* Fix for the calendar modifiers issue */}
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={handleDateSelect}
               className="rounded-md border"
-              modifiers={{
-                eventDay: eventDates
-              }}
-              modifiersStyles={{
-                eventDay: {
-                  fontWeight: 'bold',
-                  textDecoration: 'underline',
-                  color: 'var(--primary)'
-                }
-              }}
+              modifiers={modifiers}
+              modifiersStyles={modifiersStyles}
             />
           </div>
         </CardContent>

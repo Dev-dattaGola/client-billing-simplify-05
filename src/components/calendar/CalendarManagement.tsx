@@ -104,15 +104,28 @@ const CalendarManagement: React.FC = () => {
       <TabsContent value="calendar" className="space-y-4 pt-4">
         {isAddingEvent ? (
           <EventForm 
-            onSave={handleEventSave} 
-            onCancel={() => setIsAddingEvent(false)}
+            isOpen={true}
+            onClose={() => setIsAddingEvent(false)}
+            onSubmit={handleEventSave}
+            isLoading={false}
           />
         ) : selectedEvent ? (
           <EventDetails 
-            event={selectedEvent} 
-            onUpdate={handleEventUpdate} 
+            event={{
+              id: selectedEvent.id,
+              title: selectedEvent.title,
+              description: selectedEvent.description,
+              start: new Date(selectedEvent.startDate),
+              end: new Date(selectedEvent.endDate),
+              allDay: false,
+              location: selectedEvent.location,
+              participants: selectedEvent.attendees,
+              createdAt: new Date(selectedEvent.createdAt),
+              updatedAt: new Date(selectedEvent.updatedAt)
+            }}
+            isOpen={true}
+            onClose={() => setSelectedEvent(null)}
             onDelete={handleEventDelete}
-            onBack={() => setSelectedEvent(null)}
           />
         ) : (
           <CalendarSchedule 

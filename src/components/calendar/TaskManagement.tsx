@@ -7,8 +7,8 @@ import { tasksApi, Task } from "@/lib/api/calendar-api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TaskForm } from "./TaskForm";
-import { TaskDetails } from "./TaskDetails";
+import TaskForm from "./TaskForm";  // Changed from { TaskForm }
+import TaskDetails from "./TaskDetails";  // Changed from { TaskDetails }
 import { Loader2, Plus } from "lucide-react";
 
 interface TaskManagementProps {
@@ -53,13 +53,23 @@ const TaskManagement: React.FC<TaskManagementProps> = () => {
     try {
       // Fix for status types: ensure it uses the correct values
       // Make sure taskData.status is one of 'todo', 'in-progress', or 'completed'
-      const validStatus = taskData.status === 'pending' ? 'todo' : 
-                        taskData.status === 'cancelled' ? 'todo' : 
-                        taskData.status;
+      
+      // Update to handle the status mapping correctly
+      let validStatus: 'todo' | 'in-progress' | 'completed';
+      
+      if (taskData.status === 'todo' || taskData.status === 'in-progress' || taskData.status === 'completed') {
+        validStatus = taskData.status;
+      } else if (taskData.status === 'pending' || taskData.status === 'cancelled') {
+        // Map 'pending' or 'cancelled' to 'todo' as a fallback
+        validStatus = 'todo';
+      } else {
+        // Default fallback
+        validStatus = 'todo';
+      }
       
       const newTask = await tasksApi.createTask({
         ...taskData,
-        status: validStatus as 'todo' | 'in-progress' | 'completed'
+        status: validStatus
       });
       
       setTasks(prevTasks => [...prevTasks, newTask]);
@@ -73,6 +83,7 @@ const TaskManagement: React.FC<TaskManagementProps> = () => {
     try {
       // Ensure valid status values
       if (updates.status) {
+        // Similar logic as above for mapping status values
         if (!['todo', 'in-progress', 'completed'].includes(updates.status)) {
           updates.status = 'todo';
         }
