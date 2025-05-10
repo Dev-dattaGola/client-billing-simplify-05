@@ -3,22 +3,64 @@
 // We're fixing the type issues with Task[] and ensuring status values match expected values
 
 import React, { useState, useEffect } from "react";
-import { tasksApi, Task } from "@/lib/api/calendar-api"; 
+import { tasksApi, Task as ApiTask } from "@/lib/api/calendar-api"; 
+import { Task as AppTask } from "@/types/calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import TaskForm from "./TaskForm";  // Changed from { TaskForm }
-import TaskDetails from "./TaskDetails";  // Changed from { TaskDetails }
+import TaskForm from "./TaskForm";  // Default import
+import TaskDetails from "./TaskDetails";  // Default import
 import { Loader2, Plus } from "lucide-react";
 
 interface TaskManagementProps {
   // Add props as needed
 }
 
+// Create a type mapper function to convert between API Task and App Task types
+const mapApiTaskToAppTask = (apiTask: ApiTask): AppTask => {
+  return {
+    id: apiTask.id,
+    title: apiTask.title,
+    description: apiTask.description || "",  // Handle optional field
+    dueDate: apiTask.dueDate ? new Date(apiTask.dueDate) : new Date(),
+    priority: apiTask.priority as AppTask['priority'],
+    status: apiTask.status === 'todo' ? 'pending' : apiTask.status as AppTask['status'],
+    assignedTo: apiTask.assignedTo || "",
+    reminder: apiTask.dueDate ? new Date(apiTask.dueDate) : undefined,
+    caseId: apiTask.associatedCaseId,
+    clientId: undefined,
+    createdAt: new Date(apiTask.createdAt),
+    updatedAt: new Date(apiTask.updatedAt)
+  };
+};
+
+// Convert App Task to API Task
+const mapAppTaskToApiTask = (appTask: Partial<AppTask>): Partial<ApiTask> => {
+  const apiTask: Partial<ApiTask> = {
+    ...appTask,
+    status: appTask.status === 'pending' || appTask.status === 'cancelled' 
+      ? 'todo' 
+      : (appTask.status as 'in-progress' | 'completed')
+  };
+  
+  // Convert Date to string for dueDate if it exists
+  if (appTask.dueDate) {
+    apiTask.dueDate = appTask.dueDate.toISOString();
+  }
+  
+  // Map caseId to associatedCaseId if it exists
+  if (appTask.caseId) {
+    apiTask.associatedCaseId = appTask.caseId;
+    delete (apiTask as any).caseId;
+  }
+  
+  return apiTask;
+};
+
 const TaskManagement: React.FC<TaskManagementProps> = () => {
-  // Use the correct Task type from calendar-api
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  // Use the App Task type for state
+  const [tasks, setTasks] = useState<AppTask[]>([]);
+  const [selectedTask, setSelectedTask] = useState<AppTask | null>(null);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -27,8 +69,9 @@ const TaskManagement: React.FC<TaskManagementProps> = () => {
       try {
         setIsLoading(true);
         const fetchedTasks = await tasksApi.getTasks();
-        // Convert the fetched tasks to match our internal type
-        setTasks(fetchedTasks);
+        // Convert the API tasks to our App tasks
+        const mappedTasks = fetchedTasks.map(mapApiTaskToAppTask);
+        setTasks(mappedTasks);
       } catch (error) {
         console.error("Error loading tasks:", error);
       } finally {
@@ -44,53 +87,41 @@ const TaskManagement: React.FC<TaskManagementProps> = () => {
     setIsAddingTask(true);
   };
   
-  const handleTaskClick = (task: Task) => {
+  const handleTaskClick = (task: AppTask) => {
     setSelectedTask(task);
     setIsAddingTask(false);
   };
   
-  const handleTaskSave = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleTaskSave = async (taskData: Omit<AppTask, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      // Fix for status types: ensure it uses the correct values
-      // Make sure taskData.status is one of 'todo', 'in-progress', or 'completed'
+      // Convert App Task to API Task
+      const apiTaskData = mapAppTaskToApiTask(taskData);
       
-      // Update to handle the status mapping correctly
-      let validStatus: 'todo' | 'in-progress' | 'completed';
+      // Create the task via API
+      const newApiTask = await tasksApi.createTask(apiTaskData as Omit<ApiTask, 'id' | 'createdAt' | 'updatedAt'>);
       
-      if (taskData.status === 'todo' || taskData.status === 'in-progress' || taskData.status === 'completed') {
-        validStatus = taskData.status;
-      } else if (taskData.status === 'pending' || taskData.status === 'cancelled') {
-        // Map 'pending' or 'cancelled' to 'todo' as a fallback
-        validStatus = 'todo';
-      } else {
-        // Default fallback
-        validStatus = 'todo';
-      }
-      
-      const newTask = await tasksApi.createTask({
-        ...taskData,
-        status: validStatus
-      });
-      
-      setTasks(prevTasks => [...prevTasks, newTask]);
+      // Convert back to App Task and add to state
+      const newAppTask = mapApiTaskToAppTask(newApiTask);
+      setTasks(prevTasks => [...prevTasks, newAppTask]);
       setIsAddingTask(false);
     } catch (error) {
       console.error("Error saving task:", error);
     }
   };
   
-  const handleTaskUpdate = async (taskId: string, updates: Partial<Task>) => {
+  const handleTaskUpdate = async (taskId: string, updates: Partial<AppTask>) => {
     try {
-      // Ensure valid status values
-      if (updates.status) {
-        // Similar logic as above for mapping status values
-        if (!['todo', 'in-progress', 'completed'].includes(updates.status)) {
-          updates.status = 'todo';
-        }
-      }
+      // Convert updates to API format
+      const apiUpdates = mapAppTaskToApiTask(updates);
       
-      const updatedTask = await tasksApi.updateTask(taskId, updates);
-      setTasks(prevTasks => prevTasks.map(task => task.id === taskId ? updatedTask : task));
+      // Update through API
+      const updatedApiTask = await tasksApi.updateTask(taskId, apiUpdates);
+      
+      // Update local state with converted App Task
+      const updatedAppTask = mapApiTaskToAppTask(updatedApiTask);
+      setTasks(prevTasks => prevTasks.map(task => 
+        task.id === taskId ? updatedAppTask : task
+      ));
       setSelectedTask(null);
     } catch (error) {
       console.error("Error updating task:", error);
@@ -138,7 +169,7 @@ const TaskManagement: React.FC<TaskManagementProps> = () => {
           <Tabs defaultValue="all" className="w-full">
             <TabsList className="grid grid-cols-4 mb-4">
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="todo">To Do</TabsTrigger>
+              <TabsTrigger value="pending">To Do</TabsTrigger>
               <TabsTrigger value="in-progress">In Progress</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
             </TabsList>
@@ -147,8 +178,8 @@ const TaskManagement: React.FC<TaskManagementProps> = () => {
               {renderTaskList(tasks, handleTaskClick)}
             </TabsContent>
             
-            <TabsContent value="todo">
-              {renderTaskList(tasks.filter(task => task.status === 'todo'), handleTaskClick)}
+            <TabsContent value="pending">
+              {renderTaskList(tasks.filter(task => task.status === 'pending'), handleTaskClick)}
             </TabsContent>
             
             <TabsContent value="in-progress">
@@ -165,7 +196,7 @@ const TaskManagement: React.FC<TaskManagementProps> = () => {
   );
 };
 
-const renderTaskList = (tasks: Task[], onTaskClick: (task: Task) => void) => {
+const renderTaskList = (tasks: AppTask[], onTaskClick: (task: AppTask) => void) => {
   if (tasks.length === 0) {
     return <p className="text-center py-8 text-muted-foreground">No tasks found.</p>;
   }
@@ -190,10 +221,12 @@ const renderTaskList = (tasks: Task[], onTaskClick: (task: Task) => void) => {
             <div className={`px-2 py-1 rounded-md text-xs ${
               task.status === 'completed' ? 'bg-green-100 text-green-800' :
               task.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
-              'bg-amber-100 text-amber-800'
+              task.status === 'pending' ? 'bg-amber-100 text-amber-800' :
+              'bg-gray-100 text-gray-800'
             }`}>
-              {task.status === 'todo' ? 'To Do' : 
+              {task.status === 'pending' ? 'To Do' : 
                task.status === 'in-progress' ? 'In Progress' : 
+               task.status === 'cancelled' ? 'Cancelled' :
                'Completed'}
             </div>
           </div>

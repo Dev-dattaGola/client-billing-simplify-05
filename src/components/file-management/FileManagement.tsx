@@ -21,8 +21,8 @@ const FileManagement = () => {
       size: 2500000,
       type: "application/pdf",
       url: "/documents/client-agreement.pdf",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      uploadDate: new Date().toISOString(),
+      lastModified: new Date().toISOString(),
       category: "Legal Documents"
     },
     {
@@ -31,8 +31,8 @@ const FileManagement = () => {
       size: 5000000,
       type: "application/pdf",
       url: "/documents/medical-records.pdf",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      uploadDate: new Date().toISOString(),
+      lastModified: new Date().toISOString(),
       category: "Medical Documents"
     }
   ]);

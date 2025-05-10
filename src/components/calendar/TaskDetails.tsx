@@ -45,9 +45,8 @@ const TaskDetails = ({ task, onUpdate, onDelete, onBack }: TaskDetailsProps) => 
       case "cancelled":
         return <Badge variant="outline" className="bg-gray-500/10 text-gray-700 border-gray-300">Cancelled</Badge>;
       case "pending":
-        return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-700 border-yellow-300">Pending</Badge>;
       default:
-        return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-700 border-yellow-300">Todo</Badge>;
+        return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-700 border-yellow-300">Pending</Badge>;
     }
   };
 
@@ -60,24 +59,23 @@ const TaskDetails = ({ task, onUpdate, onDelete, onBack }: TaskDetailsProps) => 
       case "cancelled":
         return <XCircle className="h-5 w-5 text-gray-500" />;
       case "pending":
-        return <Circle className="h-5 w-5 text-yellow-500" />;
       default:
         return <Circle className="h-5 w-5 text-yellow-500" />;
     }
   };
 
   const handleStatusChange = (status: string) => {
-    // Map the status to the expected values in the API
-    let apiStatus: 'todo' | 'in-progress' | 'completed';
+    // Convert UI status to API status if needed
+    let apiStatus: 'pending' | 'in-progress' | 'completed' | 'cancelled';
     
     if (status === 'pending' || status === 'cancelled') {
-      apiStatus = 'todo';
+      apiStatus = status as 'pending' | 'cancelled';
     } else if (status === 'in-progress') {
       apiStatus = 'in-progress';
     } else if (status === 'completed') {
       apiStatus = 'completed';
     } else {
-      apiStatus = 'todo';
+      apiStatus = 'pending'; // Default fallback
     }
     
     onUpdate(task.id, { status: apiStatus });
@@ -167,7 +165,7 @@ const TaskDetails = ({ task, onUpdate, onDelete, onBack }: TaskDetailsProps) => 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="flex items-center gap-1">
-                {task.status === 'todo' ? 'pending' : task.status}
+                {task.status}
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
