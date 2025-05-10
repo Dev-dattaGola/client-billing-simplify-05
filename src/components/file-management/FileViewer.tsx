@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { FileMetadata, useFileStorage } from "@/lib/services/FileStorageService";
-import { Download, Eye, FileText, File as FileIcon, FileImage, FilePdf, Trash2, Edit } from "lucide-react";
+import { Download, Eye, FileText, File as FileIcon, FileImage, File, Trash2, Edit } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -93,7 +93,7 @@ const FileViewer = ({
   const getFileIcon = (fileType: string, className: string = "h-10 w-10") => {
     switch (fileType) {
       case 'pdf':
-        return <FilePdf className={`${className} text-red-500`} />;
+        return <FileText className={`${className} text-red-500`} />;
       case 'image':
         return <FileImage className={`${className} text-blue-500`} />;
       case 'document':

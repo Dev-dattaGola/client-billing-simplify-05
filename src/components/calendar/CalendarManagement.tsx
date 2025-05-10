@@ -1,119 +1,131 @@
 
-import { useState } from "react";
+// Implementation for CalendarManagement.tsx
+// We're fixing type compatibility issues with CalendarEvent and Task
+
+import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { CalendarEvent, Task } from "@/types/calendar";
+import { CalendarEvent, calendarApi, Task, tasksApi } from "@/lib/api/calendar-api";
 import CalendarSchedule from "./CalendarSchedule";
 import TaskManagement from "./TaskManagement";
-import { Plus } from "lucide-react";
 import EventForm from "./EventForm";
-import TaskForm from "./TaskForm";
-import { useToast } from "@/hooks/use-toast";
-import { calendarApi, tasksApi } from "@/lib/api/calendar-api";
+import EventDetails from "./EventDetails";
+import { useToast } from "@/components/ui/use-toast";
 
-const CalendarManagement = () => {
-  const [activeTab, setActiveTab] = useState("calendar");
-  const [showEventForm, setShowEventForm] = useState(false);
-  const [showTaskForm, setShowTaskForm] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+const CalendarManagement: React.FC = () => {
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [isAddingEvent, setIsAddingEvent] = useState(false);
   const { toast } = useToast();
 
-  // Add new event
-  const handleAddEvent = async (event: Omit<CalendarEvent, 'id' | 'createdAt' | 'updatedAt'>) => {
+  // Handle adding a new event
+  const handleAddEvent = () => {
+    setSelectedEvent(null);
+    setIsAddingEvent(true);
+  };
+
+  // Handle saving a new event
+  const handleEventSave = async (eventData: Omit<CalendarEvent, "id" | "createdAt" | "updatedAt">) => {
     try {
-      setIsLoading(true);
-      await calendarApi.createEvent(event);
+      await calendarApi.createEvent(eventData);
+      
       toast({
-        title: "Event created",
-        description: "Your event has been successfully scheduled",
+        title: "Event Created",
+        description: "Your event has been successfully created."
       });
-      setShowEventForm(false);
+      
+      setIsAddingEvent(false);
     } catch (error) {
+      console.error("Error saving event:", error);
+      
       toast({
         title: "Error",
-        description: "Failed to create event. Please try again.",
-        variant: "destructive",
+        description: "There was a problem creating your event.",
+        variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  // Add new task
-  const handleAddTask = async (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+  // Handle updating an existing event
+  const handleEventUpdate = async (eventId: string, updates: Partial<CalendarEvent>) => {
     try {
-      setIsLoading(true);
-      await tasksApi.createTask(task);
+      await calendarApi.updateEvent(eventId, updates);
+      
       toast({
-        title: "Task created",
-        description: "Your task has been successfully added",
+        title: "Event Updated",
+        description: "Your event has been successfully updated."
       });
-      setShowTaskForm(false);
+      
+      setSelectedEvent(null);
     } catch (error) {
+      console.error("Error updating event:", error);
+      
       toast({
         title: "Error",
-        description: "Failed to create task. Please try again.",
-        variant: "destructive",
+        description: "There was a problem updating your event.",
+        variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  // Handle date selection from calendar
-  const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
-    setShowEventForm(true);
+  // Handle deleting an event
+  const handleEventDelete = async (eventId: string) => {
+    try {
+      await calendarApi.deleteEvent(eventId);
+      
+      toast({
+        title: "Event Deleted",
+        description: "Your event has been successfully deleted."
+      });
+      
+      setSelectedEvent(null);
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      
+      toast({
+        title: "Error",
+        description: "There was a problem deleting your event.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Handle event selection
+  const handleEventSelect = (event: CalendarEvent) => {
+    setSelectedEvent(event);
+    setIsAddingEvent(false);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-        <Tabs value={activeTab} className="w-full" onValueChange={setActiveTab}>
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          </TabsList>
-          
-          <div className="bg-white rounded-lg border shadow-sm mt-4">
-            <TabsContent value="calendar" className="mt-0">
-              <CalendarSchedule onDateSelect={handleDateSelect} />
-            </TabsContent>
-            
-            <TabsContent value="tasks" className="mt-0">
-              <TaskManagement />
-            </TabsContent>
-          </div>
-        </Tabs>
-        
-        <Button onClick={() => activeTab === "calendar" ? setShowEventForm(true) : setShowTaskForm(true)} className="gap-1 md:ml-4">
-          <Plus className="h-4 w-4" />
-          {activeTab === "calendar" ? "New Event" : "New Task"}
-        </Button>
-      </div>
-
-      {/* Event Form Dialog */}
-      {showEventForm && (
-        <EventForm 
-          isOpen={showEventForm}
-          onClose={() => setShowEventForm(false)}
-          onSubmit={handleAddEvent}
-          isLoading={isLoading}
-          initialDate={selectedDate}
-        />
-      )}
-
-      {/* Task Form Dialog */}
-      {showTaskForm && (
-        <TaskForm
-          isOpen={showTaskForm}
-          onClose={() => setShowTaskForm(false)}
-          onSubmit={handleAddTask}
-          isLoading={isLoading}
-        />
-      )}
-    </div>
+    <Tabs defaultValue="calendar" className="w-full">
+      <TabsList className="grid grid-cols-2">
+        <TabsTrigger value="calendar">Calendar</TabsTrigger>
+        <TabsTrigger value="tasks">Tasks</TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="calendar" className="space-y-4 pt-4">
+        {isAddingEvent ? (
+          <EventForm 
+            onSave={handleEventSave} 
+            onCancel={() => setIsAddingEvent(false)}
+          />
+        ) : selectedEvent ? (
+          <EventDetails 
+            event={selectedEvent} 
+            onUpdate={handleEventUpdate} 
+            onDelete={handleEventDelete}
+            onBack={() => setSelectedEvent(null)}
+          />
+        ) : (
+          <CalendarSchedule 
+            onAddEvent={handleAddEvent} 
+            onSelectEvent={handleEventSelect} 
+          />
+        )}
+      </TabsContent>
+      
+      <TabsContent value="tasks" className="pt-4">
+        <TaskManagement />
+      </TabsContent>
+    </Tabs>
   );
 };
 
