@@ -9,4 +9,5 @@ export interface FileMetadata {
   uploadDate: string;
   lastModified: string;
   category?: string;
+  createdAt?: string; // Added to match usage in FileManagement.tsx
 }

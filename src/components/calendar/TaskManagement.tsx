@@ -1,4 +1,3 @@
-
 // Implementation for TaskManagement.tsx
 // We're fixing the type issues with Task[] and ensuring status values match expected values
 
@@ -37,11 +36,15 @@ const mapApiTaskToAppTask = (apiTask: ApiTask): AppTask => {
 // Convert App Task to API Task
 const mapAppTaskToApiTask = (appTask: Partial<AppTask>): Partial<ApiTask> => {
   const apiTask: Partial<ApiTask> = {
-    ...appTask,
-    status: appTask.status === 'pending' || appTask.status === 'cancelled' 
-      ? 'todo' 
-      : (appTask.status as 'in-progress' | 'completed')
+    ...appTask
   };
+  
+  // Convert status
+  if (appTask.status) {
+    apiTask.status = appTask.status === 'pending' ? 'todo' : 
+                    (appTask.status === 'cancelled' ? 'todo' : 
+                    appTask.status as 'in-progress' | 'completed');
+  }
   
   // Convert Date to string for dueDate if it exists
   if (appTask.dueDate) {
@@ -53,6 +56,10 @@ const mapAppTaskToApiTask = (appTask: Partial<AppTask>): Partial<ApiTask> => {
     apiTask.associatedCaseId = appTask.caseId;
     delete (apiTask as any).caseId;
   }
+  
+  // Remove client-specific properties that don't exist in API Task
+  delete (apiTask as any).clientId;
+  delete (apiTask as any).reminder;
   
   return apiTask;
 };
