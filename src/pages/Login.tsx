@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate, Navigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,20 +17,30 @@ const Login = () => {
   const [remember, setRemember] = useState(false);
   
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { login, isAuthenticated, isLoading: authLoading, updateAuthState } = useAuth();
+
+  // Get the intended destination from location state or use dashboard as default
+  const from = location.state?.from?.pathname || "/dashboard";
 
   // Check authentication status on component mount and when auth state changes
   useEffect(() => {
     if (isAuthenticated) {
-      console.log("User is authenticated, redirecting to dashboard");
-      navigate("/dashboard");
+      console.log("User is authenticated, redirecting to:", from);
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, from]);
+
+  // Extra debugging for authentication status
+  useEffect(() => {
+    console.log("Login component: Auth status =", isAuthenticated);
+    console.log("Login component: Redirect destination =", from);
+  }, [isAuthenticated, from]);
 
   if (isAuthenticated && !isLoading) {
-    console.log("Redirecting to dashboard from render");
-    return <Navigate to="/dashboard" />;
+    console.log("Redirecting to destination from render:", from);
+    return <Navigate to={from} />;
   }
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -48,7 +57,7 @@ const Login = () => {
     try {
       console.log("Attempting login with:", { email, remember });
       const user = await login({ 
-        email: email.toLowerCase().trim(), // Normalize email to avoid case sensitivity issues
+        email: email.toLowerCase().trim(),
         password, 
         remember 
       });
@@ -69,8 +78,8 @@ const Login = () => {
       // Explicitly update auth state after successful login
       updateAuthState();
       
-      console.log("Navigating to dashboard");
-      navigate("/dashboard", { replace: true });
+      console.log("Navigating to:", from);
+      navigate(from, { replace: true });
     } catch (error) {
       console.error("Login error:", error);
       setError(typeof error === 'string' ? error : "Authentication failed. Please try again.");

@@ -1,23 +1,14 @@
 
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import LandingPage from "./LandingPage";
 
 const Index = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const { toast } = useToast();
   
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-    } else {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
-
-  return null;
+  // Show the landing page instead of auto-redirecting
+  return <LandingPage />;
 };
 
 export default Index;
