@@ -23,7 +23,10 @@ const FileManagement = () => {
       url: "/documents/client-agreement.pdf",
       uploadDate: new Date().toISOString(),
       lastModified: new Date().toISOString(),
-      category: "Legal Documents"
+      category: "Legal Documents",
+      fileType: "pdf",
+      uploadedBy: "Admin User",
+      uploadedById: "admin-001"
     },
     {
       id: "2",
@@ -33,7 +36,10 @@ const FileManagement = () => {
       url: "/documents/medical-records.pdf",
       uploadDate: new Date().toISOString(),
       lastModified: new Date().toISOString(),
-      category: "Medical Documents"
+      category: "Medical Documents",
+      fileType: "pdf",
+      uploadedBy: "Admin User",
+      uploadedById: "admin-001"
     }
   ]);
 

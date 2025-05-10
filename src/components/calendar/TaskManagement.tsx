@@ -1,3 +1,4 @@
+
 // Implementation for TaskManagement.tsx
 // We're fixing the type issues with Task[] and ensuring status values match expected values
 
@@ -35,9 +36,15 @@ const mapApiTaskToAppTask = (apiTask: ApiTask): AppTask => {
 
 // Convert App Task to API Task
 const mapAppTaskToApiTask = (appTask: Partial<AppTask>): Partial<ApiTask> => {
-  const apiTask: Partial<ApiTask> = {
-    ...appTask
-  };
+  // Create a new object to hold API task properties
+  const apiTask: Partial<ApiTask> = {};
+  
+  // Copy primitive properties that have the same name and compatible types
+  if (appTask.id) apiTask.id = appTask.id;
+  if (appTask.title) apiTask.title = appTask.title;
+  if (appTask.description) apiTask.description = appTask.description;
+  if (appTask.assignedTo) apiTask.assignedTo = appTask.assignedTo;
+  if (appTask.priority) apiTask.priority = appTask.priority;
   
   // Convert status
   if (appTask.status) {
@@ -54,13 +61,10 @@ const mapAppTaskToApiTask = (appTask: Partial<AppTask>): Partial<ApiTask> => {
   // Map caseId to associatedCaseId if it exists
   if (appTask.caseId) {
     apiTask.associatedCaseId = appTask.caseId;
-    delete (apiTask as any).caseId;
   }
   
-  // Remove client-specific properties that don't exist in API Task
-  delete (apiTask as any).clientId;
-  delete (apiTask as any).reminder;
-  
+  // We don't need to explicitly remove properties not in ApiTask as they won't be included in apiTask
+
   return apiTask;
 };
 

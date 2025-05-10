@@ -10,4 +10,9 @@ export interface FileMetadata {
   lastModified: string;
   category?: string;
   createdAt?: string; // Added to match usage in FileManagement.tsx
+  fileType?: string; // Added to match FileStorageService.ts
+  uploadedBy?: string; // Added to match FileStorageService.ts
+  uploadedById?: string; // Added to match FileStorageService.ts
+  tags?: string[]; // Add optional tags field
+  associatedId?: string; // Added for associating with clients/cases
 }

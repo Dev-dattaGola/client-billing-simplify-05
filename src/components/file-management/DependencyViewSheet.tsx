@@ -1,6 +1,7 @@
+
 import React, { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { FileMetadata } from "@/lib/services/FileStorageService";
+import { FileMetadata } from "@/lib/services/FileMetadataTypes";
 import { Button } from "@/components/ui/button";
 
 interface DependencyViewSheetProps {
