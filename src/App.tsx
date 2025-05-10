@@ -17,6 +17,12 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import NotFound from './pages/NotFound';
 import Index from './pages/Index';
+import Files from './pages/Files';
+import Medical from './pages/Medical';
+import Calculator from './pages/Calculator';
+import Admin from './pages/Admin';
+import Depositions from './pages/Depositions';
+import Attorneys from './pages/Attorneys';
 import { AuthProvider } from './contexts/AuthContext';
 import { UserProvider } from './contexts/UserContext';
 import { ClientProvider } from './contexts/ClientContext';
@@ -56,6 +62,16 @@ function App() {
                   <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
                   <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
+                  {/* Adding missing routes */}
+                  <Route path="/files" element={<ProtectedRoute><Files /></ProtectedRoute>} />
+                  <Route path="/medical" element={<ProtectedRoute><Medical /></ProtectedRoute>} />
+                  <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />
+                  <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                  <Route path="/depositions/*" element={<ProtectedRoute><Depositions /></ProtectedRoute>} />
+                  <Route path="/attorneys" element={<ProtectedRoute><Attorneys /></ProtectedRoute>} />
+                  <Route path="/attorneys/:id" element={<ProtectedRoute><Attorneys /></ProtectedRoute>} />
+                  
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </ChatbotProvider>
