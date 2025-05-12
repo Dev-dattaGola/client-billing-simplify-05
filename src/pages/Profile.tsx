@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -41,6 +40,16 @@ const securitySchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>;
 type SecurityFormValues = z.infer<typeof securitySchema>;
 
+// Add getUserDisplayName helper function to handle user name format
+const getUserDisplayName = (user: any) => {
+  if (!user) return "";
+  // Try different ways to get the user's name
+  return user.name || 
+         (user.user_metadata?.first_name ? 
+          `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}` : 
+          user.email?.split('@')[0] || '');
+};
+
 const Profile = () => {
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
@@ -50,7 +59,7 @@ const Profile = () => {
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: currentUser?.name || '',
+      name: getUserDisplayName(currentUser) || '',
       email: currentUser?.email || '',
       phone: '',
       address: '',
@@ -139,7 +148,7 @@ const Profile = () => {
                 <AvatarFallback>{currentUser?.name?.[0] || 'U'}</AvatarFallback>
               </Avatar>
               <div className="text-center">
-                <h3 className="font-medium text-lg">{currentUser?.name || 'User'}</h3>
+                <h3 className="font-medium text-lg">{getUserDisplayName(currentUser)}</h3>
                 <p className="text-sm text-muted-foreground">{currentUser?.email || ''}</p>
                 <p className="text-sm text-muted-foreground mt-1">{currentUser?.role || 'User'}</p>
               </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -121,6 +120,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     }
   ];
 
+  const getUserDisplayName = (user: any) => {
+    if (!user) return "";
+    // Try different ways to get the user's name
+    return user.name || 
+           (user.user_metadata?.first_name ? 
+            `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}` : 
+            user.email?.split('@')[0] || '');
+  };
+
   return (
     <div 
       className={cn(
@@ -158,7 +166,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       <div className="p-3 border-t mt-auto">
         {!isCollapsed && currentUser && (
           <div className="text-xs text-muted-foreground mb-2">
-            <div className="font-medium">{currentUser.name}</div>
+            <div className="font-medium">{getUserDisplayName(currentUser)}</div>
             <div>{currentUser.email}</div>
             <div className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs inline-block mt-1">
               {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}

@@ -6,6 +6,11 @@ export interface User {
   role: string;
   firmId?: string;
   permissions?: string[];
+  // Add any other properties used across the application
+  user_metadata?: {
+    first_name?: string;
+    last_name?: string;
+  };
 }
 
 export interface LoginCredentials {

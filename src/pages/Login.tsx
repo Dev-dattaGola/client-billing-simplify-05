@@ -43,6 +43,16 @@ const Login = () => {
     return <Navigate to={from} />;
   }
 
+  // Add getUserDisplayName helper function to handle user name format
+  const getUserDisplayName = (user: any) => {
+    if (!user) return "";
+    // Try different ways to get the user's name
+    return user.name || 
+           (user.user_metadata?.first_name ? 
+            `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}` : 
+            user.email?.split('@')[0] || '');
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -69,8 +79,8 @@ const Login = () => {
       }
       
       toast({
-        title: "Login Successful",
-        description: `Welcome back, ${user.name}!`,
+        title: `Welcome back, ${getUserDisplayName(user) || user.email}!`,
+        description: `Welcome back, ${getUserDisplayName(user) || user.email}!`,
       });
       
       console.log("Login successful, updating auth state");

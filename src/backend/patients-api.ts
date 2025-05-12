@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 
 // Patient types
@@ -21,6 +20,7 @@ export interface Patient {
   insuranceCompany?: string;
   insurancePolicyNumber?: string;
   insuranceAdjusterName?: string;
+  companyName?: string; // Added this property
 }
 
 export interface Appointment {
@@ -79,7 +79,8 @@ const mockPatients: Patient[] = [
     caseDescription: 'Client was involved in a rear-end collision causing back and neck injuries requiring physical therapy.',
     insuranceCompany: 'ABC Insurance',
     insurancePolicyNumber: 'ABC123456',
-    insuranceAdjusterName: 'Michael Thompson'
+    insuranceAdjusterName: 'Michael Thompson',
+    companyName: 'ABC Insurance'
   }
 ];
 

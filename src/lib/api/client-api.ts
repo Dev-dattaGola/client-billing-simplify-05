@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 export interface Appointment {
   id: string;
   clientId: string;
+  patientId?: string; // Added for compatibility with Patient interface
   doctorFacilityName: string;
   visitDate: string;
   visitTime: string;
@@ -19,6 +20,7 @@ export interface Appointment {
 export interface Document {
   id: string;
   clientId: string;
+  patientId?: string; // Added for compatibility with Patient interface
   name: string;
   type: 'medical' | 'legal' | 'billing' | 'misc';
   category: string;
@@ -31,6 +33,7 @@ export interface Document {
 export interface Communication {
   id: string;
   clientId: string;
+  patientId?: string; // Added for compatibility with Patient interface
   date: string;
   time: string;
   type: 'email' | 'sms' | 'phone';

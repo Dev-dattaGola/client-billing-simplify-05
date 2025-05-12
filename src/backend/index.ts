@@ -1,4 +1,3 @@
-
 // Backend API entry point
 import { messagingApi } from './messaging-api';
 import { adminApi } from './admin-api';
@@ -37,7 +36,7 @@ export const patientsApi = {
       // Include other fields
       address: patientData.address,
       // Client type doesn't have these fields directly, but they'll be stored as extended properties
-      companyName: patientData.companyName
+      companyName: patientData.companyName || ''
     };
     
     const newClient = await clientsApi.createClient(clientData);
@@ -65,7 +64,7 @@ export const patientsApi = {
     return appointments.map(appointment => ({
       ...appointment,
       patientId: appointment.clientId
-    } as unknown as Appointment));
+    }) as unknown as Appointment);
   },
   
   getAppointmentsByStatus: async (patientId: string, status: string): Promise<Appointment[]> => {
@@ -73,7 +72,7 @@ export const patientsApi = {
     return appointments.map(appointment => ({
       ...appointment,
       patientId: appointment.clientId
-    } as unknown as Appointment));
+    }) as unknown as Appointment);
   },
   
   getDocuments: async (patientId: string): Promise<Document[]> => {
@@ -81,7 +80,7 @@ export const patientsApi = {
     return documents.map(document => ({
       ...document,
       patientId: document.clientId
-    } as unknown as Document));
+    }) as unknown as Document);
   },
   
   getDocumentsByType: async (patientId: string, type: string): Promise<Document[]> => {
@@ -89,7 +88,7 @@ export const patientsApi = {
     return documents.map(document => ({
       ...document,
       patientId: document.clientId
-    } as unknown as Document));
+    }) as unknown as Document);
   },
   
   getCommunications: async (patientId: string): Promise<Communication[]> => {
@@ -97,7 +96,7 @@ export const patientsApi = {
     return communications.map(communication => ({
       ...communication,
       patientId: communication.clientId
-    } as unknown as Communication));
+    }) as unknown as Communication);
   },
   
   markCommunicationAsRead: async (communicationId: string): Promise<Communication | null> => {

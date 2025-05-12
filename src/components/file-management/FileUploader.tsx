@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,6 +37,16 @@ const FileUploader = ({
   const { uploadFile } = useFileStorage();
 
   const maxSizeBytes = maxSizeMB * 1024 * 1024; // Convert MB to bytes
+
+  // Add getUserDisplayName helper function to handle user name format
+  const getUserDisplayName = (user: any) => {
+    if (!user) return "";
+    // Try different ways to get the user's name
+    return user.name || 
+           (user.user_metadata?.first_name ? 
+            `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}` : 
+            user.email?.split('@')[0] || '');
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) {
@@ -109,7 +118,8 @@ const FileUploader = ({
           currentUser.name,
           currentUser.id,
           associatedId,
-          tags
+          tags,
+          uploadedBy: getUserDisplayName(currentUser)
         );
 
         clearInterval(interval);

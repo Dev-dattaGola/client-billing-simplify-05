@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -200,6 +199,16 @@ const mockMessages: Record<string, Message[]> = {
   ]
 };
 
+// Add getUserDisplayName helper function to handle user name format
+const getUserDisplayName = (user: any) => {
+  if (!user) return "";
+  // Try different ways to get the user's name
+  return user.name || 
+         (user.user_metadata?.first_name ? 
+          `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}` : 
+          user.email?.split('@')[0] || '');
+};
+
 const MessagingDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -307,7 +316,7 @@ const MessagingDashboard = () => {
     const newMsg: Message = {
       id: uuidv4(),
       senderId: currentUser.id,
-      senderName: currentUser.name,
+      senderName: getUserDisplayName(currentUser),
       senderRole: currentUser.role,
       recipientId: selectedContact.id,
       recipientName: selectedContact.name,
