@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -69,10 +70,9 @@ export const useAuthActions = () => {
       // should be moved to an async function or effect elsewhere
       
       // Default permissions based on role from our custom User type
-      const userRole = 'client'; // Default role
+      const userRole: string = 'client'; // Default role, defined as string type
       
-      // Fix the comparison by using a proper string type
-      // Instead of comparing two literal types, we compare against the string value
+      // Fix the comparison by using string comparison instead of literal types
       if (userRole === 'admin') return true;
       
       // Default permissions for roles
