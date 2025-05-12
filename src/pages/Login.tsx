@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertCircle, Building, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
+import { ensureTestUsers } from "@/lib/utils/ensure-test-users"; 
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -19,13 +21,21 @@ const Login = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { login, isAuthenticated, isLoading: authLoading, updateAuthState } = useAuth();
 
   // Get the intended destination from location state or use dashboard as default
   const from = location.state?.from?.pathname || "/dashboard";
 
   // Check authentication status on component mount
   useEffect(() => {
+    console.log("Login component: Auth status =", isAuthenticated);
+    console.log("Login component: Redirect destination =", from);
+    
+    // Ensure test users exist in the database
+    ensureTestUsers().catch(error => {
+      console.error("Failed to ensure test users:", error);
+    });
+    
     if (isAuthenticated) {
       console.log("User is authenticated, redirecting to:", from);
       navigate(from, { replace: true });
@@ -50,19 +60,31 @@ const Login = () => {
 
     try {
       console.log("Attempting login with:", { email, remember });
-      const user = await login({ 
+      
+      const { data, error: loginError } = await supabase.auth.signInWithPassword({
         email: email.toLowerCase().trim(),
-        password, 
-        remember 
+        password
       });
       
-      if (!user) {
-        setError("Login failed. Please check your credentials.");
+      if (loginError) {
+        console.error("Login error:", loginError);
+        setError(loginError.message || "Authentication failed");
         setIsLoading(false);
+        return;
+      }
+      
+      if (data?.user) {
+        toast.success(`Welcome back, ${data.user.email}!`);
+        // Force update auth state to reflect the new session
+        await updateAuthState();
+        navigate(from, { replace: true });
+      } else {
+        setError("Login failed. Please check your credentials.");
       }
     } catch (error: any) {
       console.error("Login error:", error);
       setError(typeof error === 'string' ? error : "Authentication failed. Please try again.");
+    } finally {
       setIsLoading(false);
     }
   };

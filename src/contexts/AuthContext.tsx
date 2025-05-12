@@ -14,7 +14,7 @@ interface AuthContextProps {
   isLoading: boolean;
   login: (credentials: { email: string; password: string; remember?: boolean }) => Promise<User | null>;
   logout: () => void;
-  updateAuthState: () => void;
+  updateAuthState: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
 }
 
@@ -34,7 +34,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('Updating auth state from Supabase...');
     setIsLoading(true);
     try {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      const { data } = await supabase.auth.getSession();
+      const currentSession = data.session;
       
       if (currentSession) {
         setSession(currentSession);
@@ -68,22 +69,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('AuthProvider initialized');
     
     // First, check for existing session
-    updateAuthState().then(() => {
-      // Then set up the auth state change listener
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        (event, newSession) => {
-          console.log('Auth state changed:', event, !!newSession);
-          setSession(newSession);
-          setCurrentUser(newSession?.user ?? null);
-          setIsAuthenticated(!!newSession);
-        }
-      );
-
-      // Cleanup subscription on unmount
-      return () => {
-        subscription.unsubscribe();
-      };
+    updateAuthState();
+    
+    // Then set up the auth state change listener
+    const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log('Auth state changed:', event, !!newSession);
+      setSession(newSession);
+      setCurrentUser(newSession?.user ?? null);
+      setIsAuthenticated(!!newSession);
+      setIsLoading(false);
     });
+    
+    // Return cleanup function
+    return () => {
+      data.subscription.unsubscribe();
+    };
   }, []);
 
   // Login function
@@ -99,20 +99,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       if (error) {
         console.error("Login failed:", error.message);
-        toast(error.message, { 
-          description: "Please check your credentials and try again.", 
-          duration: 5000 
+        toast.error(error.message, { 
+          description: "Please check your credentials and try again."
         });
         return null;
       }
       
       console.log("Login successful");
+      toast.success(`Welcome back, ${data.user.email}`);
       return data.user;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      toast("Authentication failed", {
-        description: error.message || "Please try again later.",
-        duration: 5000
+      toast.error("Authentication failed", {
+        description: error.message || "Please try again later."
       });
       return null;
     } finally {
@@ -127,17 +126,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setCurrentUser(null);
       setSession(null);
       setIsAuthenticated(false);
-      toast("Logged out successfully", {
-        description: "You have been signed out.",
-        duration: 3000
+      toast.success("Logged out successfully", {
+        description: "You have been signed out."
       });
       // Force navigation to login page
       navigate('/login', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
-      toast("Logout error", {
-        description: "There was a problem signing you out. Please try again.",
-        duration: 5000
+      toast.error("Logout error", {
+        description: "There was a problem signing you out. Please try again."
       });
     }
   };

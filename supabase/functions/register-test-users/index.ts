@@ -1,4 +1,5 @@
 
+// @ts-ignore
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // Define types for user creation
@@ -34,7 +35,18 @@ const testUsers: TestUser[] = [
   }
 ];
 
+// Define CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
 Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+  
   try {
     console.log("Creating test users for demo...");
     
@@ -48,7 +60,8 @@ Deno.serve(async (req) => {
       supabaseServiceKey,
       { 
         auth: {
-          persistSession: false
+          persistSession: false,
+          autoRefreshToken: false
         }
       }
     );
@@ -57,54 +70,71 @@ Deno.serve(async (req) => {
     const results = [];
     
     for (const user of testUsers) {
-      // Check if user already exists
-      const { data: existingUsers, error: checkError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('email', user.email);
-      
-      if (checkError) {
-        console.error(`Error checking for existing user ${user.email}:`, checkError);
-        results.push({ email: user.email, status: 'error', message: checkError.message });
-        continue;
-      }
-      
-      if (existingUsers && existingUsers.length > 0) {
-        console.log(`User ${user.email} already exists, skipping...`);
-        results.push({ email: user.email, status: 'skipped', message: 'User already exists' });
-        continue;
-      }
-      
-      // Create user with auth
-      const { data: authData, error: createError } = await supabase.auth.admin.createUser({
-        email: user.email,
-        password: user.password,
-        email_confirm: true,
-        user_metadata: {
-          first_name: user.first_name,
-          last_name: user.last_name,
-          role: user.role
+      try {
+        // Check if user already exists
+        const { data: existingUsers, error: checkError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', user.email)
+          .maybeSingle();
+        
+        if (checkError) {
+          console.error(`Error checking for existing user ${user.email}:`, checkError);
+          results.push({ email: user.email, status: 'error', message: checkError.message });
+          continue;
         }
-      });
-      
-      if (createError) {
-        console.error(`Error creating user ${user.email}:`, createError);
-        results.push({ email: user.email, status: 'error', message: createError.message });
-      } else {
-        console.log(`Created user ${user.email} successfully`);
-        results.push({ email: user.email, status: 'success' });
+        
+        if (existingUsers) {
+          console.log(`User ${user.email} already exists, skipping...`);
+          results.push({ email: user.email, status: 'skipped', message: 'User already exists' });
+          continue;
+        }
+        
+        // Create user with auth
+        const { data: authData, error: createError } = await supabase.auth.admin.createUser({
+          email: user.email,
+          password: user.password,
+          email_confirm: true,
+          user_metadata: {
+            first_name: user.first_name,
+            last_name: user.last_name,
+            role: user.role
+          }
+        });
+        
+        if (createError) {
+          console.error(`Error creating user ${user.email}:`, createError);
+          results.push({ email: user.email, status: 'error', message: createError.message });
+        } else {
+          console.log(`Created user ${user.email} successfully`);
+          results.push({ email: user.email, status: 'success' });
+        }
+      } catch (err) {
+        console.error(`Error processing user ${user.email}:`, err);
+        results.push({ email: user.email, status: 'error', message: err.message });
       }
     }
 
     return new Response(
       JSON.stringify({ message: "Test users creation process complete", results }),
-      { headers: { "Content-Type": "application/json" } }
+      { 
+        headers: { 
+          "Content-Type": "application/json",
+          ...corsHeaders
+        } 
+      }
     );
   } catch (error) {
     console.error("Error in test users function:", error);
     return new Response(
       JSON.stringify({ message: "Error creating test users", error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { 
+        status: 500, 
+        headers: { 
+          "Content-Type": "application/json",
+          ...corsHeaders
+        } 
+      }
     );
   }
 });

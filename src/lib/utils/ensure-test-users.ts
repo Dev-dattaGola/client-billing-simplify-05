@@ -8,6 +8,7 @@ export const ensureTestUsers = async (): Promise<void> => {
   try {
     console.log("Ensuring test users exist in the database...");
     
+    // Call the Supabase edge function to ensure test users exist
     const { data, error } = await supabase.functions.invoke('register-test-users');
     
     if (error) {
