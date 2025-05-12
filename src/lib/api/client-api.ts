@@ -1,7 +1,45 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Client } from '@/types/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+
+// Define additional types needed by the components
+export interface Appointment {
+  id: string;
+  clientId: string;
+  doctorFacilityName: string;
+  visitDate: string;
+  visitTime: string;
+  visitStatus: 'completed' | 'missed' | 'scheduled';
+  treatmentDescription?: string;
+  location: string;
+  type: string;
+}
+
+export interface Document {
+  id: string;
+  clientId: string;
+  name: string;
+  type: 'medical' | 'legal' | 'billing' | 'misc';
+  category: string;
+  uploadDate: string;
+  fileType: string;
+  url: string;
+  uploadedBy: string;
+}
+
+export interface Communication {
+  id: string;
+  clientId: string;
+  date: string;
+  time: string;
+  type: 'email' | 'sms' | 'phone';
+  sender: string;
+  subject: string;
+  content: string;
+  read: boolean;
+  actionRequired: boolean;
+}
 
 export const clientsApi = {
   // Get all clients
@@ -17,7 +55,33 @@ export const clientsApi = {
         throw error;
       }
 
-      return data || [];
+      // Convert snake_case to camelCase
+      return data?.map(client => ({
+        id: client.id,
+        fullName: client.full_name,
+        email: client.email,
+        phone: client.phone || '',
+        companyName: client.company_name || '',
+        address: client.address || '',
+        notes: client.notes || '',
+        tags: client.tags || [],
+        createdAt: client.created_at,
+        updatedAt: client.updated_at,
+        // Extended properties with default values
+        accountNumber: `A${client.id.substring(0, 3)}`,
+        dateOfBirth: '',
+        profilePhoto: '',
+        caseStatus: 'Initial Consultation',
+        assignedAttorneyId: '',
+        accidentDate: '',
+        accidentLocation: '',
+        injuryType: '',
+        caseDescription: '',
+        insuranceCompany: '',
+        insurancePolicyNumber: '',
+        insuranceAdjusterName: '',
+        dateRegistered: client.created_at?.split('T')[0] || ''
+      })) || [];
     } catch (error) {
       console.error('Failed to fetch clients:', error);
       return [];
@@ -38,7 +102,34 @@ export const clientsApi = {
         throw error;
       }
 
-      return data;
+      if (!data) return null;
+
+      return {
+        id: data.id,
+        fullName: data.full_name,
+        email: data.email,
+        phone: data.phone || '',
+        companyName: data.company_name || '',
+        address: data.address || '',
+        notes: data.notes || '',
+        tags: data.tags || [],
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+        // Extended properties with default values
+        accountNumber: `A${data.id.substring(0, 3)}`,
+        dateOfBirth: '',
+        profilePhoto: '',
+        caseStatus: 'Initial Consultation',
+        assignedAttorneyId: '',
+        accidentDate: '',
+        accidentLocation: '',
+        injuryType: '',
+        caseDescription: '',
+        insuranceCompany: '',
+        insurancePolicyNumber: '',
+        insuranceAdjusterName: '',
+        dateRegistered: data.created_at?.split('T')[0] || ''
+      };
     } catch (error) {
       console.error('Failed to fetch client:', error);
       return null;
@@ -66,11 +157,7 @@ export const clientsApi = {
 
         if (authError) {
           console.error('Error creating auth user:', authError);
-          toast({
-            title: "Authentication Error",
-            description: authError.message,
-            variant: "destructive",
-          });
+          toast.error(authError.message);
           throw authError;
         }
 
@@ -98,15 +185,11 @@ export const clientsApi = {
 
       if (clientError) {
         console.error('Error creating client record:', clientError);
-        toast({
-          title: "Database Error",
-          description: clientError.message,
-          variant: "destructive",
-        });
+        toast.error(clientError.message);
         throw clientError;
       }
 
-      // Convert Supabase client format to app Client format
+      // Return formatted client data
       return {
         id: clientRecord.id,
         fullName: clientRecord.full_name,
@@ -117,7 +200,9 @@ export const clientsApi = {
         notes: clientRecord.notes || '',
         tags: clientRecord.tags || [],
         createdAt: clientRecord.created_at,
-        updatedAt: clientRecord.updated_at
+        updatedAt: clientRecord.updated_at,
+        accountNumber: `A${clientRecord.id.substring(0, 3)}`,
+        dateRegistered: clientRecord.created_at?.split('T')[0] || ''
       };
     } catch (error) {
       console.error('Failed to create client:', error);
@@ -129,7 +214,7 @@ export const clientsApi = {
   updateClient: async (id: string, clientData: Partial<Client>): Promise<Client | null> => {
     try {
       // Convert app Client format to Supabase format
-      const supabaseData = {
+      const supabaseData: Record<string, any> = {
         full_name: clientData.fullName,
         email: clientData.email,
         phone: clientData.phone,
@@ -163,7 +248,9 @@ export const clientsApi = {
         notes: updatedClient.notes || '',
         tags: updatedClient.tags || [],
         createdAt: updatedClient.created_at,
-        updatedAt: updatedClient.updated_at
+        updatedAt: updatedClient.updated_at,
+        accountNumber: `A${updatedClient.id.substring(0, 3)}`,
+        dateRegistered: updatedClient.created_at?.split('T')[0] || ''
       };
     } catch (error) {
       console.error('Failed to update client:', error);
@@ -189,5 +276,169 @@ export const clientsApi = {
       console.error('Failed to delete client:', error);
       return false;
     }
+  },
+
+  // Mock implementations of additional required methods to fix type errors
+  getAppointments: async (clientId: string): Promise<Appointment[]> => {
+    console.log(`Getting appointments for client: ${clientId}`);
+    // Return mock data for now
+    return [
+      {
+        id: `apt-${Date.now()}-1`,
+        clientId,
+        doctorFacilityName: 'Dr. Michael Johnson',
+        visitDate: '2025-05-10',
+        visitTime: '10:30 AM',
+        visitStatus: 'scheduled',
+        treatmentDescription: 'Follow-up consultation',
+        location: 'PT Associates',
+        type: 'Physical Therapy'
+      },
+      {
+        id: `apt-${Date.now()}-2`,
+        clientId,
+        doctorFacilityName: 'Dr. Michael Johnson',
+        visitDate: '2025-04-25',
+        visitTime: '2:00 PM',
+        visitStatus: 'completed',
+        treatmentDescription: 'Physical Therapy Session',
+        location: 'PT Associates',
+        type: 'Physical Therapy'
+      }
+    ];
+  },
+
+  getAppointmentsByStatus: async (clientId: string, status: string): Promise<Appointment[]> => {
+    const appointments = await clientsApi.getAppointments(clientId);
+    return appointments.filter(apt => apt.visitStatus === status);
+  },
+
+  getDocuments: async (clientId: string): Promise<Document[]> => {
+    console.log(`Getting documents for client: ${clientId}`);
+    // Return mock data for now
+    return [
+      {
+        id: `doc-${Date.now()}-1`,
+        clientId,
+        name: 'Initial Medical Evaluation',
+        type: 'medical',
+        category: 'Medical Reports',
+        uploadDate: '2025-04-05',
+        fileType: 'pdf',
+        url: '/documents/initial-evaluation.pdf',
+        uploadedBy: 'Dr. Smith'
+      },
+      {
+        id: `doc-${Date.now()}-2`,
+        clientId,
+        name: 'Letter of Protection',
+        type: 'legal',
+        category: 'Legal Documents',
+        uploadDate: '2025-04-06',
+        fileType: 'pdf',
+        url: '/documents/lop.pdf',
+        uploadedBy: 'Jane Doelawyer'
+      }
+    ];
+  },
+
+  getDocumentsByType: async (clientId: string, type: string): Promise<Document[]> => {
+    const documents = await clientsApi.getDocuments(clientId);
+    return documents.filter(doc => doc.type === type);
+  },
+
+  getCommunications: async (clientId: string): Promise<Communication[]> => {
+    console.log(`Getting communications for client: ${clientId}`);
+    // Return mock data for now
+    return [
+      {
+        id: `comm-${Date.now()}-1`,
+        clientId,
+        date: '2025-04-20',
+        time: '10:15 AM',
+        type: 'email',
+        sender: 'Jane Doelawyer',
+        subject: 'Case Update - Treatment Progress',
+        content: 'Your case is progressing as expected. Please continue to attend all appointments.',
+        read: true,
+        actionRequired: false
+      },
+      {
+        id: `comm-${Date.now()}-2`,
+        clientId,
+        date: '2025-04-18',
+        time: '2:45 PM',
+        type: 'phone',
+        sender: 'Jane Doelawyer',
+        subject: 'Missed Appointment Follow-up',
+        content: 'Call to discuss the missed physical therapy appointment.',
+        read: false,
+        actionRequired: true
+      }
+    ];
+  },
+
+  markCommunicationAsRead: async (communicationId: string): Promise<Communication | null> => {
+    console.log(`Marking communication as read: ${communicationId}`);
+    // Mock implementation
+    return {
+      id: communicationId,
+      clientId: 'mock-client-id',
+      date: '2025-04-20',
+      time: '10:15 AM',
+      type: 'email',
+      sender: 'Jane Doelawyer',
+      subject: 'Case Update',
+      content: 'Your case is progressing as expected.',
+      read: true,
+      actionRequired: false
+    };
+  },
+
+  getMissedAppointmentsCount: async (clientId: string): Promise<number> => {
+    console.log(`Getting missed appointment count for client: ${clientId}`);
+    // Mock implementation
+    return 1;
+  },
+
+  getUpcomingAppointment: async (clientId: string): Promise<Appointment | null> => {
+    console.log(`Getting upcoming appointment for client: ${clientId}`);
+    // Mock implementation
+    return {
+      id: `apt-${Date.now()}`,
+      clientId,
+      doctorFacilityName: 'Dr. Michael Johnson',
+      visitDate: '2025-05-10',
+      visitTime: '10:30 AM',
+      visitStatus: 'scheduled',
+      treatmentDescription: 'Follow-up consultation',
+      location: 'PT Associates',
+      type: 'Physical Therapy'
+    };
+  },
+
+  getLastDocumentUploaded: async (clientId: string): Promise<Document | null> => {
+    console.log(`Getting last document uploaded for client: ${clientId}`);
+    // Mock implementation
+    return {
+      id: `doc-${Date.now()}`,
+      clientId,
+      name: 'Initial Medical Evaluation',
+      type: 'medical',
+      category: 'Medical Reports',
+      uploadDate: '2025-04-05',
+      fileType: 'pdf',
+      url: '/documents/initial-evaluation.pdf',
+      uploadedBy: 'Dr. Smith'
+    };
+  },
+
+  getSmartNotifications: async (clientId: string): Promise<string[]> => {
+    console.log(`Getting smart notifications for client: ${clientId}`);
+    // Mock implementation
+    return [
+      'You have a scheduled appointment on May 10, 2025 at 10:30 AM.',
+      'There are documents waiting for your review.'
+    ];
   }
 };
