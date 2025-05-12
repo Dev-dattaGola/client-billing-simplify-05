@@ -41,7 +41,7 @@ const MainContent: React.FC<MainContentProps> = ({ children, isSidebarOpen, isMo
   return (
     <main 
       className={`flex-1 bg-gray-50 overflow-y-auto p-4 transition-all duration-300 ${
-        isSidebarOpen && !isMobile ? 'ml-60' : 'ml-0'
+        isSidebarOpen && !isMobile ? 'ml-0' : 'ml-0'
       }`}
     >
       {children}

@@ -1,1 +1,5 @@
+
 project_id = "rwmprtylsoamonnprfsy"
+
+[functions.register-client]
+verify_jwt = true

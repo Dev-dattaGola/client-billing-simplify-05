@@ -12,7 +12,7 @@ import {
   SheetTitle 
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Search, Download, FileText, AlertTriangle } from 'lucide-react';
+import { Search, Download, FileText, AlertTriangle, UserPlus } from 'lucide-react';
 import ClientMedicalRecords from "./ClientMedicalRecords";
 import ClientDocuments from "./ClientDocuments";
 import ClientAppointments from "./ClientAppointments";
@@ -21,6 +21,7 @@ import ClientCaseReport from "./ClientCaseReport";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import RoleBasedLayout from "../layout/RoleBasedLayout";
+import { useNavigate } from "react-router-dom";
 
 const ClientManagement = () => {
   const { 
@@ -43,9 +44,15 @@ const ClientManagement = () => {
   const { hasPermission, currentUser } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSearchClick = () => {
     setIsSearchOpen(true);
+  };
+  
+  const handleAddNewClient = () => {
+    clearClientToEdit();
+    setActiveTab("add");
   };
 
   const handleDownloadCaseSummary = () => {
@@ -168,7 +175,7 @@ const ClientManagement = () => {
   };
 
   // Determine which tabs should be visible based on user role
-  const shouldShowAddTab = currentUser && ['admin'].includes(currentUser.role);
+  const shouldShowAddTab = currentUser && ['admin', 'attorney'].includes(currentUser.role);
 
   return (
     <div className="bg-white rounded-lg border shadow-sm">
@@ -178,16 +185,23 @@ const ClientManagement = () => {
         className="w-full"
       >
         <div className="border-b px-6 py-2">
-          <TabsList className={`grid w-full ${shouldShowAddTab ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="view">View Clients</TabsTrigger>
-            
-            {shouldShowAddTab && (
-              <TabsTrigger value="add">{clientToEdit ? "Edit Client" : "Add Client"}</TabsTrigger>
-            )}
+            <TabsTrigger value="add">{clientToEdit ? "Edit Client" : "Add Client"}</TabsTrigger>
           </TabsList>
         </div>
         
         <TabsContent value="view" className="p-6 space-y-4">
+          <div className="flex justify-end mb-4">
+            <Button 
+              onClick={handleAddNewClient} 
+              className="flex items-center gap-2"
+            >
+              <UserPlus className="h-4 w-4" />
+              Add New Client
+            </Button>
+          </div>
+          
           <ClientList 
             clients={clients} 
             onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
@@ -198,7 +212,7 @@ const ClientManagement = () => {
         </TabsContent>
         
         <RoleBasedLayout 
-          requiredRoles={['admin']}
+          requiredRoles={['admin', 'attorney']}
           fallback={
             <TabsContent value="add" className="p-6">
               <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 flex flex-col items-center justify-center">

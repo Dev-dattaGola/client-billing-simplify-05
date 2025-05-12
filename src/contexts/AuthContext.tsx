@@ -1,13 +1,13 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User } from '@/types/auth';
-import { useAuthActions } from '@/hooks/useAuthActions';
-import { restoreAuthState } from '@/lib/utils/auth-utils';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define the shape of our auth context
 interface AuthContextProps {
   currentUser: User | null;
+  session: Session | null;
   setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -23,27 +23,38 @@ export const AuthContext = createContext<AuthContextProps | undefined>(undefined
 // Create a provider component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { login, logout: logoutAction, hasPermission, isLoading: actionLoading } = useAuthActions();
   const navigate = useNavigate();
 
-  // Function to update auth state based on stored tokens
-  const updateAuthState = () => {
-    console.log('Updating auth state...');
+  // Function to update auth state from Supabase session
+  const updateAuthState = async () => {
+    console.log('Updating auth state from Supabase...');
     try {
-      const { user, isAuthenticated: authStatus } = restoreAuthState();
-      setCurrentUser(user);
-      setIsAuthenticated(authStatus);
-      console.log('Auth state updated:', { 
-        isAuthenticated: authStatus, 
-        userExists: !!user,
-        userName: user?.name,
-        userRole: user?.role
-      });
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (currentSession) {
+        setSession(currentSession);
+        setCurrentUser(currentSession.user);
+        setIsAuthenticated(true);
+        
+        console.log('Auth state updated from Supabase session:', { 
+          isAuthenticated: true, 
+          userExists: !!currentSession.user,
+          userId: currentSession.user?.id,
+          userEmail: currentSession.user?.email
+        });
+      } else {
+        setSession(null);
+        setCurrentUser(null);
+        setIsAuthenticated(false);
+        console.log('No active Supabase session found');
+      }
     } catch (error) {
-      console.error('Error updating auth state:', error);
+      console.error('Error updating auth state from Supabase:', error);
       setCurrentUser(null);
+      setSession(null);
       setIsAuthenticated(false);
     }
   };
@@ -51,25 +62,100 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Initialize auth state on component mount
   useEffect(() => {
     console.log('AuthProvider initialized');
+    
+    // First, set up the auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, newSession) => {
+        console.log('Auth state changed:', event, !!newSession);
+        setSession(newSession);
+        setCurrentUser(newSession?.user ?? null);
+        setIsAuthenticated(!!newSession);
+      }
+    );
+
+    // Then check for existing session
     updateAuthState();
     setIsLoading(false);
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Custom logout function that handles navigation after logout
-  const logout = () => {
-    logoutAction();
-    setCurrentUser(null);
-    setIsAuthenticated(false);
-    // Force navigation to login page
-    navigate('/login', { replace: true });
+  // Login function
+  const login = async (credentials: { email: string; password: string; remember?: boolean }): Promise<User | null> => {
+    setIsLoading(true);
+    console.log("Logging in with:", credentials.email);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password
+      });
+      
+      if (error) {
+        console.error("Login failed:", error.message);
+        throw error;
+      }
+      
+      console.log("Login successful");
+      return data.user;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Logout function
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setCurrentUser(null);
+      setSession(null);
+      setIsAuthenticated(false);
+      // Force navigation to login page
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  // Check if user has a specific permission
+  const hasPermission = (permission: string): boolean => {
+    // Default permissions for roles
+    const roleBasedPermissions: Record<string, string[]> = {
+      admin: ['all', 'view:clients', 'edit:clients', 'view:attorneys', 'edit:attorneys', 'view:cases', 'edit:cases'],
+      attorney: ['view:clients', 'edit:clients', 'view:cases', 'edit:cases', 'view:documents', 'upload:documents'],
+      client: ['view:own:documents', 'view:own:cases']
+    };
+
+    try {
+      if (!currentUser) return false;
+      
+      // Get user role from metadata
+      const userRole = currentUser.user_metadata?.role || 'client';
+      
+      // Admin has all permissions
+      if (userRole === 'admin') return true;
+      
+      // Check if user role has the requested permission
+      return roleBasedPermissions[userRole]?.includes(permission) || false;
+    } catch (error) {
+      console.error("Error checking permission:", error);
+      return false;
+    }
   };
 
   return (
     <AuthContext.Provider value={{
       currentUser,
+      session,
       setCurrentUser,
       isAuthenticated,
-      isLoading: isLoading || actionLoading,
+      isLoading,
       login,
       logout,
       updateAuthState,

@@ -2,13 +2,14 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-import { User, LoginCredentials } from '@/types/auth';
-import { 
-  getMockUser, 
-  saveAuthData, 
-  clearAuthData, 
-  checkPermission
-} from '@/lib/utils/auth-utils';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+  remember?: boolean;
+}
 
 export const useAuthActions = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,53 +21,66 @@ export const useAuthActions = () => {
     console.log("useAuthActions login attempt with:", credentials.email);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password
+      });
       
-      // Get mock user for demo
-      const user = getMockUser(credentials.email, credentials.password);
-      console.log("Mock user result:", user ? "User found" : "User not found");
-      
-      if (!user) {
-        console.error("Login failed: Invalid credentials");
-        toast.error('Invalid email or password');
+      if (error) {
+        console.error("Login failed:", error.message);
+        toast.error(error.message);
         return null;
       }
-
-      // Save authentication data
-      saveAuthData(user, credentials.remember || false);
-      console.log("Auth data saved for user:", user.name);
       
-      toast.success(`Welcome back, ${user.name}!`);
+      toast.success(`Welcome back, ${data.user.email}!`);
       
       // Navigate to dashboard or originally requested page
       const origin = location.state?.from?.pathname || '/dashboard';
       console.log("Navigating to:", origin);
       navigate(origin);
       
-      return user;
-    } catch (error) {
+      return data.user;
+    } catch (error: any) {
       console.error('Login error:', error);
-      toast.error('An error occurred during login');
+      toast.error(error.message || 'An error occurred during login');
       return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    clearAuthData();
-    toast.success('You have been logged out');
-    navigate('/login');
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success('You have been logged out');
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('An error occurred during logout');
+    }
   };
 
   const hasPermission = (permission: string): boolean => {
     try {
-      const userDataStr = localStorage.getItem('userData') || sessionStorage.getItem('userData');
-      if (!userDataStr) return false;
+      // Get current user from Supabase
+      const { data } = supabase.auth.getSession();
+      if (!data) return false;
       
-      const userData = JSON.parse(userDataStr);
-      return checkPermission(userData, permission);
+      // Get user role from metadata
+      const userRole = data?.session?.user?.user_metadata?.role || 'client';
+      
+      // Admin has all permissions
+      if (userRole === 'admin') return true;
+      
+      // Default permissions for roles
+      const roleBasedPermissions: Record<string, string[]> = {
+        admin: ['all'],
+        attorney: ['view:clients', 'edit:clients', 'view:cases', 'edit:cases', 'view:documents', 'upload:documents'],
+        client: ['view:own:documents', 'view:own:cases']
+      };
+      
+      // Check if user role has the requested permission
+      return roleBasedPermissions[userRole]?.includes(permission) || false;
     } catch (error) {
       console.error("Error checking permission:", error);
       return false;

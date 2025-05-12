@@ -3,7 +3,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { X, Save, Plus } from "lucide-react";
+import { X, Save, Plus, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,11 +38,25 @@ const formSchema = z.object({
   companyName: z.string().optional(),
   address: z.string().optional(),
   notes: z.string().optional(),
+  password: z.string().min(6, {
+    message: "Password must be at least 6 characters.",
+  }).optional(),
+  confirmPassword: z.string().optional(),
+}).refine(data => {
+  if (data.password && data.confirmPassword && data.password !== data.confirmPassword) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [currentTag, setCurrentTag] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,6 +67,8 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
       companyName: initialData?.companyName || "",
       address: initialData?.address || "",
       notes: initialData?.notes || "",
+      password: "",
+      confirmPassword: "",
     },
   });
 
@@ -75,18 +91,27 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   };
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    const formData = {
+      ...values,
+      tags,
+    };
+
     if (initialData) {
       onSubmit({
         ...initialData,
-        ...values,
-        tags,
+        ...formData,
       });
     } else {
-      onSubmit({
-        ...values,
-        tags,
-      });
+      onSubmit(formData);
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   return (
@@ -148,6 +173,69 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
               </FormItem>
             )}
           />
+
+          {!initialData && (
+            <>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter password" 
+                          type={showPassword ? "text" : "password"} 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={togglePasswordVisibility}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    <FormDescription>Set a password for client account</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input 
+                          placeholder="Confirm password" 
+                          type={showConfirmPassword ? "text" : "password"} 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={toggleConfirmPasswordVisibility}
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
           
           <FormField
             control={form.control}

@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Client } from '@/types/client';
 import { clientsApi } from '@/lib/api/client-api';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ClientContextType {
   clients: Client[];
@@ -13,7 +14,7 @@ interface ClientContextType {
   activeDetailTab: string;
   setActiveTab: (tab: string) => void;
   setActiveDetailTab: (tab: string) => void;
-  handleAddClient: (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  handleAddClient: (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'> & { password?: string }) => Promise<void>;
   handleEditClient: (clientData: Client) => Promise<void>;
   handleDeleteClient: (clientId: string) => Promise<void>;
   handleViewClient: (client: Client) => void;
@@ -52,14 +53,31 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   useEffect(() => {
     refreshClients();
+
+    // Subscribe to changes in the clients table
+    const clientsSubscription = supabase
+      .channel('public:clients')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'clients' },
+        (payload) => {
+          console.log('Change received!', payload);
+          refreshClients();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(clientsSubscription);
+    };
   }, []);
 
-  const handleAddClient = async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleAddClient = async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'> & { password?: string }) => {
     try {
       const newClient = await clientsApi.createClient(clientData);
       
       if (newClient) {
-        setClients([...clients, newClient]);
+        setClients(prevClients => [newClient, ...prevClients]);
         setActiveTab("view");
         toast({
           title: "Client Added",
