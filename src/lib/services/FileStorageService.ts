@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from "@/components/ui/use-toast";
 
@@ -40,7 +39,8 @@ class FileStorageService {
     uploadedBy: string, 
     uploadedById: string,
     associatedId?: string, 
-    tags?: string[]
+    tags?: string[],
+    uploadedByDisplay?: string  // Adding this optional parameter
   ): Promise<FileMetadata> {
     return new Promise((resolve, reject) => {
       try {
@@ -60,7 +60,7 @@ class FileStorageService {
               type: file.type,
               fileType,
               url,
-              uploadedBy,
+              uploadedBy: uploadedByDisplay || uploadedBy, // Use the display name if provided
               uploadedById,
               uploadDate: new Date().toISOString(),
               category,
@@ -257,7 +257,8 @@ export const useFileStorage = () => {
       uploadedBy: string,
       uploadedById: string,
       associatedId?: string,
-      tags?: string[]
+      tags?: string[],
+      uploadedByDisplay?: string  // Add the optional parameter here as well
     ) => {
       try {
         const metadata = await fileService.uploadFile(
@@ -266,7 +267,8 @@ export const useFileStorage = () => {
           uploadedBy, 
           uploadedById, 
           associatedId, 
-          tags
+          tags,
+          uploadedByDisplay  // Pass the display name to the service
         );
         
         toast({

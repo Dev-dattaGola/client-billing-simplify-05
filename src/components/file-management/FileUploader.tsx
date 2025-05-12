@@ -112,14 +112,16 @@ const FileUploader = ({
           });
         }, 200);
 
+        // Fix: Pass uploadedBy as a regular parameter, not as an object property
+        const uploadedBy = getUserDisplayName(currentUser);
         const metadata = await uploadFile(
           file,
           category,
-          currentUser.name,
+          currentUser.name || uploadedBy, // Use uploadedBy as fallback if name is missing
           currentUser.id,
           associatedId,
           tags,
-          uploadedBy: getUserDisplayName(currentUser)
+          uploadedBy
         );
 
         clearInterval(interval);
