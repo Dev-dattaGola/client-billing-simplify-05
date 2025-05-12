@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -112,12 +113,14 @@ const FileUploader = ({
           });
         }, 200);
 
-        // Fix: Pass uploadedBy as a regular parameter, not as an object property
+        // Get user display name for upload metadata
         const uploadedBy = getUserDisplayName(currentUser);
+        
+        // Use uploadedBy consistently without referencing currentUser.name
         const metadata = await uploadFile(
           file,
           category,
-          currentUser.name || uploadedBy, // Use uploadedBy as fallback if name is missing
+          uploadedBy, // Use only the displayName without referencing currentUser.name
           currentUser.id,
           associatedId,
           tags,

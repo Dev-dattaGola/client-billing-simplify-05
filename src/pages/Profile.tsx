@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -144,8 +145,8 @@ const Profile = () => {
             </CardHeader>
             <CardContent className="flex flex-col items-center space-y-4">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${currentUser?.name || 'User'}`} />
-                <AvatarFallback>{currentUser?.name?.[0] || 'U'}</AvatarFallback>
+                <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${getUserDisplayName(currentUser) || 'User'}`} />
+                <AvatarFallback>{getUserDisplayName(currentUser)?.[0] || 'U'}</AvatarFallback>
               </Avatar>
               <div className="text-center">
                 <h3 className="font-medium text-lg">{getUserDisplayName(currentUser)}</h3>
