@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, Navigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertCircle, Building, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -18,13 +19,12 @@ const Login = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
-  const { login, isAuthenticated, isLoading: authLoading, updateAuthState } = useAuth();
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
 
   // Get the intended destination from location state or use dashboard as default
   const from = location.state?.from?.pathname || "/dashboard";
 
-  // Check authentication status on component mount and when auth state changes
+  // Check authentication status on component mount
   useEffect(() => {
     if (isAuthenticated) {
       console.log("User is authenticated, redirecting to:", from);
@@ -32,26 +32,10 @@ const Login = () => {
     }
   }, [isAuthenticated, navigate, from]);
 
-  // Extra debugging for authentication status
-  useEffect(() => {
-    console.log("Login component: Auth status =", isAuthenticated);
-    console.log("Login component: Redirect destination =", from);
-  }, [isAuthenticated, from]);
-
-  if (isAuthenticated && !isLoading) {
-    console.log("Redirecting to destination from render:", from);
-    return <Navigate to={from} />;
+  // Handle case when already authenticated
+  if (isAuthenticated && !authLoading) {
+    return <Navigate to={from} replace />;
   }
-
-  // Add getUserDisplayName helper function to handle user name format
-  const getUserDisplayName = (user: any) => {
-    if (!user) return "";
-    // Try different ways to get the user's name
-    return user.name || 
-           (user.user_metadata?.first_name ? 
-            `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}` : 
-            user.email?.split('@')[0] || '');
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,25 +59,10 @@ const Login = () => {
       if (!user) {
         setError("Login failed. Please check your credentials.");
         setIsLoading(false);
-        return;
       }
-      
-      toast({
-        title: `Welcome back, ${getUserDisplayName(user) || user.email}!`,
-        description: `Welcome back, ${getUserDisplayName(user) || user.email}!`,
-      });
-      
-      console.log("Login successful, updating auth state");
-      
-      // Explicitly update auth state after successful login
-      updateAuthState();
-      
-      console.log("Navigating to:", from);
-      navigate(from, { replace: true });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
       setError(typeof error === 'string' ? error : "Authentication failed. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -109,7 +78,6 @@ const Login = () => {
                 className="h-44"
               />
           </div>
-          {/* <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle> */}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -136,7 +104,7 @@ const Login = () => {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-white" >Password</Label>
+                <Label htmlFor="password" className="text-white">Password</Label>
               </div>
               <Input 
                 id="password" 

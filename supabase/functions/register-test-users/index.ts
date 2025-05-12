@@ -1,194 +1,110 @@
 
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.29.0'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// Define CORS headers
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Define types for user creation
+interface TestUser {
+  email: string;
+  password: string;
+  role: string;
+  first_name: string;
+  last_name: string;
 }
 
-serve(async (req: Request) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: corsHeaders,
-      status: 204,
-    })
+const testUsers: TestUser[] = [
+  {
+    email: 'admin@lyzlawfirm.com',
+    password: 'admin123',
+    role: 'admin',
+    first_name: 'Admin',
+    last_name: 'User'
+  },
+  {
+    email: 'attorney@lyzlawfirm.com',
+    password: 'attorney123',
+    role: 'attorney',
+    first_name: 'Attorney',
+    last_name: 'User'
+  },
+  {
+    email: 'client@example.com',
+    password: 'client123',
+    role: 'client',
+    first_name: 'Client',
+    last_name: 'User'
   }
+];
 
+Deno.serve(async (req) => {
   try {
-    // Create a Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    console.log("Creating test users for demo...");
+    
+    // Initialize Supabase client - use Deno.env for edge function
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? supabaseAnonKey;
     
     const supabase = createClient(
       supabaseUrl,
-      supabaseServiceKey
-    )
-
-    console.log('Creating test users for demo...');
-
-    // Define the test users we want to create
-    const testUsers = [
-      {
-        email: 'admin@lyzlawfirm.com',
-        password: 'admin123',
-        userMetadata: {
-          first_name: 'Admin',
-          last_name: 'User',
-          role: 'admin'
-        }
-      },
-      {
-        email: 'attorney@lyzlawfirm.com',
-        password: 'attorney123',
-        userMetadata: {
-          first_name: 'Attorney',
-          last_name: 'User',
-          role: 'attorney'
-        }
-      },
-      {
-        email: 'client@example.com',
-        password: 'client123',
-        userMetadata: {
-          first_name: 'Client',
-          last_name: 'User',
-          role: 'client'
+      supabaseServiceKey,
+      { 
+        auth: {
+          persistSession: false
         }
       }
-    ];
+    );
 
+    // Create each test user if they don't exist
     const results = [];
     
-    // Create each test user
     for (const user of testUsers) {
-      try {
-        // Check if the user already exists
-        const { data: existingUser } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('email', user.email)
-          .single();
-
-        if (existingUser) {
-          console.log(`User ${user.email} already exists, skipping...`);
-          results.push({ email: user.email, status: 'already exists' });
-          continue;
+      // Check if user already exists
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', user.email);
+      
+      if (checkError) {
+        console.error(`Error checking for existing user ${user.email}:`, checkError);
+        results.push({ email: user.email, status: 'error', message: checkError.message });
+        continue;
+      }
+      
+      if (existingUsers && existingUsers.length > 0) {
+        console.log(`User ${user.email} already exists, skipping...`);
+        results.push({ email: user.email, status: 'skipped', message: 'User already exists' });
+        continue;
+      }
+      
+      // Create user with auth
+      const { data: authData, error: createError } = await supabase.auth.admin.createUser({
+        email: user.email,
+        password: user.password,
+        email_confirm: true,
+        user_metadata: {
+          first_name: user.first_name,
+          last_name: user.last_name,
+          role: user.role
         }
-
-        // Create auth user with auto-confirmation
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: user.email,
-          password: user.password,
-          email_confirm: true, // Auto-confirm the email
-          user_metadata: user.userMetadata
-        });
-
-        if (authError) {
-          console.error(`Error creating user ${user.email}:`, authError);
-          results.push({ email: user.email, status: 'error', message: authError.message });
-          continue;
-        }
-
-        console.log(`Created user ${user.email} with ID: ${authData.user.id}`);
-        
-        // Profiles table should be updated automatically via trigger, but we'll ensure it
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', authData.user.id)
-          .maybeSingle();
-          
-        if (!profileData) {
-          // Insert profile manually if not created by trigger
-          const { data: newProfile, error: newProfileError } = await supabase
-            .from('profiles')
-            .insert([
-              {
-                id: authData.user.id,
-                email: user.email,
-                first_name: user.userMetadata.first_name,
-                last_name: user.userMetadata.last_name,
-                role: user.userMetadata.role
-              }
-            ]);
-            
-          if (newProfileError) {
-            console.error(`Error creating profile for ${user.email}:`, newProfileError);
-          }
-        }
-        
-        // Create corresponding record in the appropriate role table
-        if (user.userMetadata.role === 'client') {
-          const { error: clientError } = await supabase
-            .from('clients')
-            .insert([
-              {
-                user_id: authData.user.id,
-                email: user.email,
-                full_name: `${user.userMetadata.first_name} ${user.userMetadata.last_name}`,
-                phone: '+1234567890',
-                company_name: 'Demo Company'
-              }
-            ]);
-            
-          if (clientError) {
-            console.error(`Error creating client record for ${user.email}:`, clientError);
-          }
-        } else if (user.userMetadata.role === 'attorney') {
-          const { error: attorneyError } = await supabase
-            .from('attorneys')
-            .insert([
-              {
-                user_id: authData.user.id,
-                email: user.email,
-                full_name: `${user.userMetadata.first_name} ${user.userMetadata.last_name}`,
-                phone: '+1987654321',
-                specialization: 'Personal Injury',
-                years_of_experience: 5
-              }
-            ]);
-            
-          if (attorneyError) {
-            console.error(`Error creating attorney record for ${user.email}:`, attorneyError);
-          }
-        }
-        
-        results.push({ email: user.email, status: 'created', userId: authData.user.id });
-      } catch (error) {
-        console.error(`Error processing user ${user.email}:`, error);
-        results.push({ email: user.email, status: 'error', message: error.message });
+      });
+      
+      if (createError) {
+        console.error(`Error creating user ${user.email}:`, createError);
+        results.push({ email: user.email, status: 'error', message: createError.message });
+      } else {
+        console.log(`Created user ${user.email} successfully`);
+        results.push({ email: user.email, status: 'success' });
       }
     }
 
     return new Response(
-      JSON.stringify({ 
-        success: true,
-        message: 'Test users registration process completed',
-        results 
-      }),
-      {
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json' 
-        },
-        status: 200,
-      },
+      JSON.stringify({ message: "Test users creation process complete", results }),
+      { headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error('Error in register-test-users function:', error);
-    
+    console.error("Error in test users function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json' 
-        },
-        status: 500,
-      },
+      JSON.stringify({ message: "Error creating test users", error: error.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
-})
+});
