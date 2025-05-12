@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertCircle, Building, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { supabase } from "@/integrations/supabase/client";
 import { ensureTestUsers } from "@/lib/utils/ensure-test-users"; 
 
 const Login = () => {
@@ -21,7 +20,7 @@ const Login = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated, isLoading: authLoading, updateAuthState } = useAuth();
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
 
   // Get the intended destination from location state or use dashboard as default
   const from = location.state?.from?.pathname || "/dashboard";
@@ -59,31 +58,17 @@ const Login = () => {
     }
 
     try {
-      console.log("Attempting login with:", { email, remember });
+      const user = await login({ email, password, remember });
       
-      const { data, error: loginError } = await supabase.auth.signInWithPassword({
-        email: email.toLowerCase().trim(),
-        password
-      });
-      
-      if (loginError) {
-        console.error("Login error:", loginError);
-        setError(loginError.message || "Authentication failed");
-        setIsLoading(false);
-        return;
-      }
-      
-      if (data?.user) {
-        toast.success(`Welcome back, ${data.user.email}!`);
-        // Force update auth state to reflect the new session
-        await updateAuthState();
+      if (user) {
+        toast.success(`Welcome back, ${user.email}`);
         navigate(from, { replace: true });
       } else {
         setError("Login failed. Please check your credentials.");
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      setError(typeof error === 'string' ? error : "Authentication failed. Please try again.");
+      setError(typeof error === 'string' ? error : error?.message || "Authentication failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +130,7 @@ const Login = () => {
                 id="remember"
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-lawfirm-light-blue focus:ring-lawfirm-light-blue"
+                className="h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-600"
                 disabled={isLoading || authLoading}
               />
               <Label htmlFor="remember" className="text-sm text-white">
@@ -167,7 +152,7 @@ const Login = () => {
 
             <Button 
               type="submit" 
-              className="w-full bg-lawfirm-light-blue hover:bg-lawfirm-light-blue/90"
+              className="w-full bg-violet-800 hover:bg-violet-900"
               disabled={isLoading || authLoading}
             >
               {isLoading || authLoading ? (
@@ -179,8 +164,8 @@ const Login = () => {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="text-center text-sm text-muted-foreground">
-          <div className="text-white">© 2025 LAWerp500. All rights reserved.</div>
+        <CardFooter className="text-center text-sm">
+          <div className="text-white w-full">© 2025 LAWerp500. All rights reserved.</div>
         </CardFooter>
       </Card>
     </div>

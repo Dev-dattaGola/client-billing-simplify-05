@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -129,6 +130,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             user.email?.split('@')[0] || '');
   };
 
+  const getUserRole = (user: any) => {
+    if (!user) return "";
+    return user.user_metadata?.role || 'client';
+  };
+
   return (
     <div 
       className={cn(
@@ -136,16 +142,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         isCollapsed ? "w-16" : "w-60"
       )}
     >
-      {/* <div className="p-3 flex items-center gap-2 border-b">
-        <div className="bg-lawfirm-light-blue text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg">
-          LYZ
+      <div className="p-3 flex items-center gap-2 border-b">
+        <div className="bg-violet-600 text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg">
+          LAW
         </div>
-        {!isCollapsed && <div className="font-semibold">LYZ Law Firm</div>}
-      </div> */}
+        {!isCollapsed && <div className="font-semibold">LAWerp500</div>}
+      </div>
 
       <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
         {roleBasedNavItems
-          .filter(item => !currentUser || item.roles.includes(currentUser.role))
+          .filter(item => {
+            const userRole = currentUser?.user_metadata?.role || 'client';
+            return !currentUser || item.roles.includes(userRole);
+          })
           .map((item) => (
             <NavLink
               key={item.path}
@@ -169,7 +178,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             <div className="font-medium">{getUserDisplayName(currentUser)}</div>
             <div>{currentUser.email}</div>
             <div className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs inline-block mt-1">
-              {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
+              {getUserRole(currentUser).charAt(0).toUpperCase() + getUserRole(currentUser).slice(1)}
             </div>
           </div>
         )}

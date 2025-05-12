@@ -4,13 +4,11 @@ import { Helmet } from 'react-helmet-async';
 import PageLayout from '@/components/layout/PageLayout';
 import DashboardOverview from '@/components/dashboard/DashboardOverview';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { currentUser, isAuthenticated } = useAuth();
-  const { toast } = useToast();
   
   useEffect(() => {
     // Simple initialization check
@@ -43,7 +41,7 @@ const Dashboard: React.FC = () => {
   return (
     <PageLayout>
       <Helmet>
-        <title>Dashboard - LAW ERP 500</title>
+        <title>Dashboard - LAWerp500</title>
       </Helmet>
       <div className="space-y-6">
         <DashboardOverview />

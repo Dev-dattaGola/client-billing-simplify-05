@@ -13,7 +13,7 @@ interface AuthContextProps {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: { email: string; password: string; remember?: boolean }) => Promise<User | null>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateAuthState: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
 }
