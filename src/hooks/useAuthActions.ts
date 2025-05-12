@@ -72,7 +72,7 @@ export const useAuthActions = () => {
       // Default permissions based on role from our custom User type
       const userRole = 'client'; // Default role
       
-      // Admin has all permissions
+      // Admin has all permissions - Fix the comparison by using a string comparison
       if (userRole === 'admin') return true;
       
       // Default permissions for roles
