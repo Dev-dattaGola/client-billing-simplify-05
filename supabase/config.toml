@@ -1,5 +1,5 @@
 
 project_id = "rwmprtylsoamonnprfsy"
 
-[functions.register-client]
-verify_jwt = true
+[functions.register-test-users]
+verify_jwt = false

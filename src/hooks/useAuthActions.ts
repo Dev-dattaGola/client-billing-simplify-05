@@ -69,7 +69,7 @@ export const useAuthActions = () => {
       // For now, we'll return a default value, and the actual auth check 
       // should be moved to an async function or effect elsewhere
       
-      // Default permissions based on role from our custom User type
+      // Define userRole as a string to fix the type comparison issue
       const userRole: string = 'client'; // Default role, defined as string type
       
       // Fix the comparison by using string comparison instead of literal types

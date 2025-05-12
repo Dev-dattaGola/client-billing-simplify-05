@@ -1,10 +1,20 @@
 
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import App from './App'
+import './index.css'
+import { Toaster } from '@/components/ui/sonner'
+import { ensureTestUsers } from './lib/utils/ensure-test-users'
 
-const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error('Failed to find the root element');
+// Ensure test users exist in the database
+ensureTestUsers();
 
-createRoot(rootElement).render(<App />);
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <App />
+      <Toaster />
+    </BrowserRouter>
+  </React.StrictMode>,
+)
