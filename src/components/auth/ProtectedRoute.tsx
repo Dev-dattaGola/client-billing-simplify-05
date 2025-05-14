@@ -1,8 +1,8 @@
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -15,17 +15,23 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
   const { toast } = useToast();
   const location = useLocation();
   
+  useEffect(() => {
+    // Only show toast notifications when authentication status changes
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to access this page.",
+        variant: "destructive",
+      });
+    }
+  }, [isAuthenticated, toast]);
+  
   if (!isAuthenticated) {
-    toast({
-      title: "Authentication Required",
-      description: "Please log in to access this page.",
-      variant: "destructive",
-    });
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
   // Admin has access to everything
-  if (currentUser?.role === 'admin') {
+  if (currentUser?.role === 'admin' || currentUser?.role === 'superadmin') {
     return <>{children}</>;
   }
   
@@ -38,11 +44,15 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
   
   // Grant access if either permission or role checks pass
   if (!hasPermissionAccess && !hasRoleAccess) {
-    toast({
-      title: "Access Denied",
-      description: "You don't have permission to access this page.",
-      variant: "destructive",
-    });
+    // Move the toast notification to a useEffect instead of rendering it directly
+    useEffect(() => {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to access this page.",
+        variant: "destructive",
+      });
+    }, []);
+    
     return <Navigate to="/dashboard" replace />;
   }
   

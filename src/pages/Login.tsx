@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Navigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -34,17 +33,15 @@ const Login = () => {
     ensureTestUsers().catch(error => {
       console.error("Failed to ensure test users:", error);
     });
-    
-    if (isAuthenticated) {
+  }, [isAuthenticated, from]);
+
+  // Handle case when already authenticated in a separate effect to prevent redirect loops
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
       console.log("User is authenticated, redirecting to:", from);
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, from]);
-
-  // Handle case when already authenticated
-  if (isAuthenticated && !authLoading) {
-    return <Navigate to={from} replace />;
-  }
+  }, [isAuthenticated, authLoading, navigate, from]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +59,7 @@ const Login = () => {
       
       if (user) {
         toast.success(`Welcome back, ${user.email}`);
-        navigate(from, { replace: true });
+        // Navigate is handled by the effect above to prevent loops
       } else {
         setError("Login failed. Please check your credentials.");
       }
