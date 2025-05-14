@@ -12,19 +12,13 @@ const Dashboard: React.FC = () => {
   
   useEffect(() => {
     // Simple initialization check
-    const checkAuth = () => {
-      if (isAuthenticated && currentUser) {
-        console.log("Dashboard: User authenticated", currentUser);
-        setIsLoading(false);
-      } else {
-        console.log("Dashboard: Authentication status:", isAuthenticated);
-        // Use a timeout to avoid immediate state changes
-        const timer = setTimeout(() => setIsLoading(false), 500);
-        return () => clearTimeout(timer);
-      }
-    };
-    
-    checkAuth();
+    if (isAuthenticated && currentUser) {
+      console.log("Dashboard: User authenticated", currentUser);
+      setIsLoading(false);
+    } else {
+      console.log("Dashboard: Authentication status:", isAuthenticated);
+      setTimeout(() => setIsLoading(false), 500); // Safety timeout
+    }
   }, [isAuthenticated, currentUser]);
 
   useEffect(() => {

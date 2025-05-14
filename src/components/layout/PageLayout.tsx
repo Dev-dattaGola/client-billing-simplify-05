@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import MainContent from './MainContent';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLayoutSize } from '@/hooks/useLayoutSize';
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -11,36 +12,40 @@ interface PageLayoutProps {
 
 const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const { isAuthenticated } = useAuth();
-
-  // Use a callback to handle resize events to prevent re-renders
-  const handleResize = useCallback(() => {
-    const mobile = window.innerWidth < 768;
-    setIsMobile(mobile);
-    if (mobile) {
-      setIsSidebarCollapsed(true);
-    }
-  }, []);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const { isAuthenticated, currentUser } = useAuth();
 
   useEffect(() => {
-    // Initialize on mount
-    handleResize();
-    
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setIsSidebarCollapsed(true);
+      }
+    };
+
     window.addEventListener('resize', handleResize);
+    handleResize(); // Initialize on mount
+    
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleResize]);
-
-  // Toggle sidebar (make it a callback to prevent re-renders)
-  const toggleSidebar = useCallback(() => {
-    setIsSidebarCollapsed(prev => !prev);
   }, []);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <div className="p-8 bg-white rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold mb-4 text-center">Please log in</h1>
+          <p className="text-gray-600">You need to be logged in to access this page.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar toggleSidebar={toggleSidebar} />
+      <Navbar toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
       <div className="flex flex-1 mt-16 h-[calc(100vh-4rem)]">
         <Sidebar 
           isCollapsed={isSidebarCollapsed} 

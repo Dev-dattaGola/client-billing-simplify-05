@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Dashboard from './pages/Dashboard';
@@ -71,7 +70,7 @@ function App() {
                 <Route path="/attorneys" element={<ProtectedRoute><Attorneys /></ProtectedRoute>} />
                 <Route path="/attorneys/:id" element={<ProtectedRoute><Attorneys /></ProtectedRoute>} />
                 
-                <Route path="/dropped-clients" element={<ProtectedRoute><DroppedClients /></ProtectedRoute>} />
+                <Route path="/dropped-clients" element={<DroppedClients />} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>

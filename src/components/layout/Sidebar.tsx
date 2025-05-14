@@ -35,102 +35,103 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Dashboard', 
       path: '/dashboard', 
       icon: <Home size={20} />,
-      roles: ['admin', 'attorney', 'client', 'superadmin'] 
+      roles: ['admin', 'attorney', 'client'] // All users
     },
     { 
       title: 'Clients', 
       path: '/clients', 
       icon: <Users size={20} />,
-      roles: ['admin', 'attorney', 'superadmin'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Dropped Clients', 
       path: '/dropped-clients', 
       icon: <UserMinus size={20} />,
-      roles: ['admin', 'attorney', 'superadmin'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Cases', 
       path: '/cases', 
       icon: <Folder size={20} />,
-      roles: ['admin', 'attorney', 'superadmin'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Documents', 
       path: '/documents', 
       icon: <FileText size={20} />,
-      roles: ['admin', 'attorney', 'client', 'superadmin'] 
+      roles: ['admin', 'attorney', 'client'] // All users
     },
     { 
       title: 'Files', 
       path: '/files', 
       icon: <FileSearch size={20} />,
-      roles: ['admin', 'attorney', 'superadmin'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Medical', 
       path: '/medical', 
       icon: <Building2 size={20} />,
-      roles: ['admin', 'attorney', 'superadmin'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Billing', 
       path: '/billing', 
       icon: <BarChart size={20} />,
-      roles: ['admin', 'attorney', 'superadmin'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Calculator', 
       path: '/calculator', 
       icon: <Calculator size={20} />,
-      roles: ['admin', 'attorney', 'superadmin'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Reports', 
       path: '/reports', 
       icon: <FileSearch size={20} />,
-      roles: ['admin', 'attorney', 'superadmin'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Calendar', 
       path: '/calendar', 
       icon: <Calendar size={20} />,
-      roles: ['admin', 'attorney', 'client', 'superadmin'] 
+      roles: ['admin', 'attorney', 'client'] // All users - clients can see appointments
     },
     { 
       title: 'Messages', 
       path: '/messages', 
       icon: <MessageSquare size={20} />,
-      roles: ['admin', 'attorney', 'client', 'superadmin'] 
+      roles: ['admin', 'attorney', 'client'] // All users - clients can message attorneys
     },
     { 
       title: 'Admin', 
       path: '/admin', 
       icon: <Shield size={20} />,
-      roles: ['admin', 'superadmin'] 
+      roles: ['admin'] // Admin only
     },
     { 
       title: 'Depositions', 
       path: '/depositions', 
       icon: <Gavel size={20} />,
-      roles: ['admin', 'attorney', 'superadmin'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Attorneys', 
       path: '/attorneys', 
       icon: <Users size={20} />,
-      roles: ['admin', 'superadmin'] 
+      roles: ['admin'] // Admin only
     },
     { 
       title: 'Settings', 
       path: '/settings', 
       icon: <Settings size={20} />,
-      roles: ['admin', 'attorney', 'client', 'superadmin'] 
+      roles: ['admin', 'attorney', 'client'] // All users
     }
   ];
 
   const getUserDisplayName = (user: any) => {
     if (!user) return "";
+    // Try different ways to get the user's name
     return user.name || 
            (user.user_metadata?.first_name ? 
             `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}` : 
@@ -140,24 +141,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const getUserRole = (user: any) => {
     if (!user) return "";
     return user.role || user.user_metadata?.role || 'client';
-  };
-
-  // Check if current path matches the item path or its sub-routes
-  const isPathActive = (itemPath: string) => {
-    const currentPath = location.pathname;
-    
-    // Exact match for dashboard
-    if (itemPath === '/dashboard' && currentPath === '/dashboard') {
-      return true;
-    }
-    
-    // For other routes, check if the current path starts with the item path
-    // But ensure it's not just a prefix of another route (e.g. /client vs /clients)
-    if (itemPath !== '/dashboard') {
-      return currentPath.startsWith(itemPath + '/') || currentPath === itemPath;
-    }
-    
-    return false;
   };
 
   return (
@@ -184,11 +167,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/dashboard'}
+              end={item.path === '/clients' || item.path === '/dashboard'}
               className={({ isActive }) => cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
                 "hover:bg-accent hover:text-accent-foreground",
-                (isActive || isPathActive(item.path)) ? "bg-accent text-accent-foreground" : "text-muted-foreground",
+                isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
                 isCollapsed && "justify-center px-0"
               )}
             >

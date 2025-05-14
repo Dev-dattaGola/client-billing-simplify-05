@@ -1,5 +1,5 @@
 
-import React, { useEffect, useCallback, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useChatbot } from '@/contexts/ChatbotContext';
 import { MessageCircle, Scale } from 'lucide-react';
@@ -10,32 +10,18 @@ const ChatbotButton: React.FC = () => {
   const { isOpen, openChatbot, setCurrentRoute } = useChatbot();
   const location = useLocation();
   const { toast } = useToast();
-  const hasShownNotification = useRef(false);
   
   // Update current route when location changes
   useEffect(() => {
     setCurrentRoute(location.pathname);
   }, [location.pathname, setCurrentRoute]);
   
-  // Memoize the openChat handler to prevent recreation on each render
-  const handleOpenChat = useCallback(() => {
-    openChatbot();
-    // Track usage for analytics
-    try {
-      console.log("Chatbot opened on route: ", location.pathname);
-    } catch (error) {
-      console.error("Error tracking chatbot open event", error);
-    }
-  }, [openChatbot, location.pathname]);
-  
   // Notify users about the assistant when they first visit the site
   useEffect(() => {
     const hasSeenChatNotification = localStorage.getItem('hasSeenChatNotification');
     
-    if (!hasSeenChatNotification && location.pathname !== '/login' && !hasShownNotification.current) {
-      hasShownNotification.current = true;
-      
-      const timer = setTimeout(() => {
+    if (!hasSeenChatNotification && location.pathname !== '/login') {
+      setTimeout(() => {
         toast({
           title: "Legal Assistant Available",
           description: "Our AI assistant can help with all legal services.",
@@ -53,13 +39,21 @@ const ChatbotButton: React.FC = () => {
           )
         });
       }, 3000);
-      
-      return () => clearTimeout(timer); // Clean up the timer on unmount
     }
   }, [location.pathname, toast, openChatbot]);
   
   // Don't show button if chatbot is already open
   if (isOpen) return null;
+  
+  const handleOpenChat = () => {
+    openChatbot();
+    // Track usage for analytics
+    try {
+      console.log("Chatbot opened on route: ", location.pathname);
+    } catch (error) {
+      console.error("Error tracking chatbot open event", error);
+    }
+  };
   
   const isLandingPage = location.pathname === '/' || location.pathname === '/home';
   
