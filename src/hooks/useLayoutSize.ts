@@ -2,12 +2,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 export function useLayoutSize() {
-  // Use state for only what needs to trigger re-renders
+  // Use state only for what needs to trigger re-renders
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 1024);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(window.innerWidth >= 1024);
   
   // Use refs for tracking state that shouldn't trigger re-renders
-  const isInitializedRef = useRef<boolean>(true);
+  const initializedRef = useRef<boolean>(false);
   const debounceTimerRef = useRef<number | null>(null);
   
   // Memoized function to check for mobile size
@@ -19,9 +19,9 @@ export function useLayoutSize() {
       setIsMobile(mobile);
       
       // Only auto-close sidebar on mobile if already initialized
-      if (mobile && isInitializedRef.current) {
+      if (mobile && initializedRef.current) {
         setIsSidebarOpen(false);
-      } else if (!mobile && isInitializedRef.current) {
+      } else if (!mobile && initializedRef.current) {
         setIsSidebarOpen(true);
       }
     }
@@ -29,6 +29,9 @@ export function useLayoutSize() {
   
   // Set up resize listener with proper cleanup
   useEffect(() => {
+    // Mark as initialized after first render
+    initializedRef.current = true;
+    
     // Run initial check
     checkMobileSize();
     
@@ -54,7 +57,7 @@ export function useLayoutSize() {
     };
   }, [checkMobileSize]);
   
-  // Memoize toggle function to prevent recreation on each render
+  // Memoize toggle function
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(prev => !prev);
   }, []);

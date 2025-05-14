@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -14,17 +14,17 @@ const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isM
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
-  // Memoize the login handler to prevent recreation on each render
-  const handleLoginClick = React.useCallback(() => {
+  // Memoize the login handler
+  const handleLoginClick = useCallback(() => {
     navigate('/login');
   }, [navigate]);
   
-  // Pre-compute className to avoid recreation on each render
+  // Calculate className once to avoid recalculation on each render
   const mainClassName = `flex-1 bg-gray-50 overflow-y-auto transition-all duration-300 ${
     isSidebarOpen && !isMobile ? 'ml-60' : 'ml-0'
   }`;
 
-  // Different content for authenticated vs unauthenticated users
+  // Conditional content for authenticated vs unauthenticated users
   if (!isAuthenticated) {
     return (
       <main className="flex-1 bg-gray-50 overflow-y-auto">
@@ -53,7 +53,7 @@ const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isM
   );
 });
 
-// Add display name to help with debugging
+// Add display name
 MainContent.displayName = "MainContent";
 
 export default MainContent;

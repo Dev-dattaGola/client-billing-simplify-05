@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -13,6 +13,58 @@ interface CalendarScheduleProps {
   onSelectEvent?: (event: CalendarEvent) => void;
 }
 
+// Event item component
+const EventItem = React.memo(({ 
+  event, 
+  onEventClick,
+  formatTime 
+}: { 
+  event: CalendarEvent, 
+  onEventClick: (event: CalendarEvent) => void,
+  formatTime: (dateString: string) => string
+}) => (
+  <div 
+    key={event.id} 
+    className="border p-3 rounded-md hover:bg-muted/50 cursor-pointer"
+    onClick={() => onEventClick(event)}
+  >
+    <h3 className="font-medium">{event.title}</h3>
+    <div className="flex items-center text-sm text-muted-foreground mt-1">
+      <span>{formatTime(event.startDate)} - {formatTime(event.endDate)}</span>
+      {event.location && (
+        <span className="ml-2">• {event.location}</span>
+      )}
+    </div>
+    {event.description && (
+      <p className="text-sm mt-2">{event.description}</p>
+    )}
+  </div>
+));
+EventItem.displayName = "EventItem";
+
+// Event list component
+const EventsList = React.memo(({ 
+  events, 
+  onEventClick,
+  formatTime
+}: { 
+  events: CalendarEvent[], 
+  onEventClick: (event: CalendarEvent) => void,
+  formatTime: (dateString: string) => string
+}) => (
+  <div className="mt-4 space-y-3">
+    {events.map(event => (
+      <EventItem 
+        key={event.id}
+        event={event} 
+        onEventClick={onEventClick}
+        formatTime={formatTime} 
+      />
+    ))}
+  </div>
+));
+EventsList.displayName = "EventsList";
+
 const CalendarSchedule = React.memo<CalendarScheduleProps>(({
   onAddEvent,
   onSelectEvent
@@ -22,22 +74,26 @@ const CalendarSchedule = React.memo<CalendarScheduleProps>(({
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showEventsDialog, setShowEventsDialog] = useState(false);
   const [selectedDateEvents, setSelectedDateEvents] = useState<CalendarEvent[]>([]);
+  
+  // Use ref to prevent multiple fetch calls
+  const isMountedRef = useRef(true);
 
   // Fetch events once on mount with proper cleanup
   useEffect(() => {
-    let isMounted = true;
-    
     const loadEvents = async () => {
+      if (!isMountedRef.current) return;
+      
       try {
         setIsLoading(true);
         const fetchedEvents = await calendarApi.getEvents();
-        if (isMounted) {
+        
+        if (isMountedRef.current) {
           setEvents(fetchedEvents);
           setIsLoading(false);
         }
       } catch (error) {
         console.error("Error loading events:", error);
-        if (isMounted) {
+        if (isMountedRef.current) {
           setIsLoading(false);
         }
       }
@@ -46,8 +102,17 @@ const CalendarSchedule = React.memo<CalendarScheduleProps>(({
     loadEvents();
     
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
     };
+  }, []);
+
+  // Format time from ISO string - memoized to prevent recreating on each render
+  const formatEventTime = useCallback((dateString: string) => {
+    try {
+      return format(new Date(dateString), 'h:mm a');
+    } catch {
+      return '';
+    }
   }, []);
 
   // Memoized handler for date selection
@@ -80,17 +145,42 @@ const CalendarSchedule = React.memo<CalendarScheduleProps>(({
     setShowEventsDialog(false);
   }, [onSelectEvent]);
 
-  // Get dates with events for highlighting in the calendar
-  const eventDates = events.map(event => new Date(event.startDate));
-  
-  // Format time from ISO string
-  const formatEventTime = useCallback((dateString: string) => {
-    try {
-      return format(new Date(dateString), 'h:mm a');
-    } catch {
-      return '';
-    }
+  // Memoized navigation handlers
+  const handlePrevMonth = useCallback(() => {
+    const prevMonth = new Date(selectedDate);
+    prevMonth.setMonth(prevMonth.getMonth() - 1);
+    setSelectedDate(prevMonth);
+  }, [selectedDate]);
+
+  const handleNextMonth = useCallback(() => {
+    const nextMonth = new Date(selectedDate);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    setSelectedDate(nextMonth);
+  }, [selectedDate]);
+
+  // Memoized dialog close handler
+  const handleDialogChange = useCallback((open: boolean) => {
+    setShowEventsDialog(open);
   }, []);
+
+  // Memoized values
+  // Get dates with events for highlighting in the calendar
+  const eventDates = useMemo(() => events.map(event => new Date(event.startDate)), [events]);
+  
+  // Prepare modifiers for the calendar
+  const modifiers = useMemo(() => ({ eventDay: eventDates }), [eventDates]);
+
+  // Prepare modifier styles
+  const modifiersStyles = useMemo(() => ({
+    eventDay: {
+      fontWeight: 'bold',
+      textDecoration: 'underline',
+      color: 'var(--primary)'
+    }
+  }), []);
+
+  // Memoize formatted month title
+  const monthTitle = useMemo(() => format(selectedDate, 'MMMM yyyy'), [selectedDate]);
 
   if (isLoading) {
     return (
@@ -101,20 +191,6 @@ const CalendarSchedule = React.memo<CalendarScheduleProps>(({
       </Card>
     );
   }
-
-  // Prepare modifiers for the calendar
-  const modifiers = {
-    eventDay: eventDates
-  };
-
-  // Prepare modifier styles
-  const modifiersStyles = {
-    eventDay: {
-      fontWeight: 'bold',
-      textDecoration: 'underline',
-      color: 'var(--primary)'
-    }
-  };
 
   return (
     <>
@@ -134,25 +210,17 @@ const CalendarSchedule = React.memo<CalendarScheduleProps>(({
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => {
-                  const prevMonth = new Date(selectedDate);
-                  prevMonth.setMonth(prevMonth.getMonth() - 1);
-                  setSelectedDate(prevMonth);
-                }}
+                onClick={handlePrevMonth}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <h2 className="text-lg font-medium">
-                {format(selectedDate, 'MMMM yyyy')}
+                {monthTitle}
               </h2>
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => {
-                  const nextMonth = new Date(selectedDate);
-                  nextMonth.setMonth(nextMonth.getMonth() + 1);
-                  setSelectedDate(nextMonth);
-                }}
+                onClick={handleNextMonth}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -171,7 +239,7 @@ const CalendarSchedule = React.memo<CalendarScheduleProps>(({
       </Card>
       
       {/* Dialog for showing events on a selected date */}
-      <Dialog open={showEventsDialog} onOpenChange={setShowEventsDialog}>
+      <Dialog open={showEventsDialog} onOpenChange={handleDialogChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -179,26 +247,11 @@ const CalendarSchedule = React.memo<CalendarScheduleProps>(({
             </DialogTitle>
           </DialogHeader>
           
-          <div className="mt-4 space-y-3">
-            {selectedDateEvents.map(event => (
-              <div 
-                key={event.id} 
-                className="border p-3 rounded-md hover:bg-muted/50 cursor-pointer"
-                onClick={() => handleEventClick(event)}
-              >
-                <h3 className="font-medium">{event.title}</h3>
-                <div className="flex items-center text-sm text-muted-foreground mt-1">
-                  <span>{formatEventTime(event.startDate)} - {formatEventTime(event.endDate)}</span>
-                  {event.location && (
-                    <span className="ml-2">• {event.location}</span>
-                  )}
-                </div>
-                {event.description && (
-                  <p className="text-sm mt-2">{event.description}</p>
-                )}
-              </div>
-            ))}
-          </div>
+          <EventsList 
+            events={selectedDateEvents} 
+            onEventClick={handleEventClick}
+            formatTime={formatEventTime}
+          />
         </DialogContent>
       </Dialog>
     </>

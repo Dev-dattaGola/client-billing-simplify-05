@@ -18,25 +18,28 @@ const DashboardOverview = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
-  // Use ref to prevent multiple fetch calls
-  const hasBeenInitialized = useRef(false);
+  // Use ref to track initialization and prevent multiple fetch calls
+  const isMountedRef = useRef(true);
+  const hasBeenInitializedRef = useRef(false);
 
-  // Use useEffect with proper cleanup and fetch tracking to prevent multiple fetches
+  // Use useEffect with proper cleanup and fetch tracking
   useEffect(() => {
-    // Only fetch if we haven't already
-    if (hasBeenInitialized.current) return;
+    // Skip fetching if we've already initialized or if the component is unmounting
+    if (!isMountedRef.current || hasBeenInitializedRef.current) {
+      return;
+    }
     
-    hasBeenInitialized.current = true;
-    
-    // Create a flag to track component mount status
-    let isMounted = true;
+    // Mark as initialized to prevent duplicate fetches
+    hasBeenInitializedRef.current = true;
     
     const fetchData = async () => {
+      if (!isMountedRef.current) return;
+      
       try {
         const fetchedClients = await clientsApi.getClients();
         
         // Only update state if component is still mounted
-        if (isMounted) {
+        if (isMountedRef.current) {
           setClients(fetchedClients);
           setLoading(false);
         }
@@ -44,7 +47,7 @@ const DashboardOverview = () => {
         console.error("Failed to fetch clients:", error);
         
         // Only update state if component is still mounted
-        if (isMounted) {
+        if (isMountedRef.current) {
           toast({
             title: "Error",
             description: "Failed to load client data. Please try again later.",
@@ -55,12 +58,12 @@ const DashboardOverview = () => {
       }
     };
     
-    // Use setTimeout to slightly delay the fetch to prevent render issues
+    // Add a slight delay to prevent render issues during initial mount
     const timer = setTimeout(fetchData, 100);
     
-    // Cleanup function to prevent state updates after unmount
+    // Cleanup function
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
       clearTimeout(timer);
     };
   }, [toast]); // Only depend on toast
@@ -70,10 +73,10 @@ const DashboardOverview = () => {
     setShowCalculator(prev => !prev);
   }, []);
 
-  // Default tab value for the tabs component
+  // Default tab value
   const defaultTabValue = "billings";
 
-  // Memoize calculator content to prevent unnecessary re-renders
+  // Memoize calculator content to prevent re-renders
   const calculatorContent = useMemo(() => {
     if (!showCalculator) return null;
     

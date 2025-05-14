@@ -2,18 +2,18 @@
 // Implementation for TaskManagement.tsx
 // We're fixing the type issues with Task[] and ensuring status values match expected values
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { tasksApi, Task as ApiTask } from "@/lib/api/calendar-api"; 
 import { Task as AppTask } from "@/types/calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import TaskForm from "./TaskForm";  // Default import
-import TaskDetails from "./TaskDetails";  // Default import
+import TaskForm from "./TaskForm";
+import TaskDetails from "./TaskDetails";
 import { Loader2, Plus } from "lucide-react";
 
 interface TaskManagementProps {
-  // Add props as needed
+  // Props as needed
 }
 
 // Create a type mapper function to convert between API Task and App Task types
@@ -62,152 +62,18 @@ const mapAppTaskToApiTask = (appTask: Partial<AppTask>): Partial<ApiTask> => {
   if (appTask.caseId) {
     apiTask.associatedCaseId = appTask.caseId;
   }
-  
-  // We don't need to explicitly remove properties not in ApiTask as they won't be included in apiTask
 
   return apiTask;
 };
 
-const TaskManagement: React.FC<TaskManagementProps> = () => {
-  // Use the App Task type for state
-  const [tasks, setTasks] = useState<AppTask[]>([]);
-  const [selectedTask, setSelectedTask] = useState<AppTask | null>(null);
-  const [isAddingTask, setIsAddingTask] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  useEffect(() => {
-    const loadTasks = async () => {
-      try {
-        setIsLoading(true);
-        const fetchedTasks = await tasksApi.getTasks();
-        // Convert the API tasks to our App tasks
-        const mappedTasks = fetchedTasks.map(mapApiTaskToAppTask);
-        setTasks(mappedTasks);
-      } catch (error) {
-        console.error("Error loading tasks:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadTasks();
-  }, []);
-  
-  const handleAddTask = () => {
-    setSelectedTask(null);
-    setIsAddingTask(true);
-  };
-  
-  const handleTaskClick = (task: AppTask) => {
-    setSelectedTask(task);
-    setIsAddingTask(false);
-  };
-  
-  const handleTaskSave = async (taskData: Omit<AppTask, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      // Convert App Task to API Task
-      const apiTaskData = mapAppTaskToApiTask(taskData);
-      
-      // Create the task via API
-      const newApiTask = await tasksApi.createTask(apiTaskData as Omit<ApiTask, 'id' | 'createdAt' | 'updatedAt'>);
-      
-      // Convert back to App Task and add to state
-      const newAppTask = mapApiTaskToAppTask(newApiTask);
-      setTasks(prevTasks => [...prevTasks, newAppTask]);
-      setIsAddingTask(false);
-    } catch (error) {
-      console.error("Error saving task:", error);
-    }
-  };
-  
-  const handleTaskUpdate = async (taskId: string, updates: Partial<AppTask>) => {
-    try {
-      // Convert updates to API format
-      const apiUpdates = mapAppTaskToApiTask(updates);
-      
-      // Update through API
-      const updatedApiTask = await tasksApi.updateTask(taskId, apiUpdates);
-      
-      // Update local state with converted App Task
-      const updatedAppTask = mapApiTaskToAppTask(updatedApiTask);
-      setTasks(prevTasks => prevTasks.map(task => 
-        task.id === taskId ? updatedAppTask : task
-      ));
-      setSelectedTask(null);
-    } catch (error) {
-      console.error("Error updating task:", error);
-    }
-  };
-  
-  const handleTaskDelete = async (taskId: string) => {
-    try {
-      await tasksApi.deleteTask(taskId);
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-      setSelectedTask(null);
-    } catch (error) {
-      console.error("Error deleting task:", error);
-    }
-  };
-  
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-  
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Tasks</CardTitle>
-        <Button onClick={handleAddTask}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Task
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {isAddingTask ? (
-          <TaskForm onSave={handleTaskSave} onCancel={() => setIsAddingTask(false)} />
-        ) : selectedTask ? (
-          <TaskDetails 
-            task={selectedTask} 
-            onUpdate={handleTaskUpdate} 
-            onDelete={handleTaskDelete} 
-            onBack={() => setSelectedTask(null)} 
-          />
-        ) : (
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid grid-cols-4 mb-4">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="pending">To Do</TabsTrigger>
-              <TabsTrigger value="in-progress">In Progress</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="all">
-              {renderTaskList(tasks, handleTaskClick)}
-            </TabsContent>
-            
-            <TabsContent value="pending">
-              {renderTaskList(tasks.filter(task => task.status === 'pending'), handleTaskClick)}
-            </TabsContent>
-            
-            <TabsContent value="in-progress">
-              {renderTaskList(tasks.filter(task => task.status === 'in-progress'), handleTaskClick)}
-            </TabsContent>
-            
-            <TabsContent value="completed">
-              {renderTaskList(tasks.filter(task => task.status === 'completed'), handleTaskClick)}
-            </TabsContent>
-          </Tabs>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
-
-const renderTaskList = (tasks: AppTask[], onTaskClick: (task: AppTask) => void) => {
+// Render task list component extracted to avoid re-renders
+const TaskList = React.memo(({ 
+  tasks, 
+  onTaskClick 
+}: { 
+  tasks: AppTask[], 
+  onTaskClick: (task: AppTask) => void 
+}) => {
   if (tasks.length === 0) {
     return <p className="text-center py-8 text-muted-foreground">No tasks found.</p>;
   }
@@ -225,7 +91,7 @@ const renderTaskList = (tasks: AppTask[], onTaskClick: (task: AppTask) => void) 
               <h3 className="font-medium">{task.title}</h3>
               {task.dueDate && (
                 <p className="text-sm text-muted-foreground">
-                  Due: {new Date(task.dueDate).toLocaleDateString()}
+                  Due: {task.dueDate.toLocaleDateString()}
                 </p>
               )}
             </div>
@@ -236,15 +102,198 @@ const renderTaskList = (tasks: AppTask[], onTaskClick: (task: AppTask) => void) 
               'bg-gray-100 text-gray-800'
             }`}>
               {task.status === 'pending' ? 'To Do' : 
-               task.status === 'in-progress' ? 'In Progress' : 
-               task.status === 'cancelled' ? 'Cancelled' :
-               'Completed'}
+              task.status === 'in-progress' ? 'In Progress' : 
+              task.status === 'cancelled' ? 'Cancelled' :
+              'Completed'}
             </div>
           </div>
         </div>
       ))}
     </div>
   );
+});
+TaskList.displayName = "TaskList";
+
+const TaskManagement: React.FC<TaskManagementProps> = () => {
+  // Use the App Task type for state
+  const [tasks, setTasks] = useState<AppTask[]>([]);
+  const [selectedTask, setSelectedTask] = useState<AppTask | null>(null);
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Use useEffect with proper cleanup
+  useEffect(() => {
+    let isMounted = true;
+    
+    const loadTasks = async () => {
+      try {
+        setIsLoading(true);
+        const fetchedTasks = await tasksApi.getTasks();
+        
+        // Only update state if component is still mounted
+        if (isMounted) {
+          // Convert the API tasks to our App tasks
+          const mappedTasks = fetchedTasks.map(mapApiTaskToAppTask);
+          setTasks(mappedTasks);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error loading tasks:", error);
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    loadTasks();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+  
+  // Memoize event handlers
+  const handleAddTask = useCallback(() => {
+    setSelectedTask(null);
+    setIsAddingTask(true);
+  }, []);
+  
+  const handleTaskClick = useCallback((task: AppTask) => {
+    setSelectedTask(task);
+    setIsAddingTask(false);
+  }, []);
+  
+  const handleTaskSave = useCallback(async (taskData: Omit<AppTask, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      // Convert App Task to API Task
+      const apiTaskData = mapAppTaskToApiTask(taskData);
+      
+      // Create the task via API
+      const newApiTask = await tasksApi.createTask(apiTaskData as Omit<ApiTask, 'id' | 'createdAt' | 'updatedAt'>);
+      
+      // Convert back to App Task and add to state
+      const newAppTask = mapApiTaskToAppTask(newApiTask);
+      setTasks(prevTasks => [...prevTasks, newAppTask]);
+      setIsAddingTask(false);
+    } catch (error) {
+      console.error("Error saving task:", error);
+    }
+  }, []);
+  
+  const handleTaskUpdate = useCallback(async (taskId: string, updates: Partial<AppTask>) => {
+    try {
+      // Convert updates to API format
+      const apiUpdates = mapAppTaskToApiTask(updates);
+      
+      // Update through API
+      const updatedApiTask = await tasksApi.updateTask(taskId, apiUpdates);
+      
+      // Update local state with converted App Task
+      const updatedAppTask = mapApiTaskToAppTask(updatedApiTask);
+      setTasks(prevTasks => prevTasks.map(task => 
+        task.id === taskId ? updatedAppTask : task
+      ));
+      setSelectedTask(null);
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  }, []);
+  
+  const handleTaskDelete = useCallback(async (taskId: string) => {
+    try {
+      await tasksApi.deleteTask(taskId);
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+      setSelectedTask(null);
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
+  }, []);
+  
+  // Compute filtered tasks for each tab to avoid recalculation
+  const allTasks = useMemo(() => tasks, [tasks]);
+  const pendingTasks = useMemo(() => tasks.filter(task => task.status === 'pending'), [tasks]);
+  const inProgressTasks = useMemo(() => tasks.filter(task => task.status === 'in-progress'), [tasks]);
+  const completedTasks = useMemo(() => tasks.filter(task => task.status === 'completed'), [tasks]);
+  
+  // Render loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  // Conditionally render form, details, or task list
+  if (isAddingTask) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Add New Task</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TaskForm onSave={handleTaskSave} onCancel={() => setIsAddingTask(false)} />
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  if (selectedTask) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Task Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TaskDetails 
+            task={selectedTask} 
+            onUpdate={handleTaskUpdate} 
+            onDelete={handleTaskDelete} 
+            onBack={() => setSelectedTask(null)} 
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Tasks</CardTitle>
+        <Button onClick={handleAddTask}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Task
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid grid-cols-4 mb-4">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="pending">To Do</TabsTrigger>
+            <TabsTrigger value="in-progress">In Progress</TabsTrigger>
+            <TabsTrigger value="completed">Completed</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="all">
+            <TaskList tasks={allTasks} onTaskClick={handleTaskClick} />
+          </TabsContent>
+          
+          <TabsContent value="pending">
+            <TaskList tasks={pendingTasks} onTaskClick={handleTaskClick} />
+          </TabsContent>
+          
+          <TabsContent value="in-progress">
+            <TaskList tasks={inProgressTasks} onTaskClick={handleTaskClick} />
+          </TabsContent>
+          
+          <TabsContent value="completed">
+            <TaskList tasks={completedTasks} onTaskClick={handleTaskClick} />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
 };
 
-export default TaskManagement;
+export default React.memo(TaskManagement);

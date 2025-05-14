@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
@@ -18,7 +18,7 @@ const PageLayout = React.memo<PageLayoutProps>(({ children }) => {
   const navigate = useNavigate();
   
   // Memoize login button handler
-  const handleLoginClick = React.useCallback(() => {
+  const handleLoginClick = useCallback(() => {
     navigate('/login');
   }, [navigate]);
   
@@ -36,6 +36,7 @@ const PageLayout = React.memo<PageLayoutProps>(({ children }) => {
   ), [handleLoginClick]);
   
   // Determine content based on authentication status
+  // Compute values once to avoid recalculation on re-renders
   const showSidebar = isAuthenticated;
   const displayContent = isAuthenticated ? children : loginContent;
   
@@ -60,7 +61,7 @@ const PageLayout = React.memo<PageLayoutProps>(({ children }) => {
   );
 });
 
-// Add display name to help with debugging
+// Add display name
 PageLayout.displayName = "PageLayout";
 
 export default PageLayout;
