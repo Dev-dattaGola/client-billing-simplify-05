@@ -20,6 +20,8 @@ const DashboardOverview = () => {
 
   // Using useCallback to prevent recreation of this function on every render
   const fetchClients = useCallback(async () => {
+    if (!loading) return; // Only fetch if loading is true
+    
     try {
       const fetchedClients = await clientsApi.getClients();
       setClients(fetchedClients);
@@ -33,24 +35,20 @@ const DashboardOverview = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, loading]);
 
   useEffect(() => {
     let isMounted = true;
     
     // Only fetch once when component mounts
-    const loadData = async () => {
-      if (isMounted) {
-        await fetchClients();
-      }
-    };
-    
-    loadData();
+    if (loading && isMounted) {
+      fetchClients();
+    }
     
     return () => {
       isMounted = false;
     };
-  }, []); // Empty dependency array to run only once
+  }, [fetchClients, loading]);
 
   const toggleCalculator = useCallback(() => {
     setShowCalculator(prev => !prev);

@@ -34,12 +34,13 @@ const Dashboard: React.FC = () => {
   // Fixed useEffect to prevent re-renders
   useEffect(() => {
     let isMounted = true;
+    
     const timer = setTimeout(() => {
       if (isMounted) {
         console.log("Dashboard: Authentication state", { isAuthenticated, currentUser: currentUser?.role });
         setIsLoading(false);
       }
-    }, 1000); // Increased timeout for more stable behavior
+    }, 1500); // Increased timeout for more stable behavior
     
     return () => {
       isMounted = false;
