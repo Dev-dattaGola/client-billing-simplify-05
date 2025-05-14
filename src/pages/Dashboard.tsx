@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, memo } from 'react';
+import React, { useEffect, useState, memo, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import PageLayout from '@/components/layout/PageLayout';
 import DashboardOverview from '@/components/dashboard/DashboardOverview';
@@ -11,7 +11,7 @@ const DashboardContent = memo(({ isLoading }: { isLoading: boolean }) => {
   if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-5rem)] w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="mr-2 h-8 w-8 animate-spin text-primary" />
         <span className="ml-2">Loading dashboard...</span>
       </div>
     );
@@ -30,23 +30,29 @@ const Dashboard: React.FC = () => {
   // Initialize with true to show loader initially
   const [isLoading, setIsLoading] = useState(true);
   const { currentUser, isAuthenticated } = useAuth();
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   
   // Fixed useEffect to prevent re-renders
   useEffect(() => {
-    let isMounted = true;
+    // Cleanup previous timer to avoid memory leaks
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
     
-    const timer = setTimeout(() => {
-      if (isMounted) {
-        console.log("Dashboard: Authentication state", { isAuthenticated, currentUser: currentUser?.role });
-        setIsLoading(false);
-      }
-    }, 1500); // Increased timeout for more stable behavior
+    // Set a new timer
+    timerRef.current = setTimeout(() => {
+      console.log("Dashboard: Authentication state", { isAuthenticated, currentUser: currentUser?.role });
+      setIsLoading(false);
+    }, 1500);
     
+    // Cleanup function
     return () => {
-      isMounted = false;
-      clearTimeout(timer);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
     };
-  }, []); // Empty dependency array to run only once
+  }, [isAuthenticated, currentUser?.role]); // Add dependencies that should trigger the effect
 
   return (
     <PageLayout>

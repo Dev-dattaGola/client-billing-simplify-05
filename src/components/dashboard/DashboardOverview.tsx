@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,15 @@ const DashboardOverview = () => {
   const [showCalculator, setShowCalculator] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchInitiated = useRef(false);
   const { toast } = useToast();
 
   // Using useCallback to prevent recreation of this function on every render
   const fetchClients = useCallback(async () => {
-    if (!loading) return; // Only fetch if loading is true
+    // Only fetch if we haven't already started fetching
+    if (fetchInitiated.current) return;
+    
+    fetchInitiated.current = true;
     
     try {
       const fetchedClients = await clientsApi.getClients();
@@ -35,18 +39,17 @@ const DashboardOverview = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, loading]);
+  }, [toast]);
 
   useEffect(() => {
-    let isMounted = true;
-    
-    // Only fetch once when component mounts
-    if (loading && isMounted) {
+    // Only fetch data if loading is true and fetch hasn't been initiated
+    if (loading && !fetchInitiated.current) {
       fetchClients();
     }
     
     return () => {
-      isMounted = false;
+      // Mark as not initiated on unmount (for potential remounts)
+      fetchInitiated.current = false;
     };
   }, [fetchClients, loading]);
 
