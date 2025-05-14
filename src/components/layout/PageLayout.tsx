@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import MainContent from './MainContent';
@@ -11,26 +11,13 @@ interface PageLayoutProps {
 }
 
 const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const { isSidebarOpen, isMobile, setIsSidebarOpen, toggleSidebar } = useLayoutSize();
   const { isAuthenticated, currentUser } = useAuth();
 
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile) {
-        setIsSidebarCollapsed(true);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    handleResize(); // Initialize on mount
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
+  // Memoize this to prevent unnecessary re-renders
+  const handleToggleSidebar = useCallback(() => {
+    toggleSidebar();
+  }, [toggleSidebar]);
 
   if (!isAuthenticated) {
     return (
@@ -45,13 +32,13 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+      <Navbar toggleSidebar={handleToggleSidebar} />
       <div className="flex flex-1 mt-16 h-[calc(100vh-4rem)]">
         <Sidebar 
-          isCollapsed={isSidebarCollapsed} 
-          setIsCollapsed={setIsSidebarCollapsed} 
+          isCollapsed={!isSidebarOpen} 
+          setIsCollapsed={(collapsed) => setIsSidebarOpen(!collapsed)} 
         />
-        <MainContent isSidebarOpen={!isSidebarCollapsed} isMobile={isMobile}>
+        <MainContent isSidebarOpen={isSidebarOpen} isMobile={isMobile}>
           {children}
         </MainContent>
       </div>

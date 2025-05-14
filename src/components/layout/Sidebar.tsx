@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useEffect, useCallback, memo } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -24,8 +24,10 @@ interface SidebarProps {
   setIsCollapsed: (value: boolean) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
+// Using memo to prevent unnecessary re-renders
+const Sidebar = memo<SidebarProps>(({ isCollapsed, setIsCollapsed }) => {
   const { hasPermission, currentUser } = useAuth();
+  const location = useLocation();
   
   // Define which roles can access which items
   const roleBasedNavItems = [
@@ -121,24 +123,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     }
   ];
 
-  const getUserDisplayName = (user: any) => {
+  const getUserDisplayName = useCallback((user: any) => {
     if (!user) return "";
     // Try different ways to get the user's name
     return user.name || 
            (user.user_metadata?.first_name ? 
             `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}` : 
             user.email?.split('@')[0] || '');
-  };
+  }, []);
 
-  const getUserRole = (user: any) => {
+  // Determine user role from user object consistently
+  const getUserRole = useCallback((user: any) => {
     if (!user) return "";
-    return user.user_metadata?.role || 'client';
-  };
+    return user.role || user.user_metadata?.role || 'client';
+  }, []);
+
+  // Filter menu items based on user role
+  const visibleNavItems = React.useMemo(() => {
+    const userRole = currentUser?.role || currentUser?.user_metadata?.role || 'client';
+    return roleBasedNavItems.filter(item => 
+      !currentUser || item.roles.includes(userRole)
+    );
+  }, [currentUser, roleBasedNavItems]);
 
   return (
     <div 
       className={cn(
-        "border-r border-border h-screen transition-all duration-300 flex flex-col bg-background",
+        "border-r border-border h-screen transition-all duration-300 flex flex-col bg-background sticky top-0 z-10",
         isCollapsed ? "w-16" : "w-60"
       )}
     >
@@ -150,16 +161,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       </div>
 
       <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
-        {roleBasedNavItems
-          .filter(item => {
-            const userRole = currentUser?.user_metadata?.role || 'client';
-            return !currentUser || item.roles.includes(userRole);
-          })
-          .map((item) => (
+        {visibleNavItems.map((item) => {
+          const isActive = location.pathname.startsWith(item.path);
+          return (
             <NavLink
               key={item.path}
               to={item.path}
-              className={({ isActive }) => cn(
+              className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
                 "hover:bg-accent hover:text-accent-foreground",
                 isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
@@ -169,7 +177,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               {item.icon}
               {!isCollapsed && <span>{item.title}</span>}
             </NavLink>
-          ))}
+          );
+        })}
       </div>
 
       <div className="p-3 border-t mt-auto">
@@ -191,6 +200,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       </div>
     </div>
   );
-};
+});
+
+Sidebar.displayName = "Sidebar";
 
 export default Sidebar;
