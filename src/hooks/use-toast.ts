@@ -1,5 +1,5 @@
 
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, createContext, useContext } from "react";
 import { toast as sonnerToast, type Toast } from "sonner";
 
 type ToastProps = Toast & {
@@ -10,6 +10,7 @@ type ToastProps = Toast & {
 
 const ToastContext = createContext<{
   toast: (props: ToastProps) => void;
+  toasts: ToastProps[];
 } | null>(null);
 
 export const useToast = () => {
@@ -28,7 +29,8 @@ export const useToast = () => {
             description: props.description,
           });
         }
-      }
+      },
+      toasts: []
     };
   }
   
@@ -64,7 +66,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <ToastContext.Provider value={{ toast: addToast }}>
+    <ToastContext.Provider value={{ toast: addToast, toasts }}>
       {children}
     </ToastContext.Provider>
   );
