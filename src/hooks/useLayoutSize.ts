@@ -11,7 +11,7 @@ export function useLayoutSize() {
   const checkIfMobile = useCallback(() => {
     const mobile = window.innerWidth < 1024;
     
-    // Only update the state if the value has changed
+    // Only update the state if the value has changed to prevent unnecessary re-renders
     if (isMobile !== mobile) {
       setIsMobile(mobile);
       
@@ -29,11 +29,18 @@ export function useLayoutSize() {
   }, [isMobile, isSidebarOpen]);
   
   useEffect(() => {
-    // Initial check once on mount with a slight delay
-    const initialCheckTimeout = setTimeout(() => {
-      checkIfMobile();
-    }, 10);
-    
+    // Use a ref to ensure we don't run the initial check multiple times
+    if (!initialCheckDone.current) {
+      // Initial check once on mount with a slight delay
+      const initialCheckTimeout = setTimeout(() => {
+        checkIfMobile();
+      }, 10);
+      
+      return () => clearTimeout(initialCheckTimeout);
+    }
+  }, [checkIfMobile]);
+  
+  useEffect(() => {
     const handleResize = () => {
       if (resizeTimerRef.current) {
         clearTimeout(resizeTimerRef.current);
@@ -48,7 +55,6 @@ export function useLayoutSize() {
     
     // Cleanup
     return () => {
-      clearTimeout(initialCheckTimeout);
       if (resizeTimerRef.current) {
         clearTimeout(resizeTimerRef.current);
       }

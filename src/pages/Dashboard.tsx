@@ -29,7 +29,6 @@ DashboardContent.displayName = "DashboardContent";
 const Dashboard: React.FC = () => {
   // Initialize with true to show loader initially
   const [isLoading, setIsLoading] = useState(true);
-  const { currentUser, isAuthenticated } = useAuth();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   
   // Fixed useEffect to prevent re-renders
@@ -51,7 +50,7 @@ const Dashboard: React.FC = () => {
         timerRef.current = null;
       }
     };
-  }, []);  // Empty dependency array to run only once on mount
+  }, []); // Empty dependency array to run only once on mount
 
   return (
     <PageLayout>
