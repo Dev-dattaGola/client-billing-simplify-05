@@ -22,7 +22,7 @@ const PageLayout: React.FC<PageLayoutProps> = memo(({ children }) => {
     toggleSidebar();
   }, [toggleSidebar]);
 
-  // Pre-render login content for performance
+  // Pre-render login content - this is static and doesn't change
   const loginContent = (
     <div className="p-8 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4 text-center">Welcome to LYZ Law Firm</h1>

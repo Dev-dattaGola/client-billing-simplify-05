@@ -19,7 +19,7 @@ const DashboardOverview = () => {
   const fetchInitiated = useRef(false);
   const { toast } = useToast();
 
-  // Fetch clients only once using useCallback and a ref
+  // Use useCallback to memoize the fetch function
   const fetchClients = useCallback(async () => {
     // Prevent duplicate fetches
     if (fetchInitiated.current) return;
@@ -41,7 +41,7 @@ const DashboardOverview = () => {
     }
   }, [toast]);
 
-  // Separate effect for initiating data fetch with a delay
+  // Use useEffect with proper cleanup and dependencies
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!fetchInitiated.current) {
@@ -52,7 +52,7 @@ const DashboardOverview = () => {
     return () => clearTimeout(timer);
   }, [fetchClients]);
 
-  // Memoize the toggle function
+  // Memoize the toggle function to prevent recreation on each render
   const toggleCalculator = useCallback(() => {
     setShowCalculator(prev => !prev);
   }, []);

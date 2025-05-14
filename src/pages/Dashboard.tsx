@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, memo } from 'react';
+import React, { useEffect, useState, memo, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import PageLayout from '@/components/layout/PageLayout';
 import DashboardOverview from '@/components/dashboard/DashboardOverview';
@@ -29,14 +29,16 @@ const Dashboard: React.FC = () => {
   // Initialize with true to show loader initially
   const [isLoading, setIsLoading] = useState(true);
   
-  // Use a single effect to handle loading state
+  // Use a single effect with a cleanup function
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1500);
     
-    // Cleanup function
-    return () => clearTimeout(timer);
+    // Cleanup function to prevent memory leaks
+    return () => {
+      clearTimeout(timer);
+    };
   }, []); // Empty dependency array to run only once on mount
 
   return (

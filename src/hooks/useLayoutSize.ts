@@ -7,7 +7,7 @@ export function useLayoutSize() {
   const initialCheckDone = useRef(false);
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Check if mobile, but avoid unnecessary state updates
+  // Memoized check function to prevent recreating on each render
   const checkIfMobile = useCallback(() => {
     const mobile = window.innerWidth < 1024;
     
@@ -16,6 +16,7 @@ export function useLayoutSize() {
       setIsMobile(mobile);
       
       // Auto-collapse sidebar only when switching to mobile from desktop
+      // and only if initial check hasn't been done or sidebar is open
       if (mobile && (isSidebarOpen || !initialCheckDone.current)) {
         setIsSidebarOpen(false);
       }
@@ -35,7 +36,7 @@ export function useLayoutSize() {
     }
   }, [checkIfMobile]);
   
-  // Handle window resize with debounce
+  // Handle window resize with debounce to reduce render frequency
   useEffect(() => {
     const handleResize = () => {
       if (resizeTimerRef.current) {
@@ -56,7 +57,7 @@ export function useLayoutSize() {
     };
   }, [checkIfMobile]);
 
-  // Memoize the toggle function
+  // Memoize toggle function to prevent recreation on each render
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(prev => !prev);
   }, []);

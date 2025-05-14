@@ -8,9 +8,9 @@ interface MainContentProps {
   isMobile: boolean;
 }
 
-// Used memo to prevent unnecessary re-renders
+// Memoized component to prevent unnecessary re-renders
 const MainContent = memo<MainContentProps>(({ children, isSidebarOpen, isMobile }) => {
-  // Avoid complex calculations in the render function
+  // Compute class name outside of render to avoid object creation on each render
   const contentClassName = cn(
     "flex-1 bg-gray-50 overflow-y-auto transition-all duration-300",
     isMobile ? "w-full" : (isSidebarOpen ? "ml-60" : "ml-0")
