@@ -1,5 +1,5 @@
 
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
@@ -12,17 +12,18 @@ interface PageLayoutProps {
   children: React.ReactNode;
 }
 
+// Use React.memo to prevent unnecessary re-renders
 const PageLayout: React.FC<PageLayoutProps> = React.memo(({ children }) => {
   const { isSidebarOpen, isMobile, toggleSidebar } = useLayoutSize();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
-  // Memoize navigation handler
-  const handleLoginClick = useCallback(() => {
+  // Memoize login button handler
+  const handleLoginClick = React.useCallback(() => {
     navigate('/login');
   }, [navigate]);
   
-  // Memoize login content to prevent recreation on each render
+  // Memoize login content
   const loginContent = useMemo(() => (
     <div className="p-8 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4 text-center">Welcome to LYZ Law Firm</h1>
@@ -36,13 +37,9 @@ const PageLayout: React.FC<PageLayoutProps> = React.memo(({ children }) => {
   ), [handleLoginClick]);
   
   // Determine what content to show based on authentication
-  const displayContent = useMemo(() => {
-    return isAuthenticated ? children : loginContent;
-  }, [isAuthenticated, children, loginContent]);
-  
-  // Determine if sidebar should be shown
   const showSidebar = isAuthenticated;
-
+  const displayContent = isAuthenticated ? children : loginContent;
+  
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar toggleSidebar={toggleSidebar} />

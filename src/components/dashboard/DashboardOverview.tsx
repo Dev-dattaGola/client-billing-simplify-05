@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -16,17 +16,17 @@ const DashboardOverview = () => {
   const [showCalculator, setShowCalculator] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fetchStarted, setFetchStarted] = useState(false);
+  const fetchStartedRef = useRef(false);
   const { toast } = useToast();
 
-  // Controlled data fetching to prevent multiple fetches
+  // Controlled data fetching
   useEffect(() => {
     let mounted = true;
-
+    
     const fetchData = async () => {
-      if (fetchStarted) return;
+      if (fetchStartedRef.current) return;
       
-      setFetchStarted(true);
+      fetchStartedRef.current = true;
       
       try {
         const fetchedClients = await clientsApi.getClients();
@@ -47,7 +47,6 @@ const DashboardOverview = () => {
       }
     };
 
-    // Small timeout to avoid immediate fetch on mount
     const timer = setTimeout(() => {
       if (mounted) {
         fetchData();
@@ -58,14 +57,14 @@ const DashboardOverview = () => {
       mounted = false;
       clearTimeout(timer);
     };
-  }, [toast, fetchStarted]);
+  }, [toast]);
 
-  // Memoize toggle handler to prevent recreation
+  // Toggle calculator with memoized handler
   const toggleCalculator = useCallback(() => {
     setShowCalculator(prev => !prev);
   }, []);
 
-  // Memoized default tab value
+  // Default tab value
   const defaultTabValue = "billings";
 
   // Memoize calculator content
@@ -81,7 +80,7 @@ const DashboardOverview = () => {
     );
   }, [showCalculator]);
 
-  // Memoize the billing content
+  // Memoize billing content
   const billingContent = useMemo(() => {
     if (loading) {
       return <Skeleton className="h-[300px] w-full" />;

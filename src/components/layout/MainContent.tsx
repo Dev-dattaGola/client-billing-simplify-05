@@ -1,5 +1,5 @@
 
-import React, { useCallback } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,7 @@ const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isM
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
-  // Memoize navigation handler to prevent recreation on renders
-  const handleLoginClick = useCallback(() => {
+  const handleLoginClick = React.useCallback(() => {
     navigate('/login');
   }, [navigate]);
   
@@ -40,6 +39,7 @@ const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isM
     );
   }
 
+  // Calculate className outside the JSX to avoid regenerating on each render
   const mainClassName = `flex-1 bg-gray-50 overflow-y-auto transition-all duration-300 ${
     isSidebarOpen && !isMobile ? 'ml-60' : 'ml-0'
   }`;
