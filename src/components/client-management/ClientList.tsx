@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Search, Filter, Trash2, Edit, FileText, Tags, Loader2, Eye, UserMinus, UserCheck } from "lucide-react";
+import { Search, Filter, Trash2, Edit, FileText, Tags, Loader2, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Client, ClientFilterParams } from "@/types/client";
@@ -42,20 +42,10 @@ interface ClientListProps {
   onEditClient: (client: Client) => void;
   onViewClient: (client: Client) => void;
   onDeleteClient: (clientId: string) => void;
-  onDropClient?: (client: Client) => void;
-  onTransferClient?: (client: Client) => void;
   loading?: boolean;
 }
 
-const ClientList = ({
-  clients, 
-  onEditClient, 
-  onViewClient, 
-  onDeleteClient, 
-  onDropClient, 
-  onTransferClient, 
-  loading = false 
-}: ClientListProps) => {
+const ClientList = ({ clients, onEditClient, onViewClient, onDeleteClient, loading = false }: ClientListProps) => {
   const [filterParams, setFilterParams] = useState<ClientFilterParams>({
     search: "",
     tag: undefined,
@@ -299,26 +289,6 @@ const ClientList = ({
                           <Edit className="h-4 w-4" />
                           <span className="sr-only">Edit</span>
                         </Button>
-                        {onTransferClient && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => onTransferClient(client)}
-                          >
-                            <UserCheck className="h-4 w-4" />
-                            <span className="sr-only">Transfer</span>
-                          </Button>
-                        )}
-                        {onDropClient && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => onDropClient(client)}
-                          >
-                            <UserMinus className="h-4 w-4" />
-                            <span className="sr-only">Drop</span>
-                          </Button>
-                        )}
                         <Button
                           size="icon"
                           variant="ghost"

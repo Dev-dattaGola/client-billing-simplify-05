@@ -62,15 +62,11 @@ export type Database = {
       clients: {
         Row: {
           address: string | null
-          assigned_attorney_id: string | null
           company_name: string | null
           created_at: string | null
-          dropped_date: string | null
-          dropped_reason: string | null
           email: string
           full_name: string
           id: string
-          is_dropped: boolean | null
           notes: string | null
           phone: string | null
           tags: string[] | null
@@ -79,15 +75,11 @@ export type Database = {
         }
         Insert: {
           address?: string | null
-          assigned_attorney_id?: string | null
           company_name?: string | null
           created_at?: string | null
-          dropped_date?: string | null
-          dropped_reason?: string | null
           email: string
           full_name: string
           id?: string
-          is_dropped?: boolean | null
           notes?: string | null
           phone?: string | null
           tags?: string[] | null
@@ -96,15 +88,11 @@ export type Database = {
         }
         Update: {
           address?: string | null
-          assigned_attorney_id?: string | null
           company_name?: string | null
           created_at?: string | null
-          dropped_date?: string | null
-          dropped_reason?: string | null
           email?: string
           full_name?: string
           id?: string
-          is_dropped?: boolean | null
           notes?: string | null
           phone?: string | null
           tags?: string[] | null
@@ -112,13 +100,6 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "clients_assigned_attorney_id_fkey"
-            columns: ["assigned_attorney_id"]
-            isOneToOne: false
-            referencedRelation: "attorneys"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "clients_user_id_fkey"
             columns: ["user_id"]

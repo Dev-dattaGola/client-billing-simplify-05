@@ -1,6 +1,6 @@
 
-import React, { useCallback } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import React from 'react';
+import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -16,8 +16,7 @@ import {
   Calculator,
   FileSearch,
   Gavel,
-  Shield,
-  UserMinus
+  Shield
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -27,17 +26,6 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const { hasPermission, currentUser } = useAuth();
-  const location = useLocation();
-  
-  const isRouteActive = useCallback((path: string) => {
-    // Handle exact matches
-    if (location.pathname === path) return true;
-    
-    // Handle sub-routes (like /clients/123)
-    if (path !== '/' && location.pathname.startsWith(path + '/')) return true;
-    
-    return false;
-  }, [location.pathname]);
   
   // Define which roles can access which items
   const roleBasedNavItems = [
@@ -45,97 +33,91 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Dashboard', 
       path: '/dashboard', 
       icon: <Home size={20} />,
-      roles: ['superadmin', 'admin', 'attorney', 'client'] // All users
+      roles: ['admin', 'attorney', 'client'] // All users
     },
     { 
       title: 'Clients', 
       path: '/clients', 
       icon: <Users size={20} />,
-      roles: ['superadmin', 'admin', 'attorney'] 
-    },
-    { 
-      title: 'Dropped Clients', 
-      path: '/dropped-clients', 
-      icon: <UserMinus size={20} />,
-      roles: ['superadmin', 'admin', 'attorney'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Cases', 
       path: '/cases', 
       icon: <Folder size={20} />,
-      roles: ['superadmin', 'admin', 'attorney'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Documents', 
       path: '/documents', 
       icon: <FileText size={20} />,
-      roles: ['superadmin', 'admin', 'attorney', 'client'] // All users
+      roles: ['admin', 'attorney', 'client'] // All users
     },
     { 
       title: 'Files', 
       path: '/files', 
       icon: <FileSearch size={20} />,
-      roles: ['superadmin', 'admin', 'attorney'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Medical', 
       path: '/medical', 
       icon: <Building2 size={20} />,
-      roles: ['superadmin', 'admin', 'attorney'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Billing', 
       path: '/billing', 
       icon: <BarChart size={20} />,
-      roles: ['superadmin', 'admin', 'attorney'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Calculator', 
       path: '/calculator', 
       icon: <Calculator size={20} />,
-      roles: ['superadmin', 'admin', 'attorney'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Reports', 
       path: '/reports', 
       icon: <FileSearch size={20} />,
-      roles: ['superadmin', 'admin', 'attorney'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Calendar', 
       path: '/calendar', 
       icon: <Calendar size={20} />,
-      roles: ['superadmin', 'admin', 'attorney', 'client'] // All users - clients can see appointments
+      roles: ['admin', 'attorney', 'client'] // All users - clients can see appointments
     },
     { 
       title: 'Messages', 
       path: '/messages', 
       icon: <MessageSquare size={20} />,
-      roles: ['superadmin', 'admin', 'attorney', 'client'] // All users - clients can message attorneys
+      roles: ['admin', 'attorney', 'client'] // All users - clients can message attorneys
     },
     { 
       title: 'Admin', 
       path: '/admin', 
       icon: <Shield size={20} />,
-      roles: ['superadmin', 'admin'] // Admin only
+      roles: ['admin'] // Admin only
     },
     { 
       title: 'Depositions', 
       path: '/depositions', 
       icon: <Gavel size={20} />,
-      roles: ['superadmin', 'admin', 'attorney'] 
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Attorneys', 
       path: '/attorneys', 
       icon: <Users size={20} />,
-      roles: ['superadmin', 'admin'] // Admin only
+      roles: ['admin'] // Admin only
     },
     { 
       title: 'Settings', 
       path: '/settings', 
       icon: <Settings size={20} />,
-      roles: ['superadmin', 'admin', 'attorney', 'client'] // All users
+      roles: ['admin', 'attorney', 'client'] // All users
     }
   ];
 
@@ -150,7 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 
   const getUserRole = (user: any) => {
     if (!user) return "";
-    return user.role || user.user_metadata?.role || 'client';
+    return user.user_metadata?.role || 'client';
   };
 
   return (
@@ -170,7 +152,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
         {roleBasedNavItems
           .filter(item => {
-            const userRole = getUserRole(currentUser);
+            const userRole = currentUser?.user_metadata?.role || 'client';
             return !currentUser || item.roles.includes(userRole);
           })
           .map((item) => (
@@ -180,10 +162,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
               className={({ isActive }) => cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
                 "hover:bg-accent hover:text-accent-foreground",
-                (isActive || isRouteActive(item.path)) ? "bg-accent text-accent-foreground" : "text-muted-foreground",
+                isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
                 isCollapsed && "justify-center px-0"
               )}
-              end={item.path === '/'}
             >
               {item.icon}
               {!isCollapsed && <span>{item.title}</span>}

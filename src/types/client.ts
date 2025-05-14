@@ -25,9 +25,6 @@ export interface Client {
   insurancePolicyNumber?: string;
   insuranceAdjusterName?: string;
   dateRegistered?: string;
-  isDropped?: boolean;
-  droppedDate?: string;
-  droppedReason?: string;
 }
 
 export interface ClientFilterParams {
@@ -37,11 +34,4 @@ export interface ClientFilterParams {
     from?: Date;
     to?: Date;
   };
-  isDropped?: boolean;
-}
-
-export interface Attorney {
-  id: string;
-  fullName: string;
-  email: string;
 }

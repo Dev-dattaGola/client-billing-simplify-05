@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Dashboard from './pages/Dashboard';
@@ -22,7 +23,6 @@ import Calculator from './pages/Calculator';
 import Admin from './pages/Admin';
 import Depositions from './pages/Depositions';
 import Attorneys from './pages/Attorneys';
-import DroppedClients from './pages/DroppedClients';
 import { AuthProvider } from './contexts/AuthContext';
 import { UserProvider } from './contexts/UserContext';
 import { ClientProvider } from './contexts/ClientContext';
@@ -61,7 +61,8 @@ function App() {
                 <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                
+
+                {/* Adding missing routes */}
                 <Route path="/files" element={<ProtectedRoute><Files /></ProtectedRoute>} />
                 <Route path="/medical" element={<ProtectedRoute><Medical /></ProtectedRoute>} />
                 <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />
@@ -69,8 +70,6 @@ function App() {
                 <Route path="/depositions/*" element={<ProtectedRoute><Depositions /></ProtectedRoute>} />
                 <Route path="/attorneys" element={<ProtectedRoute><Attorneys /></ProtectedRoute>} />
                 <Route path="/attorneys/:id" element={<ProtectedRoute><Attorneys /></ProtectedRoute>} />
-                
-                <Route path="/dropped-clients" element={<DroppedClients />} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>

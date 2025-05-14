@@ -1,6 +1,6 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Client } from '@/types/client';
-import { Attorney } from '@/types/attorney';
 import { clientsApi } from '@/lib/api/client-api';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +12,6 @@ interface ClientContextType {
   loading: boolean;
   activeTab: string;
   activeDetailTab: string;
-  attorneys: Attorney[];
   setActiveTab: (tab: string) => void;
   setActiveDetailTab: (tab: string) => void;
   handleAddClient: (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'> & { password?: string }) => Promise<void>;
@@ -22,9 +21,6 @@ interface ClientContextType {
   startEditClient: (client: Client) => void;
   clearClientToEdit: () => void;
   refreshClients: () => Promise<void>;
-  handleDropClient: (clientId: string, reason: string) => Promise<void>;
-  handleTransferClient: (clientId: string, newAttorneyId: string) => Promise<void>;
-  loadAttorneys: () => Promise<void>;
 }
 
 export const ClientContext = createContext<ClientContextType | undefined>(undefined);
@@ -36,13 +32,12 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("view");
   const [activeDetailTab, setActiveDetailTab] = useState("overview");
-  const [attorneys, setAttorneys] = useState<Attorney[]>([]);
   const { toast } = useToast();
 
-  const refreshClients = async (includeDropped = false) => {
+  const refreshClients = async () => {
     try {
       setLoading(true);
-      const fetchedClients = await clientsApi.getClients(includeDropped);
+      const fetchedClients = await clientsApi.getClients();
       setClients(fetchedClients);
     } catch (error) {
       console.error("Failed to fetch clients:", error);
@@ -56,41 +51,8 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   };
 
-  const loadAttorneys = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('attorneys')
-        .select('id, full_name, email');
-      
-      if (error) throw error;
-      
-      if (data) {
-        const mappedAttorneys = data.map(attorney => ({
-          id: attorney.id,
-          fullName: attorney.full_name,
-          email: attorney.email,
-          firstName: attorney.full_name.split(' ')[0],
-          lastName: attorney.full_name.split(' ').slice(1).join(' '),
-          phone: '',
-          isActive: true,
-          createdAt: '',
-          updatedAt: ''
-        }));
-        setAttorneys(mappedAttorneys);
-      }
-    } catch (error) {
-      console.error("Failed to fetch attorneys:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load attorneys data.",
-        variant: "destructive",
-      });
-    }
-  };
-
   useEffect(() => {
     refreshClients();
-    loadAttorneys();
 
     // Subscribe to changes in the clients table
     const clientsSubscription = supabase
@@ -202,87 +164,6 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   };
 
-  const handleDropClient = async (clientId: string, reason: string) => {
-    try {
-      const clientToUpdate = clients.find(c => c.id === clientId);
-      if (!clientToUpdate) {
-        throw new Error("Client not found");
-      }
-
-      const updatedClient = await clientsApi.updateClient(clientId, {
-        ...clientToUpdate,
-        isDropped: true,
-        droppedDate: new Date().toISOString(),
-        droppedReason: reason
-      });
-      
-      if (updatedClient) {
-        setClients(clients.map(client => 
-          client.id === clientId ? updatedClient : client
-        ));
-        
-        // If the dropped client was selected, clear the selection
-        if (selectedClient && selectedClient.id === clientId) {
-          setSelectedClient(null);
-          setActiveTab("view");
-        }
-        
-        toast({
-          title: "Client Dropped",
-          description: `${clientToUpdate.fullName} has been marked as dropped.`,
-        });
-      } else {
-        throw new Error("Failed to drop client");
-      }
-    } catch (error) {
-      console.error("Error dropping client:", error);
-      toast({
-        title: "Error",
-        description: "Failed to drop client. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleTransferClient = async (clientId: string, newAttorneyId: string) => {
-    try {
-      const clientToUpdate = clients.find(c => c.id === clientId);
-      if (!clientToUpdate) {
-        throw new Error("Client not found");
-      }
-
-      const updatedClient = await clientsApi.updateClient(clientId, {
-        ...clientToUpdate,
-        assignedAttorneyId: newAttorneyId
-      });
-      
-      if (updatedClient) {
-        setClients(clients.map(client => 
-          client.id === clientId ? updatedClient : client
-        ));
-        
-        // If the transferred client was selected, update the selection
-        if (selectedClient && selectedClient.id === clientId) {
-          setSelectedClient(updatedClient);
-        }
-        
-        toast({
-          title: "Client Transferred",
-          description: `${clientToUpdate.fullName} has been transferred to another attorney.`,
-        });
-      } else {
-        throw new Error("Failed to transfer client");
-      }
-    } catch (error) {
-      console.error("Error transferring client:", error);
-      toast({
-        title: "Error",
-        description: "Failed to transfer client. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleViewClient = (client: Client) => {
     setSelectedClient(client);
     setActiveTab("details");
@@ -305,7 +186,6 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     loading,
     activeTab,
     activeDetailTab,
-    attorneys,
     setActiveTab,
     setActiveDetailTab,
     handleAddClient,
@@ -314,10 +194,7 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     handleViewClient,
     startEditClient,
     clearClientToEdit,
-    refreshClients,
-    handleDropClient,
-    handleTransferClient,
-    loadAttorneys
+    refreshClients
   };
 
   return (
