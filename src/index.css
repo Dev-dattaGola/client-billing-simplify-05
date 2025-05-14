@@ -109,7 +109,7 @@
  
 @layer base {
   * {
-    @apply border-solid border-border;
+    @apply border-solid;
   }
   body {
     @apply bg-background text-foreground;

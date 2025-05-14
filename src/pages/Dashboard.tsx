@@ -27,26 +27,29 @@ const DashboardContent = memo(({ isLoading }: { isLoading: boolean }) => {
 DashboardContent.displayName = "DashboardContent";
 
 const Dashboard: React.FC = () => {
+  // Initialize with true to show loader initially
   const [isLoading, setIsLoading] = useState(true);
   const { currentUser, isAuthenticated } = useAuth();
   
-  // Use useCallback to stabilize the initialization function
+  // Use useCallback to prevent function recreation on every render
   const initializeDashboard = useCallback(() => {
     if (isAuthenticated && currentUser) {
       console.log("Dashboard: User authenticated", currentUser?.role);
       setIsLoading(false);
     } else {
       console.log("Dashboard: Authentication pending...");
-      // Use a single timeout that doesn't get recreated unnecessarily
-      setIsLoading(false);
+      // Don't call setIsLoading here - we'll do it after a timeout
     }
   }, [isAuthenticated, currentUser]);
 
   useEffect(() => {
-    // Only run once
+    // Using a single timeout to prevent multiple state updates
     const timer = setTimeout(() => {
       initializeDashboard();
-    }, 100);
+      // Ensure we set loading to false even if auth is still pending
+      // This prevents us getting stuck in a loading state
+      setIsLoading(false);
+    }, 500);
     
     return () => clearTimeout(timer);
   }, [initializeDashboard]);

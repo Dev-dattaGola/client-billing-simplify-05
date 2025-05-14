@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -18,35 +18,40 @@ const DashboardOverview = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        setLoading(true);
-        const fetchedClients = await clientsApi.getClients();
-        setClients(fetchedClients);
-      } catch (error) {
-        console.error("Failed to fetch clients:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load client data. Please try again later.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Using useCallback to prevent recreation of this function on every render
+  const fetchClients = useCallback(async () => {
+    if (!loading) return; // Prevent multiple fetches if already loading
+    
+    try {
+      const fetchedClients = await clientsApi.getClients();
+      setClients(fetchedClients);
+    } catch (error) {
+      console.error("Failed to fetch clients:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load client data. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, toast]);
 
-    fetchClients();
+  useEffect(() => {
+    // Only fetch if loading is true
+    if (loading) {
+      fetchClients();
+    }
     
     // Add cleanup function
     return () => {
       // Any cleanup needed
     };
-  }, [toast]);
+  }, [fetchClients, loading]);
 
-  const toggleCalculator = () => {
+  const toggleCalculator = useCallback(() => {
     setShowCalculator(prev => !prev);
-  };
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -60,9 +65,7 @@ const DashboardOverview = () => {
       <Card>
         <CardContent className="p-6">
           {loading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-[300px] w-full" />
-            </div>
+            <Skeleton className="h-[300px] w-full" />
           ) : (
             <ClientAnalyticsChart />
           )}

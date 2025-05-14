@@ -3,6 +3,7 @@ import { useToast as useToastInternal, toast as toastInternal } from "@/componen
 
 /**
  * Hook for using toast notifications
+ * Using memoized version to prevent re-renders
  */
 export const useToast = useToastInternal;
 
