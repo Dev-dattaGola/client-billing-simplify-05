@@ -1,11 +1,12 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 export const useLayoutSize = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     // Initialize based on screen size to prevent flashing
     return window.innerWidth >= 1024;
   });
+  
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
   
   const checkIfMobile = useCallback(() => {
@@ -22,21 +23,31 @@ export const useLayoutSize = () => {
     // Initial check
     checkIfMobile();
     
-    // Add event listener for window resize
-    window.addEventListener('resize', checkIfMobile);
+    // Add event listener for window resize with debouncing
+    let resizeTimer: number;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(checkIfMobile, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
     
     // Clean up event listener on unmount
-    return () => window.removeEventListener('resize', checkIfMobile);
+    return () => {
+      clearTimeout(resizeTimer);
+      window.removeEventListener('resize', handleResize);
+    };
   }, [checkIfMobile]);
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(prev => !prev);
   }, []);
 
-  return {
+  // Use memoized values to prevent unnecessary re-renders
+  return useMemo(() => ({
     isSidebarOpen,
     isMobile,
     setIsSidebarOpen,
     toggleSidebar
-  };
+  }), [isSidebarOpen, isMobile, toggleSidebar]);
 };

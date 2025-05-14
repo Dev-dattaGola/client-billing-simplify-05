@@ -10,6 +10,7 @@ interface MainContentProps {
 
 // Used memo to prevent unnecessary re-renders
 const MainContent = memo<MainContentProps>(({ children, isSidebarOpen, isMobile }) => {
+  // Wrap the children in a container to better control the rendering
   return (
     <main 
       className={cn(
