@@ -149,12 +149,12 @@ const Sidebar = memo<SidebarProps>(({ isCollapsed, setIsCollapsed }) => {
   return (
     <div 
       className={cn(
-        "border-r border-border h-screen transition-all duration-300 flex flex-col bg-background sticky top-0 z-10",
+        "border-r border-border h-screen transition-all duration-300 flex flex-col bg-gray-100 dark:bg-gray-900 sticky top-0 z-10",
         isCollapsed ? "w-16" : "w-60"
       )}
     >
-      <div className="p-3 flex items-center gap-2 border-b">
-        <div className="bg-violet-600 text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg">
+      <div className="p-3 flex items-center gap-2 border-b bg-lawfirm-purple text-white">
+        <div className="bg-white text-lawfirm-purple w-10 h-10 flex items-center justify-center rounded font-bold text-lg">
           LAW
         </div>
         {!isCollapsed && <div className="font-semibold">LAWerp500</div>}
@@ -169,8 +169,10 @@ const Sidebar = memo<SidebarProps>(({ isCollapsed, setIsCollapsed }) => {
               to={item.path}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                "hover:bg-accent hover:text-accent-foreground",
-                isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
+                "hover:bg-lawfirm-light-blue hover:text-lawfirm-dark-purple",
+                isActive 
+                  ? "bg-lawfirm-light-blue text-lawfirm-dark-purple font-medium" 
+                  : "text-gray-700 dark:text-gray-300",
                 isCollapsed && "justify-center px-0"
               )}
             >
@@ -181,19 +183,19 @@ const Sidebar = memo<SidebarProps>(({ isCollapsed, setIsCollapsed }) => {
         })}
       </div>
 
-      <div className="p-3 border-t mt-auto">
+      <div className="p-3 border-t mt-auto bg-gray-200 dark:bg-gray-800">
         {!isCollapsed && currentUser && (
-          <div className="text-xs text-muted-foreground mb-2">
+          <div className="text-xs text-gray-700 dark:text-gray-300 mb-2">
             <div className="font-medium">{getUserDisplayName(currentUser)}</div>
             <div>{currentUser.email}</div>
-            <div className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs inline-block mt-1">
+            <div className="bg-lawfirm-light-blue text-lawfirm-dark-purple px-2 py-0.5 rounded-full text-xs inline-block mt-1">
               {getUserRole(currentUser).charAt(0).toUpperCase() + getUserRole(currentUser).slice(1)}
             </div>
           </div>
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="w-full flex items-center justify-center h-10 border rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+          className="w-full flex items-center justify-center h-10 border rounded-md text-gray-700 dark:text-gray-300 hover:bg-lawfirm-light-blue hover:text-lawfirm-dark-purple transition-colors"
         >
           {isCollapsed ? "→" : "←"}
         </button>
