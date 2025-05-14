@@ -1,22 +1,71 @@
 
-import { toast as sonnerToast } from "sonner";
-import * as React from "react";
+import { useState, useEffect, createContext, useContext } from "react";
+import { toast as sonnerToast, type Toast } from "sonner";
 
-type ToastProps = React.ComponentProps<typeof sonnerToast>;
+type ToastProps = Toast & {
+  title?: string;
+  description?: string;
+  variant?: "default" | "destructive";
+}
 
-const useToast = () => {
-  const toast = React.useMemo(
-    () => ({
-      toast: sonnerToast,
-      success: (message: string, options?: ToastProps) => sonnerToast.success(message, options),
-      error: (message: string, options?: ToastProps) => sonnerToast.error(message, options),
-      info: (message: string, options?: ToastProps) => sonnerToast.info(message, options),
-      warning: (message: string, options?: ToastProps) => sonnerToast.warning(message, options),
-    }),
-    []
-  );
+const ToastContext = createContext<{
+  toast: (props: ToastProps) => void;
+} | null>(null);
 
-  return toast;
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  
+  if (!context) {
+    // Create a standalone implementation if used outside provider
+    return {
+      toast: (props: ToastProps) => {
+        if (props.variant === "destructive") {
+          sonnerToast.error(props.title, {
+            description: props.description,
+          });
+        } else {
+          sonnerToast(props.title, {
+            description: props.description,
+          });
+        }
+      }
+    };
+  }
+  
+  return context;
 };
 
-export { useToast, sonnerToast as toast };
+export const toast = (props: ToastProps) => {
+  if (props.variant === "destructive") {
+    sonnerToast.error(props.title, {
+      description: props.description,
+    });
+  } else {
+    sonnerToast(props.title, {
+      description: props.description,
+    });
+  }
+};
+
+export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
+  const [toasts, setToasts] = useState<ToastProps[]>([]);
+
+  const addToast = (props: ToastProps) => {
+    if (props.variant === "destructive") {
+      sonnerToast.error(props.title, {
+        description: props.description,
+      });
+    } else {
+      sonnerToast(props.title, {
+        description: props.description,
+      });
+    }
+    setToasts(prev => [...prev, props]);
+  };
+
+  return (
+    <ToastContext.Provider value={{ toast: addToast }}>
+      {children}
+    </ToastContext.Provider>
+  );
+};
