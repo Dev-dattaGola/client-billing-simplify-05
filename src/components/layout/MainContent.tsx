@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,15 @@ interface MainContentProps {
   isMobile: boolean;
 }
 
-// Memoize the component to prevent unnecessary re-renders
 const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isMobile }) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
-  // If not authenticated, show login prompt
+  // Memoize navigation handler to prevent recreation on renders
+  const handleLoginClick = useCallback(() => {
+    navigate('/login');
+  }, [navigate]);
+  
   if (!isAuthenticated) {
     return (
       <main className="flex-1 bg-gray-50 overflow-y-auto">
@@ -26,7 +29,7 @@ const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isM
           </p>
           <div className="flex gap-4">
             <Button 
-              onClick={() => navigate('/login')}
+              onClick={handleLoginClick}
               className="bg-lawfirm-light-blue hover:bg-lawfirm-light-blue/90"
             >
               Login
@@ -37,19 +40,17 @@ const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isM
     );
   }
 
-  // Pre-calculate the className to avoid inline string concatenation during render
-  const className = `flex-1 bg-gray-50 overflow-y-auto transition-all duration-300 ${
+  const mainClassName = `flex-1 bg-gray-50 overflow-y-auto transition-all duration-300 ${
     isSidebarOpen && !isMobile ? 'ml-60' : 'ml-0'
   }`;
 
   return (
-    <main className={className}>
+    <main className={mainClassName}>
       {children}
     </main>
   );
 });
 
-// Add display name for debugging
 MainContent.displayName = "MainContent";
 
 export default MainContent;

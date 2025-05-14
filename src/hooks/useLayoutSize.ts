@@ -2,94 +2,73 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 export function useLayoutSize() {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // Store states with useState
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   
-  // Use refs to track state without causing renders
-  const initialCheckDoneRef = useRef(false);
-  const isMountedRef = useRef(true);
-  const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Memoized mobile check function
-  const checkIfMobile = useCallback(() => {
-    if (!isMountedRef.current) return;
-    
+  // Use refs to avoid unnecessary renders and track initialization
+  const isInitializedRef = useRef<boolean>(false);
+  const debounceTimerRef = useRef<number | null>(null);
+  
+  // Check if device is mobile and update state accordingly
+  const checkMobileSize = useCallback(() => {
     const mobile = window.innerWidth < 1024;
     
-    // Only update state if the value has actually changed
-    if (mobile !== isMobile) {
-      setIsMobile(mobile);
-      
-      // Auto-collapse sidebar when switching to mobile
-      // But only if we're not in the initial setup
-      if (mobile && initialCheckDoneRef.current) {
-        setIsSidebarOpen(false);
-      }
-    }
-    
-    // Mark initial check as done
-    if (!initialCheckDoneRef.current) {
-      initialCheckDoneRef.current = true;
-      
-      // Initial mobile check - set sidebar state only once
-      if (mobile && isSidebarOpen) {
-        setIsSidebarOpen(false);
-      }
-    }
-  }, [isMobile, isSidebarOpen]);
-  
-  // Initial check with slight delay to ensure DOM is ready
-  useEffect(() => {
-    // Set mounted flag
-    isMountedRef.current = true;
-    
-    // Delay initial check slightly
-    const timer = setTimeout(() => {
-      if (isMountedRef.current) {
-        checkIfMobile();
-      }
-    }, 50);
-    
-    // Cleanup
-    return () => {
-      clearTimeout(timer);
-      isMountedRef.current = false;
-    };
-  }, [checkIfMobile]);
-  
-  // Handle window resize with debounce
-  useEffect(() => {
-    const handleResize = () => {
-      // Clear any pending timer
-      if (resizeTimerRef.current) {
-        clearTimeout(resizeTimerRef.current);
-      }
-      
-      // Set new timer
-      resizeTimerRef.current = setTimeout(() => {
-        if (isMountedRef.current) {
-          checkIfMobile();
+    // Only update if value actually changed to avoid unnecessary re-renders
+    setIsMobile(prevMobile => {
+      if (prevMobile !== mobile) {
+        // If switching to mobile and not initial setup, collapse sidebar
+        if (mobile && isInitializedRef.current) {
+          setIsSidebarOpen(false);
         }
-        resizeTimerRef.current = null;
-      }, 250); // 250ms debounce
+        return mobile;
+      }
+      return prevMobile;
+    });
+    
+    // Mark as initialized after first check
+    if (!isInitializedRef.current) {
+      isInitializedRef.current = true;
+      // Initial mobile check - auto collapse on mobile
+      if (mobile) {
+        setIsSidebarOpen(false);
+      }
+    }
+  }, []);
+  
+  // Initial check on mount
+  useEffect(() => {
+    checkMobileSize();
+    
+    // Set up debounced resize listener
+    const handleResize = () => {
+      if (debounceTimerRef.current) {
+        window.clearTimeout(debounceTimerRef.current);
+      }
+      
+      debounceTimerRef.current = window.setTimeout(() => {
+        checkMobileSize();
+        debounceTimerRef.current = null;
+      }, 250);
     };
     
+    // Add listener
     window.addEventListener('resize', handleResize);
     
-    // Cleanup
+    // Clean up
     return () => {
-      if (resizeTimerRef.current) {
-        clearTimeout(resizeTimerRef.current);
+      if (debounceTimerRef.current) {
+        window.clearTimeout(debounceTimerRef.current);
       }
       window.removeEventListener('resize', handleResize);
     };
-  }, [checkIfMobile]);
-
-  // Memoize toggle function
+  }, [checkMobileSize]);
+  
+  // Memoized toggle function to prevent recreations
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(prev => !prev);
   }, []);
-
+  
   return {
     isMobile,
     isSidebarOpen,

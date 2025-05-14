@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -16,67 +16,59 @@ const DashboardOverview = () => {
   const [showCalculator, setShowCalculator] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
-  const fetchInitiated = useRef(false);
-  const isMountedRef = useRef(true);
+  const [fetchStarted, setFetchStarted] = useState(false);
   const { toast } = useToast();
 
-  // Memoized fetch function to prevent recreation on renders
-  const fetchClients = useCallback(async () => {
-    // Guard against duplicate fetches
-    if (fetchInitiated.current) return;
-    fetchInitiated.current = true;
-    
-    try {
-      const fetchedClients = await clientsApi.getClients();
-      if (isMountedRef.current) {
-        setClients(fetchedClients);
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error("Failed to fetch clients:", error);
-      if (isMountedRef.current) {
-        toast({
-          title: "Error",
-          description: "Failed to load client data. Please try again later.",
-          variant: "destructive",
-        });
-        setLoading(false);
-      }
-    }
-  }, [toast]);
-
-  // Controlled data fetching with cleanup
+  // Controlled data fetching to prevent multiple fetches
   useEffect(() => {
-    isMountedRef.current = true;
-    
-    // Only attempt to fetch if not already initiated
-    if (!fetchInitiated.current) {
-      const timer = setTimeout(() => {
-        if (isMountedRef.current) {
-          fetchClients();
-        }
-      }, 100);
-      
-      return () => {
-        clearTimeout(timer);
-        isMountedRef.current = false;
-      };
-    }
-    
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, [fetchClients]);
+    let mounted = true;
 
-  // Memoized calculator toggle to prevent recreation
+    const fetchData = async () => {
+      if (fetchStarted) return;
+      
+      setFetchStarted(true);
+      
+      try {
+        const fetchedClients = await clientsApi.getClients();
+        if (mounted) {
+          setClients(fetchedClients);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Failed to fetch clients:", error);
+        if (mounted) {
+          toast({
+            title: "Error",
+            description: "Failed to load client data. Please try again later.",
+            variant: "destructive",
+          });
+          setLoading(false);
+        }
+      }
+    };
+
+    // Small timeout to avoid immediate fetch on mount
+    const timer = setTimeout(() => {
+      if (mounted) {
+        fetchData();
+      }
+    }, 100);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+    };
+  }, [toast, fetchStarted]);
+
+  // Memoize toggle handler to prevent recreation
   const toggleCalculator = useCallback(() => {
     setShowCalculator(prev => !prev);
   }, []);
 
-  // Memoize default tab value
-  const defaultTabValue = useMemo(() => "billings", []);
+  // Memoized default tab value
+  const defaultTabValue = "billings";
 
-  // Memoize the calculator content
+  // Memoize calculator content
   const calculatorContent = useMemo(() => {
     if (!showCalculator) return null;
     
