@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Patient, Appointment as PatientAppointment, Document as PatientDocument } from '@/backend/patients-api';
+import { Patient, Appointment, Document } from '@/backend/patients-api';
 import { patientsApi } from '@/backend'; // Use patientsApi compatibility layer
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Calendar, FileText, Phone, Mail, Clock, MapPin, Activity, User, AlertCircle } from 'lucide-react';
@@ -16,8 +16,8 @@ import { ArrowLeft, Calendar, FileText, Phone, Mail, Clock, MapPin, Activity, Us
 const PatientDetail: React.FC = () => {
   const { patientId } = useParams<{ patientId: string }>();
   const [patient, setPatient] = useState<Patient | null>(null);
-  const [appointments, setAppointments] = useState<PatientAppointment[]>([]);
-  const [documents, setDocuments] = useState<PatientDocument[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const navigate = useNavigate();
@@ -37,9 +37,8 @@ const PatientDetail: React.FC = () => {
 
         if (patientData) {
           setPatient(patientData);
-          // Explicitly convert the types to match the state type
-          setAppointments(appointmentsData as unknown as PatientAppointment[]);
-          setDocuments(documentsData as unknown as PatientDocument[]);
+          setAppointments(appointmentsData);
+          setDocuments(documentsData);
         } else {
           toast({
             title: "Patient not found",

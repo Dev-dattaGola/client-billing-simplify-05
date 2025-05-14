@@ -1,7 +1,6 @@
 
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
-import PageLayout from '@/components/layout/PageLayout';
+import { Helmet } from "react-helmet-async";
+import PageLayout from "@/frontend/components/layout/PageLayout";
 import CalendarManagement from "@/components/calendar/CalendarManagement";
 
 const Calendar = () => {

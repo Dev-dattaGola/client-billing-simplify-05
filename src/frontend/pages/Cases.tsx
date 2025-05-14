@@ -1,5 +1,5 @@
 
-import PageLayout from "@/components/layout/PageLayout";
+import PageLayout from "@/frontend/components/layout/PageLayout";
 import CaseManagement from "@/components/case-management/CaseManagement";
 
 const Cases = () => {

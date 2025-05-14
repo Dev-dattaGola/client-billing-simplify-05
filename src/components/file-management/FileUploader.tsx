@@ -39,16 +39,6 @@ const FileUploader = ({
 
   const maxSizeBytes = maxSizeMB * 1024 * 1024; // Convert MB to bytes
 
-  // Add getUserDisplayName helper function to handle user name format
-  const getUserDisplayName = (user: any) => {
-    if (!user) return "";
-    // Try different ways to get the user's name
-    return user.name || 
-           (user.user_metadata?.first_name ? 
-            `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}` : 
-            user.email?.split('@')[0] || '');
-  };
-
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) {
       return;
@@ -113,18 +103,13 @@ const FileUploader = ({
           });
         }, 200);
 
-        // Get user display name for upload metadata
-        const uploadedBy = getUserDisplayName(currentUser);
-        
-        // Use uploadedBy consistently without referencing currentUser.name
         const metadata = await uploadFile(
           file,
           category,
-          uploadedBy, // Use only the displayName without referencing currentUser.name
+          currentUser.name,
           currentUser.id,
           associatedId,
-          tags,
-          uploadedBy
+          tags
         );
 
         clearInterval(interval);

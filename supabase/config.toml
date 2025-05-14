@@ -1,5 +1,1 @@
-
 project_id = "rwmprtylsoamonnprfsy"
-
-[functions.register-test-users]
-verify_jwt = false

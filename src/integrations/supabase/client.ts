@@ -6,21 +6,17 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://rwmprtylsoamonnprfsy.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3bXBydHlsc29hbW9ubnByZnN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY4NzYwODgsImV4cCI6MjA2MjQ1MjA4OH0.A4vwyhrNdCHEHR3c7UrOlgLfMfIPGMYtOh7Z-LyOZyk";
 
-// Create a single instance of the Supabase client to prevent multiple instances
 export const supabase = createClient<Database>(
   SUPABASE_URL, 
   SUPABASE_PUBLISHABLE_KEY,
   {
     auth: {
-      autoRefreshToken: true,
       persistSession: true,
-      // Use the correct storage option based on environment
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-      detectSessionInUrl: true,
-      flowType: 'implicit'
+      autoRefreshToken: true,
+      storage: localStorage
     }
   }
 );
 
 // Export a non-typed client for use with storage
-export const supabaseStorage = supabase;
+export const supabaseStorage = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);

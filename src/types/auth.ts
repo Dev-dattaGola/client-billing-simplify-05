@@ -1,17 +1,11 @@
 
 export interface User {
   id: string;
+  name: string;
   email: string;
-  role?: string;
+  role: string;
   firmId?: string;
   permissions?: string[];
-  user_metadata?: {
-    first_name?: string;
-    last_name?: string;
-    role?: string;
-  };
-  // Name is now optional since it seems it might not always be present
-  name?: string;
 }
 
 export interface LoginCredentials {

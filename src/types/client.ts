@@ -1,24 +1,21 @@
 
-// Create new client type file
 export interface Client {
   id: string;
+  accountNumber?: string;
   fullName: string;
   email: string;
   phone: string;
   companyName?: string;
   address?: string;
-  notes?: string;
   tags?: string[];
-  isDropped?: boolean;
-  droppedDate?: string;
-  droppedReason?: string;
-  assignedAttorneyId?: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
-  accountNumber?: string;
+  // Additional patient fields
   dateOfBirth?: string;
   profilePhoto?: string;
-  caseStatus?: string;
+  caseStatus?: 'Active Treatment' | 'Initial Consultation' | 'Case Review' | 'Settlement Negotiation' | 'Closed';
+  assignedAttorneyId?: string;
   accidentDate?: string;
   accidentLocation?: string;
   injuryType?: string;
@@ -27,4 +24,15 @@ export interface Client {
   insurancePolicyNumber?: string;
   insuranceAdjusterName?: string;
   dateRegistered?: string;
+}
+
+export type ClientFormData = Omit<Client, 'id' | 'createdAt' | 'updatedAt'>;
+
+export interface ClientFilterParams {
+  search: string;
+  tag?: string;
+  dateRange?: {
+    from: Date | undefined;
+    to: Date | undefined;
+  };
 }

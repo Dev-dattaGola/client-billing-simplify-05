@@ -1,13 +1,14 @@
-import { supabase } from '@/integrations/supabase/client';
+import axios from 'axios';
 import { Client } from '@/types/client';
-import { Attorney } from '@/types/attorney';
-import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
-// Define additional types needed by the components
+// Define API base URL from environment variable or default to localhost
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+// Define additional types from client model
 export interface Appointment {
   id: string;
   clientId: string;
-  patientId?: string; // Added for compatibility with Patient interface
   doctorFacilityName: string;
   visitDate: string;
   visitTime: string;
@@ -20,7 +21,6 @@ export interface Appointment {
 export interface Document {
   id: string;
   clientId: string;
-  patientId?: string; // Added for compatibility with Patient interface
   name: string;
   type: 'medical' | 'legal' | 'billing' | 'misc';
   category: string;
@@ -33,7 +33,6 @@ export interface Document {
 export interface Communication {
   id: string;
   clientId: string;
-  patientId?: string; // Added for compatibility with Patient interface
   date: string;
   time: string;
   type: 'email' | 'sms' | 'phone';
@@ -44,445 +43,312 @@ export interface Communication {
   actionRequired: boolean;
 }
 
+// Mock clients data for fallback
+const mockClients: Client[] = [
+  {
+    id: 'client1',
+    accountNumber: 'A001',
+    fullName: 'John Doe',
+    email: 'john@example.com',
+    phone: '555-0123',
+    address: '123 Main St, Anytown, CA 12345',
+    companyName: 'Acme Inc.',
+    tags: ['Personal Injury', 'Active'],
+    notes: 'Client involved in a car accident on March 25, 2025',
+    createdAt: '2025-04-01T10:00:00Z',
+    updatedAt: '2025-04-20T15:30:00Z',
+    dateOfBirth: '1985-05-15',
+    profilePhoto: 'https://i.pravatar.cc/150?img=1',
+    caseStatus: 'Active Treatment',
+    assignedAttorneyId: 'attorney1',
+    accidentDate: '2025-03-25',
+    accidentLocation: 'Intersection of 5th Ave and Main St',
+    injuryType: 'Back and Neck Injury',
+    caseDescription: 'Client was involved in a rear-end collision causing back and neck injuries requiring physical therapy.',
+    insuranceCompany: 'ABC Insurance',
+    insurancePolicyNumber: 'ABC123456',
+    insuranceAdjusterName: 'Michael Thompson',
+    dateRegistered: '2025-04-01'
+  },
+  {
+    id: 'client2',
+    accountNumber: 'A002',
+    fullName: 'Jane Smith',
+    email: 'jane@example.com',
+    phone: '555-0124',
+    address: '456 Oak St, Sometown, CA 12346',
+    companyName: 'Smith Co.',
+    tags: ['Medical Malpractice', 'Review'],
+    notes: 'Client seeking representation for medical malpractice case',
+    createdAt: '2025-04-05T09:15:00Z',
+    updatedAt: '2025-04-18T11:45:00Z',
+    dateOfBirth: '1970-08-22',
+    profilePhoto: 'https://i.pravatar.cc/150?img=2',
+    caseStatus: 'Initial Consultation',
+    assignedAttorneyId: 'attorney2',
+    dateRegistered: '2025-04-05'
+  },
+  {
+    id: 'client3',
+    accountNumber: 'A003',
+    fullName: 'Robert Johnson',
+    email: 'robert@example.com',
+    phone: '555-0125',
+    address: '789 Pine St, Othertown, CA 12347',
+    companyName: 'Johnson Enterprises',
+    tags: ['Slip and Fall', 'Active', 'Priority'],
+    notes: 'Client slipped and fell at local grocery store',
+    createdAt: '2025-04-10T14:20:00Z',
+    updatedAt: '2025-04-22T10:10:00Z',
+    dateOfBirth: '1992-03-17',
+    profilePhoto: 'https://i.pravatar.cc/150?img=3',
+    caseStatus: 'Settlement Negotiation',
+    assignedAttorneyId: 'attorney1',
+    accidentDate: '2025-04-02',
+    accidentLocation: 'Fresh Foods Grocery Store',
+    injuryType: 'Broken Wrist, Hip Injury',
+    insuranceCompany: 'XYZ Insurance',
+    insurancePolicyNumber: 'XYZ789012',
+    dateRegistered: '2025-04-10'
+  }
+];
+
+// Mock data for client-related information for fallback
+const mockAppointments: Appointment[] = [
+  {
+    id: 'apt1',
+    clientId: 'client1',
+    doctorFacilityName: 'Dr. Michael Johnson',
+    visitDate: '2025-05-10',
+    visitTime: '10:30 AM',
+    visitStatus: 'scheduled',
+    treatmentDescription: 'Follow-up consultation',
+    location: 'PT Associates',
+    type: 'Physical Therapy'
+  },
+  {
+    id: 'apt2',
+    clientId: 'client1',
+    doctorFacilityName: 'Dr. Sarah White',
+    visitDate: '2025-04-15',
+    visitTime: '3:30 PM',
+    visitStatus: 'missed',
+    treatmentDescription: 'MRI Scan',
+    location: 'City Medical Center',
+    type: 'Diagnostic'
+  },
+  {
+    id: 'apt3',
+    clientId: 'client2',
+    doctorFacilityName: 'Dr. James Wilson',
+    visitDate: '2025-05-05',
+    visitTime: '2:00 PM',
+    visitStatus: 'scheduled',
+    treatmentDescription: 'Initial Evaluation',
+    location: 'Wilson Medical Practice',
+    type: 'Consultation'
+  }
+];
+
+const mockDocuments: Document[] = [
+  {
+    id: 'doc1',
+    clientId: 'client1',
+    name: 'Initial Medical Evaluation',
+    type: 'medical',
+    category: 'Medical Reports',
+    uploadDate: '2025-04-05',
+    fileType: 'pdf',
+    url: '/documents/initial-evaluation.pdf',
+    uploadedBy: 'Dr. Smith'
+  },
+  {
+    id: 'doc2',
+    clientId: 'client1',
+    name: 'Police Report',
+    type: 'legal',
+    category: 'Accident Reports',
+    uploadDate: '2025-04-02',
+    fileType: 'pdf',
+    url: '/documents/police-report.pdf',
+    uploadedBy: 'Jane Doelawyer'
+  },
+  {
+    id: 'doc3',
+    clientId: 'client2',
+    name: 'Medical Records Release Form',
+    type: 'legal',
+    category: 'Forms',
+    uploadDate: '2025-04-06',
+    fileType: 'pdf',
+    url: '/documents/release-form.pdf',
+    uploadedBy: 'Jane Smith'
+  }
+];
+
+const mockCommunications: Communication[] = [
+  {
+    id: 'comm1',
+    clientId: 'client1',
+    date: '2025-04-20',
+    time: '10:15 AM',
+    type: 'email',
+    sender: 'Jane Doelawyer',
+    subject: 'Case Update - Treatment Progress',
+    content: 'Your case is progressing as expected. We have submitted your initial medical records...',
+    read: true,
+    actionRequired: false
+  },
+  {
+    id: 'comm2',
+    clientId: 'client1',
+    date: '2025-04-15',
+    time: '3:30 PM',
+    type: 'sms',
+    sender: 'LYZ Law Firm',
+    subject: 'Appointment Reminder',
+    content: 'Reminder: You have an MRI appointment tomorrow at 3:30 PM at City Medical Center.',
+    read: true,
+    actionRequired: false
+  },
+  {
+    id: 'comm3',
+    clientId: 'client2',
+    date: '2025-04-18',
+    time: '9:45 AM',
+    type: 'email',
+    sender: 'Jane Doelawyer',
+    subject: 'Initial Consultation Follow-up',
+    content: 'Thank you for meeting with us yesterday. As discussed, we need additional medical records...',
+    read: false,
+    actionRequired: true
+  }
+];
+
+// API service with both real API calls and fallback to mock data
 export const clientsApi = {
-  // Get all clients
+  // Client methods
   getClients: async (): Promise<Client[]> => {
     try {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching clients:', error);
-        throw error;
-      }
-
-      // Convert snake_case to camelCase
-      return data?.map(client => ({
-        id: client.id,
-        fullName: client.full_name,
-        email: client.email,
-        phone: client.phone || '',
-        companyName: client.company_name || '',
-        address: client.address || '',
-        notes: client.notes || '',
-        tags: client.tags || [],
-        isDropped: client.is_dropped || false,
-        droppedDate: client.dropped_date || null,
-        droppedReason: client.dropped_reason || '',
-        assignedAttorneyId: client.assigned_attorney_id || '',
-        createdAt: client.created_at,
-        updatedAt: client.updated_at,
-        // Extended properties with default values
-        accountNumber: `A${client.id.substring(0, 3)}`,
-        dateOfBirth: '',
-        profilePhoto: '',
-        caseStatus: 'Initial Consultation',
-        accidentDate: '',
-        accidentLocation: '',
-        injuryType: '',
-        caseDescription: '',
-        insuranceCompany: '',
-        insurancePolicyNumber: '',
-        insuranceAdjusterName: '',
-        dateRegistered: client.created_at?.split('T')[0] || ''
-      })) || [];
+      const response = await axios.get(`${API_BASE_URL}/clients`);
+      return response.data;
     } catch (error) {
-      console.error('Failed to fetch clients:', error);
-      return [];
+      console.error('Error fetching clients:', error);
+      console.warn('Falling back to mock data');
+      return mockClients;
     }
   },
 
-  // Get all attorneys
-  getAttorneys: async (): Promise<Attorney[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('attorneys')
-        .select('*')
-        .order('full_name', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching attorneys:', error);
-        throw error;
-      }
-
-      // Convert snake_case to camelCase
-      return data?.map(attorney => ({
-        id: attorney.id,
-        firstName: attorney.full_name.split(' ')[0] || '',
-        lastName: attorney.full_name.split(' ').slice(1).join(' ') || '',
-        fullName: attorney.full_name,
-        email: attorney.email,
-        phone: attorney.phone || '',
-        specialization: attorney.specialization || '',
-        bio: attorney.bio || '',
-        office_location: attorney.office_location || '',
-        yearsOfExperience: attorney.years_of_experience || 0,
-        isActive: true,
-        createdAt: attorney.created_at,
-        updatedAt: attorney.updated_at
-      })) || [];
-    } catch (error) {
-      console.error('Failed to fetch attorneys:', error);
-      return [];
-    }
-  },
-
-  // Get client by ID
   getClient: async (id: string): Promise<Client | null> => {
     try {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching client:', error);
-        throw error;
-      }
-
-      if (!data) return null;
-
-      return {
-        id: data.id,
-        fullName: data.full_name,
-        email: data.email,
-        phone: data.phone || '',
-        companyName: data.company_name || '',
-        address: data.address || '',
-        notes: data.notes || '',
-        tags: data.tags || [],
-        isDropped: data.is_dropped || false,
-        droppedDate: data.dropped_date || null,
-        droppedReason: data.dropped_reason || '',
-        assignedAttorneyId: data.assigned_attorney_id || '',
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-        // Extended properties with default values
-        accountNumber: `A${data.id.substring(0, 3)}`,
-        dateOfBirth: '',
-        profilePhoto: '',
-        caseStatus: 'Initial Consultation',
-        accidentDate: '',
-        accidentLocation: '',
-        injuryType: '',
-        caseDescription: '',
-        insuranceCompany: '',
-        insurancePolicyNumber: '',
-        insuranceAdjusterName: '',
-        dateRegistered: data.created_at?.split('T')[0] || ''
-      };
+      const response = await axios.get(`${API_BASE_URL}/clients/${id}`);
+      return response.data;
     } catch (error) {
-      console.error('Failed to fetch client:', error);
-      return null;
+      console.error('Error fetching client:', error);
+      console.warn('Falling back to mock data');
+      const client = mockClients.find(c => c.id === id);
+      return client || null;
     }
   },
 
-  // Create a client with Supabase Auth and Client table
-  createClient: async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'> & { password?: string }): Promise<Client | null> => {
+  createClient: async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client | null> => {
     try {
-      // Create user in auth if password is provided
-      let userId = null;
-
-      if (clientData.password) {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: clientData.email,
-          password: clientData.password,
-          options: {
-            data: {
-              first_name: clientData.fullName.split(' ')[0],
-              last_name: clientData.fullName.split(' ').slice(1).join(' '),
-              role: 'client'
-            }
-          }
-        });
-
-        if (authError) {
-          console.error('Error creating auth user:', authError);
-          toast.error(authError.message);
-          throw authError;
-        }
-
-        userId = authData.user?.id;
-        console.log('Created auth user with ID:', userId);
-      }
-
-      // Create client record in clients table
-      const { data: clientRecord, error: clientError } = await supabase
-        .from('clients')
-        .insert([
-          {
-            user_id: userId,
-            full_name: clientData.fullName,
-            email: clientData.email,
-            phone: clientData.phone,
-            company_name: clientData.companyName,
-            address: clientData.address,
-            notes: clientData.notes,
-            tags: clientData.tags || []
-          }
-        ])
-        .select()
-        .single();
-
-      if (clientError) {
-        console.error('Error creating client record:', clientError);
-        toast.error(clientError.message);
-        throw clientError;
-      }
-
-      // Return formatted client data
-      return {
-        id: clientRecord.id,
-        fullName: clientRecord.full_name,
-        email: clientRecord.email,
-        phone: clientRecord.phone || '',
-        companyName: clientRecord.company_name || '',
-        address: clientRecord.address || '',
-        notes: clientRecord.notes || '',
-        tags: clientRecord.tags || [],
-        isDropped: false,
-        assignedAttorneyId: '',
-        createdAt: clientRecord.created_at,
-        updatedAt: clientRecord.updated_at,
-        accountNumber: `A${clientRecord.id.substring(0, 3)}`,
-        dateRegistered: clientRecord.created_at?.split('T')[0] || ''
-      };
+      const response = await axios.post(`${API_BASE_URL}/clients`, clientData);
+      return response.data;
     } catch (error) {
-      console.error('Failed to create client:', error);
-      return null;
+      console.error('Error creating client:', error);
+      console.warn('Falling back to mock data');
+      
+      // For mock data fallback
+      const newClient: Client = {
+        ...clientData,
+        id: uuidv4(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      mockClients.push(newClient);
+      return newClient;
     }
   },
 
-  // Update client
   updateClient: async (id: string, clientData: Partial<Client>): Promise<Client | null> => {
     try {
-      // Convert app Client format to Supabase format
-      const supabaseData: Record<string, any> = {
-        full_name: clientData.fullName,
-        email: clientData.email,
-        phone: clientData.phone,
-        company_name: clientData.companyName,
-        address: clientData.address,
-        notes: clientData.notes,
-        tags: clientData.tags,
-        updated_at: new Date().toISOString()
-      };
-
-      const { data: updatedClient, error } = await supabase
-        .from('clients')
-        .update(supabaseData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error updating client:', error);
-        throw error;
-      }
-
-      // Convert back to app Client format
-      return {
-        id: updatedClient.id,
-        fullName: updatedClient.full_name,
-        email: updatedClient.email,
-        phone: updatedClient.phone || '',
-        companyName: updatedClient.company_name || '',
-        address: updatedClient.address || '',
-        notes: updatedClient.notes || '',
-        tags: updatedClient.tags || [],
-        isDropped: updatedClient.is_dropped || false,
-        droppedDate: updatedClient.dropped_date || null,
-        droppedReason: updatedClient.dropped_reason || '',
-        assignedAttorneyId: updatedClient.assigned_attorney_id || '',
-        createdAt: updatedClient.created_at,
-        updatedAt: updatedClient.updated_at,
-        accountNumber: `A${updatedClient.id.substring(0, 3)}`,
-        dateRegistered: updatedClient.created_at?.split('T')[0] || ''
-      };
+      const response = await axios.put(`${API_BASE_URL}/clients/${id}`, clientData);
+      return response.data;
     } catch (error) {
-      console.error('Failed to update client:', error);
-      return null;
+      console.error('Error updating client:', error);
+      console.warn('Falling back to mock data');
+      
+      // For mock data fallback
+      const index = mockClients.findIndex(c => c.id === id);
+      if (index === -1) return null;
+      
+      mockClients[index] = {
+        ...mockClients[index],
+        ...clientData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      return mockClients[index];
     }
   },
 
-  // Delete client
   deleteClient: async (id: string): Promise<boolean> => {
     try {
-      const { error } = await supabase
-        .from('clients')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error deleting client:', error);
-        throw error;
-      }
-
+      await axios.delete(`${API_BASE_URL}/clients/${id}`);
       return true;
     } catch (error) {
-      console.error('Failed to delete client:', error);
-      return false;
-    }
-  },
-
-  // Drop client
-  dropClient: async (id: string, reason: string): Promise<Client | null> => {
-    try {
-      const now = new Date().toISOString();
+      console.error('Error deleting client:', error);
+      console.warn('Falling back to mock data');
       
-      const { data: updatedClient, error } = await supabase
-        .from('clients')
-        .update({
-          is_dropped: true,
-          dropped_date: now,
-          dropped_reason: reason,
-          updated_at: now
-        })
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error dropping client:', error);
-        throw error;
-      }
-
-      // Convert back to app Client format
-      return {
-        id: updatedClient.id,
-        fullName: updatedClient.full_name,
-        email: updatedClient.email,
-        phone: updatedClient.phone || '',
-        companyName: updatedClient.company_name || '',
-        address: updatedClient.address || '',
-        notes: updatedClient.notes || '',
-        tags: updatedClient.tags || [],
-        isDropped: updatedClient.is_dropped,
-        droppedDate: updatedClient.dropped_date,
-        droppedReason: updatedClient.dropped_reason,
-        assignedAttorneyId: updatedClient.assigned_attorney_id || '',
-        createdAt: updatedClient.created_at,
-        updatedAt: updatedClient.updated_at,
-        accountNumber: `A${updatedClient.id.substring(0, 3)}`,
-        dateRegistered: updatedClient.created_at?.split('T')[0] || ''
-      };
-    } catch (error) {
-      console.error('Failed to drop client:', error);
-      return null;
-    }
-  },
-
-  // Transfer client to another attorney
-  transferClient: async (id: string, newAttorneyId: string): Promise<Client | null> => {
-    try {
-      const now = new Date().toISOString();
+      // For mock data fallback
+      const index = mockClients.findIndex(c => c.id === id);
+      if (index === -1) return false;
       
-      const { data: updatedClient, error } = await supabase
-        .from('clients')
-        .update({
-          assigned_attorney_id: newAttorneyId,
-          updated_at: now
-        })
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error transferring client:', error);
-        throw error;
-      }
-
-      // Convert back to app Client format
-      return {
-        id: updatedClient.id,
-        fullName: updatedClient.full_name,
-        email: updatedClient.email,
-        phone: updatedClient.phone || '',
-        companyName: updatedClient.company_name || '',
-        address: updatedClient.address || '',
-        notes: updatedClient.notes || '',
-        tags: updatedClient.tags || [],
-        isDropped: updatedClient.is_dropped || false,
-        droppedDate: updatedClient.dropped_date || null,
-        droppedReason: updatedClient.dropped_reason || '',
-        assignedAttorneyId: updatedClient.assigned_attorney_id,
-        createdAt: updatedClient.created_at,
-        updatedAt: updatedClient.updated_at,
-        accountNumber: `A${updatedClient.id.substring(0, 3)}`,
-        dateRegistered: updatedClient.created_at?.split('T')[0] || ''
-      };
-    } catch (error) {
-      console.error('Failed to transfer client:', error);
-      return null;
+      mockClients.splice(index, 1);
+      return true;
     }
   },
 
-  // Mock implementations of additional required methods to fix type errors
+  // Additional client-related methods
   getAppointments: async (clientId: string): Promise<Appointment[]> => {
-    console.log(`Getting appointments for client: ${clientId}`);
-    // Return mock data for now
-    return [
-      {
-        id: `apt-${Date.now()}-1`,
-        clientId,
-        doctorFacilityName: 'Dr. Michael Johnson',
-        visitDate: '2025-05-10',
-        visitTime: '10:30 AM',
-        visitStatus: 'scheduled',
-        treatmentDescription: 'Follow-up consultation',
-        location: 'PT Associates',
-        type: 'Physical Therapy'
-      },
-      {
-        id: `apt-${Date.now()}-2`,
-        clientId,
-        doctorFacilityName: 'Dr. Michael Johnson',
-        visitDate: '2025-04-25',
-        visitTime: '2:00 PM',
-        visitStatus: 'completed',
-        treatmentDescription: 'Physical Therapy Session',
-        location: 'PT Associates',
-        type: 'Physical Therapy'
-      }
-    ];
-  },
-
-  // ... keep existing code (getAppointmentsByStatus, getDocuments, etc.)
-  getAppointmentsByStatus: async (clientId: string, status: string): Promise<Appointment[]> => {
-    const appointments = await clientsApi.getAppointments(clientId);
-    return appointments.filter(apt => apt.visitStatus === status);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/clients/${clientId}/appointments`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      console.warn('Falling back to mock data');
+      return mockAppointments.filter(apt => apt.clientId === clientId);
+    }
   },
 
   getDocuments: async (clientId: string): Promise<Document[]> => {
-    console.log(`Getting documents for client: ${clientId}`);
-    // Return mock data for now
-    return [
-      {
-        id: `doc-${Date.now()}-1`,
-        clientId,
-        name: 'Initial Medical Evaluation',
-        type: 'medical',
-        category: 'Medical Reports',
-        uploadDate: '2025-04-05',
-        fileType: 'pdf',
-        url: '/documents/initial-evaluation.pdf',
-        uploadedBy: 'Dr. Smith'
-      },
-      {
-        id: `doc-${Date.now()}-2`,
-        clientId,
-        name: 'Letter of Protection',
-        type: 'legal',
-        category: 'Legal Documents',
-        uploadDate: '2025-04-06',
-        fileType: 'pdf',
-        url: '/documents/lop.pdf',
-        uploadedBy: 'Jane Doelawyer'
-      }
-    ];
+    try {
+      const response = await axios.get(`${API_BASE_URL}/clients/${clientId}/documents`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+      console.warn('Falling back to mock data');
+      return mockDocuments.filter(doc => doc.clientId === clientId);
+    }
+  },
+
+  getCommunications: async (clientId: string): Promise<Communication[]> => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/clients/${clientId}/communications`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching communications:', error);
+      console.warn('Falling back to mock data');
+      return mockCommunications.filter(comm => comm.clientId === clientId);
+    }
+  },
+
+  // Utility functions
+  getAppointmentsByStatus: async (clientId: string, status: string): Promise<Appointment[]> => {
+    const appointments = await clientsApi.getAppointments(clientId);
+    return appointments.filter(apt => apt.visitStatus === status);
   },
 
   getDocumentsByType: async (clientId: string, type: string): Promise<Document[]> => {
@@ -490,98 +356,64 @@ export const clientsApi = {
     return documents.filter(doc => doc.type === type);
   },
 
-  getCommunications: async (clientId: string): Promise<Communication[]> => {
-    console.log(`Getting communications for client: ${clientId}`);
-    // Return mock data for now
-    return [
-      {
-        id: `comm-${Date.now()}-1`,
-        clientId,
-        date: '2025-04-20',
-        time: '10:15 AM',
-        type: 'email',
-        sender: 'Jane Doelawyer',
-        subject: 'Case Update - Treatment Progress',
-        content: 'Your case is progressing as expected. Please continue to attend all appointments.',
-        read: true,
-        actionRequired: false
-      },
-      {
-        id: `comm-${Date.now()}-2`,
-        clientId,
-        date: '2025-04-18',
-        time: '2:45 PM',
-        type: 'phone',
-        sender: 'Jane Doelawyer',
-        subject: 'Missed Appointment Follow-up',
-        content: 'Call to discuss the missed physical therapy appointment.',
-        read: false,
-        actionRequired: true
-      }
-    ];
-  },
-
   markCommunicationAsRead: async (communicationId: string): Promise<Communication | null> => {
-    console.log(`Marking communication as read: ${communicationId}`);
-    // Mock implementation
-    return {
-      id: communicationId,
-      clientId: 'mock-client-id',
-      date: '2025-04-20',
-      time: '10:15 AM',
-      type: 'email',
-      sender: 'Jane Doelawyer',
-      subject: 'Case Update',
-      content: 'Your case is progressing as expected.',
-      read: true,
-      actionRequired: false
-    };
+    try {
+      const response = await axios.patch(`${API_BASE_URL}/communications/${communicationId}`, { read: true });
+      return response.data;
+    } catch (error) {
+      console.error('Error marking communication as read:', error);
+      console.warn('Falling back to mock data');
+      
+      // For mock data fallback
+      const index = mockCommunications.findIndex(comm => comm.id === communicationId);
+      if (index !== -1) {
+        mockCommunications[index].read = true;
+        return mockCommunications[index];
+      }
+      return null;
+    }
   },
 
   getMissedAppointmentsCount: async (clientId: string): Promise<number> => {
-    console.log(`Getting missed appointment count for client: ${clientId}`);
-    // Mock implementation
-    return 1;
+    const appointments = await clientsApi.getAppointmentsByStatus(clientId, 'missed');
+    return appointments.length;
   },
 
   getUpcomingAppointment: async (clientId: string): Promise<Appointment | null> => {
-    console.log(`Getting upcoming appointment for client: ${clientId}`);
-    // Mock implementation
-    return {
-      id: `apt-${Date.now()}`,
-      clientId,
-      doctorFacilityName: 'Dr. Michael Johnson',
-      visitDate: '2025-05-10',
-      visitTime: '10:30 AM',
-      visitStatus: 'scheduled',
-      treatmentDescription: 'Follow-up consultation',
-      location: 'PT Associates',
-      type: 'Physical Therapy'
-    };
+    const upcomingAppointments = await clientsApi.getAppointmentsByStatus(clientId, 'scheduled');
+    return upcomingAppointments.length > 0 
+      ? upcomingAppointments.sort((a, b) => new Date(a.visitDate).getTime() - new Date(b.visitDate).getTime())[0] 
+      : null;
   },
 
   getLastDocumentUploaded: async (clientId: string): Promise<Document | null> => {
-    console.log(`Getting last document uploaded for client: ${clientId}`);
-    // Mock implementation
-    return {
-      id: `doc-${Date.now()}`,
-      clientId,
-      name: 'Initial Medical Evaluation',
-      type: 'medical',
-      category: 'Medical Reports',
-      uploadDate: '2025-04-05',
-      fileType: 'pdf',
-      url: '/documents/initial-evaluation.pdf',
-      uploadedBy: 'Dr. Smith'
-    };
+    const documents = await clientsApi.getDocuments(clientId);
+    return documents.length > 0 
+      ? documents.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime())[0]
+      : null;
   },
 
   getSmartNotifications: async (clientId: string): Promise<string[]> => {
-    console.log(`Getting smart notifications for client: ${clientId}`);
-    // Mock implementation
-    return [
-      'You have a scheduled appointment on May 10, 2025 at 10:30 AM.',
-      'There are documents waiting for your review.'
-    ];
+    const notifications: string[] = [];
+    
+    // Check for missed appointments
+    const missedCount = await clientsApi.getMissedAppointmentsCount(clientId);
+    if (missedCount > 0) {
+      notifications.push(`Client has missed ${missedCount} appointment(s). Please contact to reschedule.`);
+    }
+    
+    // Check for upcoming appointments
+    const upcomingAppointment = await clientsApi.getUpcomingAppointment(clientId);
+    if (upcomingAppointment) {
+      const appointmentDate = new Date(upcomingAppointment.visitDate);
+      const today = new Date();
+      const daysUntil = Math.ceil((appointmentDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysUntil <= 7) {
+        notifications.push(`Next appointment is in ${daysUntil} day(s) on ${upcomingAppointment.visitDate} at ${upcomingAppointment.visitTime}.`);
+      }
+    }
+    
+    return notifications;
   }
 };

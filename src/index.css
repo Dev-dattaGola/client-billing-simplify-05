@@ -2,12 +2,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
 @layer base {
   :root {
+    --font-inter: 'Inter', sans-serif;
+    --lawfirm-light-blue: #D3E4FD;
+    --lawfirm-soft-gray: #F1F0FB;
+    --lawfirm-neutral-gray: #8E9196;
+    --lawfirm-dark-purple: #1A1F2C;
+    --lawfirm-white: #FFFFFF;
+    --lawfirm-black: #000000e6;
+
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
- 
+
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
  
@@ -28,22 +36,12 @@
  
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
- 
+
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
  
     --radius: 0.5rem;
-    
-    /* Sidebar specific variables */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-primary: 222.2 47.4% 11.2%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 210 40% 96.1%;
-    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
-    --sidebar-ring: 222.2 84% 4.9%;
   }
  
   .dark {
@@ -74,44 +72,16 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    
-    /* Sidebar specific variables in dark mode */
-    --sidebar-background: 222.2 84% 4.9%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-primary: 210 40% 98%;
-    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-ring: 212.7 26.8% 83.9%;
-  }
-}
-
-/* Adjusting the lawfirm colors for better visibility and contrast */
-:root {
-  --lawfirm-purple: #8A2BE2;
-  --lawfirm-light-blue: #33C3F0;
-  --lawfirm-dark-purple: #1A1F2C;
-}
-
-/* Add specific styling for navigation items */
-@layer components {
-  .sidebar-nav-item {
-    @apply flex items-center gap-3 px-3 py-2 rounded-md transition-colors;
-    @apply hover:bg-lawfirm-light-blue hover:text-lawfirm-dark-purple;
-    @apply text-gray-700 dark:text-gray-300;
-  }
-
-  .sidebar-nav-item.active {
-    @apply bg-lawfirm-light-blue text-lawfirm-dark-purple font-medium;
   }
 }
  
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border-color;
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-inter);
   }
 }

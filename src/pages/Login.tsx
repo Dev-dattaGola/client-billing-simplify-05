@@ -1,15 +1,13 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Navigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertCircle, Building, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ensureTestUsers } from "@/lib/utils/ensure-test-users"; 
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -20,30 +18,29 @@ const Login = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const { login, isAuthenticated, isLoading: authLoading, updateAuthState } = useAuth();
 
   // Get the intended destination from location state or use dashboard as default
   const from = location.state?.from?.pathname || "/dashboard";
 
-  // Check authentication status on component mount
+  // Check authentication status on component mount and when auth state changes
   useEffect(() => {
-    console.log("Login component: Auth status =", isAuthenticated);
-    console.log("Login component: Redirect destination =", from);
-    
-    // Ensure test users exist in the database
-    ensureTestUsers().catch(error => {
-      console.error("Failed to ensure test users:", error);
-    });
-    
     if (isAuthenticated) {
       console.log("User is authenticated, redirecting to:", from);
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, from]);
 
-  // Handle case when already authenticated
-  if (isAuthenticated && !authLoading) {
-    return <Navigate to={from} replace />;
+  // Extra debugging for authentication status
+  useEffect(() => {
+    console.log("Login component: Auth status =", isAuthenticated);
+    console.log("Login component: Redirect destination =", from);
+  }, [isAuthenticated, from]);
+
+  if (isAuthenticated && !isLoading) {
+    console.log("Redirecting to destination from render:", from);
+    return <Navigate to={from} />;
   }
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -58,17 +55,34 @@ const Login = () => {
     }
 
     try {
-      const user = await login({ email, password, remember });
+      console.log("Attempting login with:", { email, remember });
+      const user = await login({ 
+        email: email.toLowerCase().trim(),
+        password, 
+        remember 
+      });
       
-      if (user) {
-        toast.success(`Welcome back, ${user.email}`);
-        navigate(from, { replace: true });
-      } else {
+      if (!user) {
         setError("Login failed. Please check your credentials.");
+        setIsLoading(false);
+        return;
       }
-    } catch (error: any) {
+      
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${user.name}!`,
+      });
+      
+      console.log("Login successful, updating auth state");
+      
+      // Explicitly update auth state after successful login
+      updateAuthState();
+      
+      console.log("Navigating to:", from);
+      navigate(from, { replace: true });
+    } catch (error) {
       console.error("Login error:", error);
-      setError(typeof error === 'string' ? error : error?.message || "Authentication failed. Please try again.");
+      setError(typeof error === 'string' ? error : "Authentication failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -85,6 +99,7 @@ const Login = () => {
                 className="h-44"
               />
           </div>
+          {/* <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle> */}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -111,7 +126,7 @@ const Login = () => {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-white">Password</Label>
+                <Label htmlFor="password" className="text-white" >Password</Label>
               </div>
               <Input 
                 id="password" 
@@ -130,7 +145,7 @@ const Login = () => {
                 id="remember"
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-600"
+                className="h-4 w-4 rounded border-gray-300 text-lawfirm-light-blue focus:ring-lawfirm-light-blue"
                 disabled={isLoading || authLoading}
               />
               <Label htmlFor="remember" className="text-sm text-white">
@@ -152,7 +167,7 @@ const Login = () => {
 
             <Button 
               type="submit" 
-              className="w-full bg-violet-800 hover:bg-violet-900"
+              className="w-full bg-lawfirm-light-blue hover:bg-lawfirm-light-blue/90"
               disabled={isLoading || authLoading}
             >
               {isLoading || authLoading ? (
@@ -164,8 +179,8 @@ const Login = () => {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="text-center text-sm">
-          <div className="text-white w-full">© 2025 LAWerp500. All rights reserved.</div>
+        <CardFooter className="text-center text-sm text-muted-foreground">
+          <div className="text-white">© 2025 LAWerp500. All rights reserved.</div>
         </CardFooter>
       </Card>
     </div>

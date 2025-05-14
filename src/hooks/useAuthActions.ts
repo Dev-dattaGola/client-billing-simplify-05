@@ -2,14 +2,13 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-  remember?: boolean;
-}
+import { User, LoginCredentials } from '@/types/auth';
+import { 
+  getMockUser, 
+  saveAuthData, 
+  clearAuthData, 
+  checkPermission
+} from '@/lib/utils/auth-utils';
 
 export const useAuthActions = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,69 +20,53 @@ export const useAuthActions = () => {
     console.log("useAuthActions login attempt with:", credentials.email);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: credentials.email,
-        password: credentials.password
-      });
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      if (error) {
-        console.error("Login failed:", error.message);
-        toast.error(error.message);
+      // Get mock user for demo
+      const user = getMockUser(credentials.email, credentials.password);
+      console.log("Mock user result:", user ? "User found" : "User not found");
+      
+      if (!user) {
+        console.error("Login failed: Invalid credentials");
+        toast.error('Invalid email or password');
         return null;
       }
+
+      // Save authentication data
+      saveAuthData(user, credentials.remember || false);
+      console.log("Auth data saved for user:", user.name);
       
-      toast.success(`Welcome back, ${data.user.email}!`);
+      toast.success(`Welcome back, ${user.name}!`);
       
       // Navigate to dashboard or originally requested page
       const origin = location.state?.from?.pathname || '/dashboard';
       console.log("Navigating to:", origin);
       navigate(origin);
       
-      return data.user;
-    } catch (error: any) {
+      return user;
+    } catch (error) {
       console.error('Login error:', error);
-      toast.error(error.message || 'An error occurred during login');
+      toast.error('An error occurred during login');
       return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success('You have been logged out');
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast.error('An error occurred during logout');
-    }
+  const logout = () => {
+    clearAuthData();
+    toast.success('You have been logged out');
+    navigate('/login');
   };
 
   const hasPermission = (permission: string): boolean => {
     try {
-      // Get current user from Supabase - fix the async/await issue
-      const sessionData = supabase.auth.getSession();
+      const userDataStr = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+      if (!userDataStr) return false;
       
-      // Since this is actually a promise, we need to handle it differently
-      // For now, we'll return a default value, and the actual auth check 
-      // should be moved to an async function or effect elsewhere
-      
-      // Define userRole as a string to fix the type comparison issue
-      const userRole: string = 'client'; // Default role, defined as string type
-      
-      // Fix the comparison by using string comparison instead of literal types
-      if (userRole === 'admin') return true;
-      
-      // Default permissions for roles
-      const roleBasedPermissions: Record<string, string[]> = {
-        admin: ['all'],
-        attorney: ['view:clients', 'edit:clients', 'view:cases', 'edit:cases', 'view:documents', 'upload:documents'],
-        client: ['view:own:documents', 'view:own:cases']
-      };
-      
-      // Check if user role has the requested permission
-      return roleBasedPermissions[userRole]?.includes(permission) || false;
+      const userData = JSON.parse(userDataStr);
+      return checkPermission(userData, permission);
     } catch (error) {
       console.error("Error checking permission:", error);
       return false;

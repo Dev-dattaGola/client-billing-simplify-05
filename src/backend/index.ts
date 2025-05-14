@@ -1,3 +1,4 @@
+
 // Backend API entry point
 import { messagingApi } from './messaging-api';
 import { adminApi } from './admin-api';
@@ -7,8 +8,8 @@ import { medicalApi } from './medical-api';
 import { depositionsApi } from '../lib/api/depositions-api';
 import { attorneysApi } from '../lib/api/attorneys-api';
 import { chatbotApi } from './chatbot-api';
-import { clientsApi, Appointment, Document, Communication } from '../lib/api/client-api';
-import { Patient } from './patients-api';
+import { clientsApi } from '../lib/api/client-api';
+import { Patient, Appointment, Document, Communication } from './patients-api';
 import { Client } from '@/types/client';
 
 // Create a compatibility layer so that existing patient components can work with clientsApi
@@ -33,10 +34,19 @@ export const patientsApi = {
       fullName: patientData.fullName,
       email: patientData.email,
       phone: patientData.phone,
-      // Include other fields
+      // Include other fields from patientData
       address: patientData.address,
-      // Client type doesn't have these fields directly, but they'll be stored as extended properties
-      companyName: patientData.companyName || ''
+      dateOfBirth: patientData.dateOfBirth,
+      profilePhoto: patientData.profilePhoto,
+      caseStatus: patientData.caseStatus,
+      assignedAttorneyId: patientData.assignedAttorneyId,
+      accidentDate: patientData.accidentDate,
+      accidentLocation: patientData.accidentLocation,
+      injuryType: patientData.injuryType,
+      caseDescription: patientData.caseDescription,
+      insuranceCompany: patientData.insuranceCompany,
+      insurancePolicyNumber: patientData.insurancePolicyNumber,
+      insuranceAdjusterName: patientData.insuranceAdjusterName
     };
     
     const newClient = await clientsApi.createClient(clientData);
@@ -64,7 +74,7 @@ export const patientsApi = {
     return appointments.map(appointment => ({
       ...appointment,
       patientId: appointment.clientId
-    }) as unknown as Appointment);
+    } as Appointment));
   },
   
   getAppointmentsByStatus: async (patientId: string, status: string): Promise<Appointment[]> => {
@@ -72,7 +82,7 @@ export const patientsApi = {
     return appointments.map(appointment => ({
       ...appointment,
       patientId: appointment.clientId
-    }) as unknown as Appointment);
+    } as Appointment));
   },
   
   getDocuments: async (patientId: string): Promise<Document[]> => {
@@ -80,7 +90,7 @@ export const patientsApi = {
     return documents.map(document => ({
       ...document,
       patientId: document.clientId
-    }) as unknown as Document);
+    } as Document));
   },
   
   getDocumentsByType: async (patientId: string, type: string): Promise<Document[]> => {
@@ -88,7 +98,7 @@ export const patientsApi = {
     return documents.map(document => ({
       ...document,
       patientId: document.clientId
-    }) as unknown as Document);
+    } as Document));
   },
   
   getCommunications: async (patientId: string): Promise<Communication[]> => {
@@ -96,7 +106,7 @@ export const patientsApi = {
     return communications.map(communication => ({
       ...communication,
       patientId: communication.clientId
-    }) as unknown as Communication);
+    } as Communication));
   },
   
   markCommunicationAsRead: async (communicationId: string): Promise<Communication | null> => {
@@ -105,7 +115,7 @@ export const patientsApi = {
     return {
       ...communication,
       patientId: communication.clientId
-    } as unknown as Communication;
+    } as Communication;
   },
   
   getMissedAppointmentsCount: clientsApi.getMissedAppointmentsCount,
@@ -116,7 +126,7 @@ export const patientsApi = {
     return {
       ...appointment,
       patientId: appointment.clientId
-    } as unknown as Appointment;
+    } as Appointment;
   },
   
   getLastDocumentUploaded: async (patientId: string) => {
@@ -125,7 +135,7 @@ export const patientsApi = {
     return {
       ...document,
       patientId: document.clientId
-    } as unknown as Document;
+    } as Document;
   },
   
   getSmartNotifications: clientsApi.getSmartNotifications
@@ -151,8 +161,7 @@ function convertClientToPatient(client: Client): Patient {
     caseDescription: client.caseDescription || "",
     insuranceCompany: client.insuranceCompany || "",
     insurancePolicyNumber: client.insurancePolicyNumber || "",
-    insuranceAdjusterName: client.insuranceAdjusterName || "",
-    companyName: client.companyName || ""
+    insuranceAdjusterName: client.insuranceAdjusterName || ""
   } as Patient;
 }
 

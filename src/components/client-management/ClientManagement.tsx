@@ -12,7 +12,7 @@ import {
   SheetTitle 
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Search, Download, FileText, AlertTriangle, UserPlus, UserX } from 'lucide-react';
+import { Search, Download, FileText, AlertTriangle } from 'lucide-react';
 import ClientMedicalRecords from "./ClientMedicalRecords";
 import ClientDocuments from "./ClientDocuments";
 import ClientAppointments from "./ClientAppointments";
@@ -21,16 +21,12 @@ import ClientCaseReport from "./ClientCaseReport";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import RoleBasedLayout from "../layout/RoleBasedLayout";
-import { useNavigate } from "react-router-dom";
-import { Client } from "@/types/client";
 
 const ClientManagement = () => {
   const { 
     clients,
-    droppedClients,
     selectedClient, 
     clientToEdit,
-    attorneys,
     loading,
     activeTab,
     activeDetailTab,
@@ -39,26 +35,17 @@ const ClientManagement = () => {
     handleAddClient,
     handleEditClient,
     handleDeleteClient,
-    handleDropClient,
-    handleTransferClient,
     handleViewClient,
     startEditClient,
-    clearClientToEdit,
+    clearClientToEdit
   } = useClient();
   
   const { hasPermission, currentUser } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [clientListTab, setClientListTab] = useState<"active" | "dropped">("active");
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleSearchClick = () => {
     setIsSearchOpen(true);
-  };
-  
-  const handleAddNewClient = () => {
-    clearClientToEdit();
-    setActiveTab("add");
   };
 
   const handleDownloadCaseSummary = () => {
@@ -181,7 +168,7 @@ const ClientManagement = () => {
   };
 
   // Determine which tabs should be visible based on user role
-  const shouldShowAddTab = currentUser && ['admin', 'attorney'].includes(currentUser.role);
+  const shouldShowAddTab = currentUser && ['admin'].includes(currentUser.role);
 
   return (
     <div className="bg-white rounded-lg border shadow-sm">
@@ -191,62 +178,27 @@ const ClientManagement = () => {
         className="w-full"
       >
         <div className="border-b px-6 py-2">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className={`grid w-full ${shouldShowAddTab ? 'grid-cols-2' : 'grid-cols-1'}`}>
             <TabsTrigger value="view">View Clients</TabsTrigger>
-            <TabsTrigger value="add">{clientToEdit ? "Edit Client" : "Add Client"}</TabsTrigger>
+            
+            {shouldShowAddTab && (
+              <TabsTrigger value="add">{clientToEdit ? "Edit Client" : "Add Client"}</TabsTrigger>
+            )}
           </TabsList>
         </div>
         
         <TabsContent value="view" className="p-6 space-y-4">
-          <div className="flex justify-between mb-4">
-            <TabsList>
-              <TabsTrigger 
-                value="active" 
-                onClick={() => setClientListTab("active")}
-                className={clientListTab === "active" ? "bg-primary text-primary-foreground" : ""}
-              >
-                Active Clients
-              </TabsTrigger>
-              <TabsTrigger 
-                value="dropped" 
-                onClick={() => setClientListTab("dropped")}
-                className={clientListTab === "dropped" ? "bg-primary text-primary-foreground" : ""}
-              >
-                Dropped Clients {droppedClients.length > 0 && `(${droppedClients.length})`}
-              </TabsTrigger>
-            </TabsList>
-            
-            <Button 
-              onClick={handleAddNewClient} 
-              className="flex items-center gap-2"
-            >
-              <UserPlus className="h-4 w-4" />
-              Add New Client
-            </Button>
-          </div>
-          
-          {clientListTab === "active" ? (
-            <ClientList 
-              clients={clients} 
-              onEditClient={startEditClient}
-              onViewClient={handleViewClient}
-              onDeleteClient={handleDeleteClient}
-              loading={loading}
-            />
-          ) : (
-            <ClientList 
-              clients={droppedClients} 
-              onEditClient={startEditClient}
-              onViewClient={handleViewClient}
-              onDeleteClient={handleDeleteClient}
-              loading={loading}
-              showDroppedInfo={true}
-            />
-          )}
+          <ClientList 
+            clients={clients} 
+            onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
+            onViewClient={handleViewClient}
+            onDeleteClient={(client) => hasPermission('edit:clients') ? handleDeleteClient(client) : null}
+            loading={loading}
+          />
         </TabsContent>
         
         <RoleBasedLayout 
-          requiredRoles={['admin', 'attorney']}
+          requiredRoles={['admin']}
           fallback={
             <TabsContent value="add" className="p-6">
               <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 flex flex-col items-center justify-center">
@@ -269,10 +221,7 @@ const ClientManagement = () => {
           <TabsContent value="add" className="p-6">
             <ClientForm 
               initialData={clientToEdit} 
-              onSubmit={clientToEdit ? handleEditClient : handleAddClient}
-              onDropClient={handleDropClient}
-              onTransferClient={handleTransferClient}
-              attorneys={attorneys}
+              onSubmit={clientToEdit ? handleEditClient : handleAddClient} 
               onCancel={() => {
                 clearClientToEdit();
                 setActiveTab("view");
@@ -294,12 +243,12 @@ const ClientManagement = () => {
           <div className="mt-4">
             <ClientList 
               clients={clients} 
-              onEditClient={startEditClient}
+              onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
               onViewClient={(client) => {
                 handleViewClient(client);
                 setIsSearchOpen(false);
               }}
-              onDeleteClient={handleDeleteClient}
+              onDeleteClient={(client) => hasPermission('edit:clients') ? handleDeleteClient(client) : null}
               loading={loading}
             />
           </div>
