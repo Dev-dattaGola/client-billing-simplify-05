@@ -1,5 +1,5 @@
 
-import React, { useCallback, memo } from 'react';
+import React, { useCallback, memo, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
@@ -24,7 +24,7 @@ const PageLayout: React.FC<PageLayoutProps> = memo(({ children }) => {
   }, [toggleSidebar]);
   
   // Pre-compute the login content - static content that doesn't change
-  const loginContent = (
+  const loginContent = useMemo(() => (
     <div className="p-8 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4 text-center">Welcome to LYZ Law Firm</h1>
       <p className="text-gray-600 mb-6 text-center">Please log in to access this page.</p>
@@ -37,7 +37,7 @@ const PageLayout: React.FC<PageLayoutProps> = memo(({ children }) => {
         </Button>
       </div>
     </div>
-  );
+  ), [navigate]);
 
   // Conditionally prepare the content based on authentication state
   const content = isAuthenticated ? children : loginContent;

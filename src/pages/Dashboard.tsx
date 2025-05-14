@@ -26,18 +26,26 @@ const DashboardContent = memo(({ isLoading }: { isLoading: boolean }) => {
 DashboardContent.displayName = "DashboardContent";
 
 const Dashboard: React.FC = () => {
-  // Initialize with true to show loader initially
+  // Use ref to track if component is mounted
   const [isLoading, setIsLoading] = useState(true);
   
-  // Use a single effect with cleanup to avoid stale state updates
+  // Use a single effect with cleanup
   useEffect(() => {
+    // Use a flag to track if component is still mounted
+    let isMounted = true;
+    
     // Set a timeout for the loading state
     const timer = setTimeout(() => {
-      setIsLoading(false);
+      if (isMounted) {
+        setIsLoading(false);
+      }
     }, 1500);
     
     // Cleanup to prevent memory leaks and stale updates
-    return () => clearTimeout(timer);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, []); // Empty dependency array - run only on mount
 
   return (

@@ -17,6 +17,7 @@ const DashboardOverview = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const fetchInitiated = useRef(false);
+  const isMountedRef = useRef(true);
   const { toast } = useToast();
 
   // Memoized fetch function to prevent recreation on renders
@@ -28,29 +29,46 @@ const DashboardOverview = () => {
     
     try {
       const fetchedClients = await clientsApi.getClients();
-      setClients(fetchedClients);
+      if (isMountedRef.current) {
+        setClients(fetchedClients);
+      }
     } catch (error) {
       console.error("Failed to fetch clients:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load client data. Please try again later.",
-        variant: "destructive",
-      });
+      if (isMountedRef.current) {
+        toast({
+          title: "Error",
+          description: "Failed to load client data. Please try again later.",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   }, [toast]);
 
   // Controlled data fetching with cleanup
   useEffect(() => {
+    isMountedRef.current = true;
+    
     // Only attempt to fetch if not already initiated
     if (!fetchInitiated.current) {
       const timer = setTimeout(() => {
-        fetchClients();
+        if (isMountedRef.current) {
+          fetchClients();
+        }
       }, 100);
       
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        isMountedRef.current = false;
+      };
     }
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchClients]);
 
   // Memoized calculator toggle to prevent recreation
