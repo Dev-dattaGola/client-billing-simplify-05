@@ -19,9 +19,9 @@ const DashboardOverview = () => {
   const fetchStartedRef = useRef(false);
   const { toast } = useToast();
 
-  // Controlled data fetching
+  // Use useEffect with proper cleanup and fetch tracking to prevent multiple fetches
   useEffect(() => {
-    let mounted = true;
+    let isMounted = true;
     
     const fetchData = async () => {
       if (fetchStartedRef.current) return;
@@ -30,13 +30,13 @@ const DashboardOverview = () => {
       
       try {
         const fetchedClients = await clientsApi.getClients();
-        if (mounted) {
+        if (isMounted) {
           setClients(fetchedClients);
           setLoading(false);
         }
       } catch (error) {
         console.error("Failed to fetch clients:", error);
-        if (mounted) {
+        if (isMounted) {
           toast({
             title: "Error",
             description: "Failed to load client data. Please try again later.",
@@ -48,26 +48,25 @@ const DashboardOverview = () => {
     };
 
     const timer = setTimeout(() => {
-      if (mounted) {
+      if (isMounted) {
         fetchData();
       }
     }, 100);
 
     return () => {
-      mounted = false;
+      isMounted = false;
       clearTimeout(timer);
     };
   }, [toast]);
 
-  // Toggle calculator with memoized handler
+  // Memoize toggle function to prevent recreation on each render
   const toggleCalculator = useCallback(() => {
     setShowCalculator(prev => !prev);
   }, []);
 
-  // Default tab value
   const defaultTabValue = "billings";
 
-  // Memoize calculator content
+  // Memoize calculator content to prevent unnecessary re-renders
   const calculatorContent = useMemo(() => {
     if (!showCalculator) return null;
     

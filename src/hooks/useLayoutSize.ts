@@ -2,22 +2,23 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 export function useLayoutSize() {
-  // Use refs for tracking state to avoid unnecessary renders
+  // Use state for only what needs to trigger re-renders
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   
-  // Track initialization state with refs
+  // Use refs for tracking state that shouldn't trigger re-renders
   const isInitializedRef = useRef<boolean>(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Memoized check for mobile size
+  // Memoized function to check for mobile size
   const checkMobileSize = useCallback(() => {
     const mobile = window.innerWidth < 1024;
     
+    // Only update state if there's an actual change
     if (mobile !== isMobile) {
       setIsMobile(mobile);
       
-      // Only auto-collapse sidebar on mobile if already initialized
+      // Only auto-close sidebar on mobile if already initialized
       if (mobile && isInitializedRef.current) {
         setIsSidebarOpen(false);
       }
@@ -26,19 +27,19 @@ export function useLayoutSize() {
     // Mark as initialized after first check
     if (!isInitializedRef.current) {
       isInitializedRef.current = true;
-      // Initial mobile state - collapse sidebar on mobile
+      // Initialize sidebar state based on screen size
       if (mobile) {
         setIsSidebarOpen(false);
       }
     }
   }, [isMobile]);
   
-  // Initialize on mount with debounced resize
+  // Set up resize listener with proper cleanup
   useEffect(() => {
-    // Initial check
+    // Run initial check
     checkMobileSize();
     
-    // Debounced resize handler
+    // Set up debounced resize handler
     const handleResize = () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -51,7 +52,7 @@ export function useLayoutSize() {
     
     window.addEventListener('resize', handleResize);
     
-    // Clean up
+    // Cleanup function
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -60,14 +61,14 @@ export function useLayoutSize() {
     };
   }, [checkMobileSize]);
   
-  // Memoized toggle function
+  // Memoize toggle function to prevent recreation on each render
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(prev => !prev);
   }, []);
   
   return {
     isMobile,
-    isSidebarOpen,
+    isSidebarOpen, 
     toggleSidebar
   };
 }

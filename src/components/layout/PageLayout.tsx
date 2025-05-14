@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
@@ -12,7 +12,6 @@ interface PageLayoutProps {
   children: React.ReactNode;
 }
 
-// Use React.memo to prevent unnecessary re-renders
 const PageLayout: React.FC<PageLayoutProps> = React.memo(({ children }) => {
   const { isSidebarOpen, isMobile, toggleSidebar } = useLayoutSize();
   const { isAuthenticated } = useAuth();
@@ -24,7 +23,7 @@ const PageLayout: React.FC<PageLayoutProps> = React.memo(({ children }) => {
   }, [navigate]);
   
   // Memoize login content
-  const loginContent = useMemo(() => (
+  const loginContent = React.useMemo(() => (
     <div className="p-8 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4 text-center">Welcome to LYZ Law Firm</h1>
       <p className="text-gray-600 mb-6 text-center">Please log in to access this page.</p>
@@ -36,7 +35,7 @@ const PageLayout: React.FC<PageLayoutProps> = React.memo(({ children }) => {
     </div>
   ), [handleLoginClick]);
   
-  // Determine what content to show based on authentication
+  // Determine content based on authentication status
   const showSidebar = isAuthenticated;
   const displayContent = isAuthenticated ? children : loginContent;
   
@@ -61,6 +60,7 @@ const PageLayout: React.FC<PageLayoutProps> = React.memo(({ children }) => {
   );
 });
 
+// Add display name to help with debugging
 PageLayout.displayName = "PageLayout";
 
 export default PageLayout;

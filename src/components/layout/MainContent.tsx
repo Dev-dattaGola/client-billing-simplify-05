@@ -39,7 +39,7 @@ const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isM
     );
   }
 
-  // Calculate className outside the JSX to avoid regenerating on each render
+  // Pre-compute className to avoid recreation on each render
   const mainClassName = `flex-1 bg-gray-50 overflow-y-auto transition-all duration-300 ${
     isSidebarOpen && !isMobile ? 'ml-60' : 'ml-0'
   }`;
@@ -51,6 +51,7 @@ const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isM
   );
 });
 
+// Add display name to help with debugging
 MainContent.displayName = "MainContent";
 
 export default MainContent;

@@ -13,7 +13,7 @@ const LoadingState = () => (
   </div>
 );
 
-// Memoized dashboard content
+// Memoized dashboard content to prevent unnecessary re-renders
 const DashboardContent = React.memo(() => (
   <div className="space-y-6 p-6">
     <DashboardOverview />
@@ -22,16 +22,23 @@ const DashboardContent = React.memo(() => (
 DashboardContent.displayName = "DashboardContent";
 
 const Dashboard: React.FC = () => {
-  // Use a ref to track mounting state instead of triggering updates
+  // Use a simple loading state with no dependencies to avoid render loops
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    // Use a clean timeout pattern
+    // Using a cleanup pattern to ensure the effect only runs once
+    let isMounted = true;
+    
     const timer = setTimeout(() => {
-      setIsLoading(false);
+      if (isMounted) {
+        setIsLoading(false);
+      }
     }, 1000);
     
-    return () => clearTimeout(timer);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, []);
   
   return (

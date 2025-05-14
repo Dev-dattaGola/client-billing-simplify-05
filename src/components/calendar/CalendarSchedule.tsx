@@ -1,8 +1,5 @@
 
-// Implementation for CalendarSchedule.tsx
-// We're fixing the error with displayMonth, activeModifiers by ensuring correct typing
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -10,14 +7,13 @@ import { CalendarEvent, calendarApi } from "@/lib/api/calendar-api";
 import { ChevronLeft, ChevronRight, Loader2, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
-import { DayPickerBase } from "react-day-picker";
 
 interface CalendarScheduleProps {
   onAddEvent?: () => void;
   onSelectEvent?: (event: CalendarEvent) => void;
 }
 
-const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
+const CalendarSchedule = React.memo<CalendarScheduleProps>(({
   onAddEvent,
   onSelectEvent
 }) => {
@@ -26,26 +22,36 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showEventsDialog, setShowEventsDialog] = useState(false);
   const [selectedDateEvents, setSelectedDateEvents] = useState<CalendarEvent[]>([]);
-  const [viewingEvent, setViewingEvent] = useState<CalendarEvent | null>(null);
 
+  // Fetch events once on mount with proper cleanup
   useEffect(() => {
+    let isMounted = true;
+    
     const loadEvents = async () => {
       try {
         setIsLoading(true);
         const fetchedEvents = await calendarApi.getEvents();
-        setEvents(fetchedEvents);
+        if (isMounted) {
+          setEvents(fetchedEvents);
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error("Error loading events:", error);
-      } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
     
     loadEvents();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Handler for date selection
-  const handleDateSelect = (date: Date | undefined) => {
+  // Memoized handler for date selection
+  const handleDateSelect = useCallback((date: Date | undefined) => {
     if (!date) return;
     
     setSelectedDate(date);
@@ -64,32 +70,27 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
       setSelectedDateEvents(dateEvents);
       setShowEventsDialog(true);
     }
-  };
+  }, [events]);
 
-  // Get dates with events for highlighting in the calendar
-  const getDatesWithEvents = () => {
-    return events.map(event => new Date(event.startDate));
-  };
-
-  // Calculate event dots for the calendar
-  const eventDates = getDatesWithEvents();
-  
-  // Handle opening the event details
-  const handleEventClick = (event: CalendarEvent) => {
-    setViewingEvent(event);
+  // Memoized event handler
+  const handleEventClick = useCallback((event: CalendarEvent) => {
     if (onSelectEvent) {
       onSelectEvent(event);
     }
-  };
+    setShowEventsDialog(false);
+  }, [onSelectEvent]);
 
-  // Format the time from an ISO string
-  const formatEventTime = (dateString: string) => {
+  // Get dates with events for highlighting in the calendar
+  const eventDates = events.map(event => new Date(event.startDate));
+  
+  // Format time from ISO string
+  const formatEventTime = useCallback((dateString: string) => {
     try {
       return format(new Date(dateString), 'h:mm a');
     } catch {
       return '';
     }
-  };
+  }, []);
 
   if (isLoading) {
     return (
@@ -101,12 +102,12 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
     );
   }
 
-  // Prepare the modifiers in the format expected by react-day-picker
+  // Prepare modifiers for the calendar
   const modifiers = {
     eventDay: eventDates
   };
 
-  // Prepare the modifiers styles
+  // Prepare modifier styles
   const modifiersStyles = {
     eventDay: {
       fontWeight: 'bold',
@@ -202,6 +203,9 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
       </Dialog>
     </>
   );
-};
+});
+
+// Add display name for debugging
+CalendarSchedule.displayName = "CalendarSchedule";
 
 export default CalendarSchedule;
