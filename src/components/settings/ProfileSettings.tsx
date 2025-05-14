@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -127,7 +126,12 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, isLoading, o
               <div className="relative group">
                 <Avatar className="h-24 w-24 cursor-pointer" onClick={handleAvatarClick}>
                   <AvatarImage src={profile?.avatar || `https://i.pravatar.cc/150?u=${profile?.userId}`} />
-                  <AvatarFallback className="text-2xl bg-purple-600 text-white">{name?.slice(0, 2).toUpperCase() || 'US'}</AvatarFallback>
+                  <AvatarFallback className="text-2xl bg-purple-600 text-white">
+                    {profile?.name 
+                      ? profile.name.split(' ').map(part => part[0]).join('')
+                      : 'US'
+                    }
+                  </AvatarFallback>
                 </Avatar>
                 <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer" onClick={handleAvatarClick}>
                   <Upload className="h-8 w-8 text-white" />
@@ -177,7 +181,12 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, isLoading, o
               />
               <Avatar className="h-24 w-24 cursor-pointer" onClick={handleAvatarClick}>
                 <AvatarImage src={avatarPreview || profile?.avatar || `https://i.pravatar.cc/150?u=${profile?.userId}`} />
-                <AvatarFallback className="text-2xl bg-purple-600 text-white">{name?.slice(0, 2).toUpperCase() || 'US'}</AvatarFallback>
+                <AvatarFallback className="text-2xl bg-purple-600 text-white">
+                  {profile?.name 
+                    ? profile.name.split(' ').map(part => part[0]).join('')
+                    : 'US'
+                  }
+                </AvatarFallback>
               </Avatar>
               <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer" onClick={handleAvatarClick}>
                 <Upload className="h-8 w-8 text-white" />
