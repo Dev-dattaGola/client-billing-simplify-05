@@ -31,28 +31,29 @@ const Dashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { currentUser, isAuthenticated } = useAuth();
   
-  // Use useCallback to prevent function recreation on every render
-  const initializeDashboard = useCallback(() => {
-    if (isAuthenticated && currentUser) {
-      console.log("Dashboard: User authenticated", currentUser?.role);
-      setIsLoading(false);
-    } else {
-      console.log("Dashboard: Authentication pending...");
-      // Don't call setIsLoading here - we'll do it after a timeout
-    }
-  }, [isAuthenticated, currentUser]);
-
+  // Fixed useEffect to prevent re-renders
   useEffect(() => {
+    let isMounted = true;
+    
     // Using a single timeout to prevent multiple state updates
     const timer = setTimeout(() => {
-      initializeDashboard();
-      // Ensure we set loading to false even if auth is still pending
-      // This prevents us getting stuck in a loading state
-      setIsLoading(false);
+      if (isMounted) {
+        if (isAuthenticated && currentUser) {
+          console.log("Dashboard: User authenticated", currentUser?.role);
+        } else {
+          console.log("Dashboard: Authentication pending...");
+        }
+        // Always set loading to false after a delay, regardless of auth state
+        setIsLoading(false);
+      }
     }, 500);
     
-    return () => clearTimeout(timer);
-  }, [initializeDashboard]);
+    // Cleanup function to prevent state updates on unmounted component
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [isAuthenticated, currentUser]);
 
   return (
     <PageLayout>

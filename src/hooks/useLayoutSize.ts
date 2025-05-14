@@ -21,12 +21,14 @@ export const useLayoutSize = () => {
     // Initial check
     checkIfMobile();
     
-    // Use better, more optimized event listener management
-    let resizeTimer: number;
+    // Use better, more optimized event listener management with debouncing
+    let resizeTimer: number | null = null;
     
     const handleResize = () => {
-      clearTimeout(resizeTimer);
-      // Using a larger timeout for better performance
+      if (resizeTimer !== null) {
+        clearTimeout(resizeTimer);
+      }
+      // Using a debounced timeout for better performance
       resizeTimer = window.setTimeout(checkIfMobile, 250);
     };
     
@@ -34,7 +36,9 @@ export const useLayoutSize = () => {
     
     // Clean up event listener on unmount
     return () => {
-      clearTimeout(resizeTimer);
+      if (resizeTimer !== null) {
+        clearTimeout(resizeTimer);
+      }
       window.removeEventListener('resize', handleResize);
     };
   }, [checkIfMobile]);

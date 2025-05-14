@@ -20,8 +20,6 @@ const DashboardOverview = () => {
 
   // Using useCallback to prevent recreation of this function on every render
   const fetchClients = useCallback(async () => {
-    if (!loading) return; // Prevent multiple fetches if already loading
-    
     try {
       const fetchedClients = await clientsApi.getClients();
       setClients(fetchedClients);
@@ -35,17 +33,17 @@ const DashboardOverview = () => {
     } finally {
       setLoading(false);
     }
-  }, [loading, toast]);
+  }, [toast]);
 
   useEffect(() => {
-    // Only fetch if loading is true
-    if (loading) {
+    let isMounted = true;
+    
+    if (loading && isMounted) {
       fetchClients();
     }
     
-    // Add cleanup function
     return () => {
-      // Any cleanup needed
+      isMounted = false;
     };
   }, [fetchClients, loading]);
 
