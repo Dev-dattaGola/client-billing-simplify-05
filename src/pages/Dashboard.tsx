@@ -26,7 +26,6 @@ const DashboardContent = React.memo(({ isLoading }: { isLoading: boolean }) => {
 DashboardContent.displayName = "DashboardContent";
 
 const Dashboard: React.FC = () => {
-  // Use ref to track if component is mounted
   const [isLoading, setIsLoading] = useState(true);
   const mountedRef = React.useRef(true);
   
@@ -35,7 +34,7 @@ const Dashboard: React.FC = () => {
     // Reset mount status
     mountedRef.current = true;
     
-    // Set a timeout for the loading state
+    // Set a timeout for the loading state using refs to avoid state updates on unmounted components
     const timer = setTimeout(() => {
       if (mountedRef.current) {
         setIsLoading(false);
@@ -47,7 +46,7 @@ const Dashboard: React.FC = () => {
       mountedRef.current = false;
       clearTimeout(timer);
     };
-  }, []); // Empty dependency array - run only on mount
+  }, []);
 
   // Memoize the content to prevent unnecessary re-renders
   const content = useMemo(() => (

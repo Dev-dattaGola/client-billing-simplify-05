@@ -30,6 +30,7 @@ const DashboardOverview = () => {
       const fetchedClients = await clientsApi.getClients();
       if (isMountedRef.current) {
         setClients(fetchedClients);
+        setLoading(false);
       }
     } catch (error) {
       console.error("Failed to fetch clients:", error);
@@ -39,9 +40,6 @@ const DashboardOverview = () => {
           description: "Failed to load client data. Please try again later.",
           variant: "destructive",
         });
-      }
-    } finally {
-      if (isMountedRef.current) {
         setLoading(false);
       }
     }

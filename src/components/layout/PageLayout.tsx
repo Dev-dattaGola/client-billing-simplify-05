@@ -18,12 +18,12 @@ const PageLayout: React.FC<PageLayoutProps> = React.memo(({ children }) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
-  // Memoize the toggle handler
+  // Memoize the toggle handler to prevent recreation on each render
   const handleToggleSidebar = useCallback(() => {
     toggleSidebar();
   }, [toggleSidebar]);
   
-  // Pre-compute the login content
+  // Pre-compute the login content to prevent recreation on each render
   const loginContent = useMemo(() => (
     <div className="p-8 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4 text-center">Welcome to LYZ Law Firm</h1>
