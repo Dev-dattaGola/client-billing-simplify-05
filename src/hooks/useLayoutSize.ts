@@ -7,12 +7,12 @@ export function useLayoutSize() {
   const initialCheckDone = useRef(false);
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Memoized check function to prevent recreating on each render
+  // Memoized mobile check function to prevent unnecessary renders
   const checkIfMobile = useCallback(() => {
     const mobile = window.innerWidth < 1024;
     
     // Only update if different to prevent re-renders
-    if (isMobile !== mobile) {
+    if (mobile !== isMobile) {
       setIsMobile(mobile);
       
       // Auto-collapse sidebar only when switching to mobile from desktop
@@ -30,20 +30,24 @@ export function useLayoutSize() {
   
   // Initial check - run once after mount with a small delay
   useEffect(() => {
+    // Only run this once
     if (!initialCheckDone.current) {
       const timer = setTimeout(checkIfMobile, 10);
       return () => clearTimeout(timer);
     }
   }, [checkIfMobile]);
   
-  // Handle window resize with debounce to reduce render frequency
+  // Handle window resize with debounce
   useEffect(() => {
     const handleResize = () => {
       if (resizeTimerRef.current) {
         clearTimeout(resizeTimerRef.current);
       }
       
-      resizeTimerRef.current = setTimeout(checkIfMobile, 250);
+      resizeTimerRef.current = setTimeout(() => {
+        checkIfMobile();
+        resizeTimerRef.current = null;
+      }, 250);
     };
     
     window.addEventListener('resize', handleResize);
@@ -57,7 +61,7 @@ export function useLayoutSize() {
     };
   }, [checkIfMobile]);
 
-  // Memoize toggle function to prevent recreation on each render
+  // Memoize toggle function with stable reference
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(prev => !prev);
   }, []);

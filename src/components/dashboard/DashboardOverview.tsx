@@ -19,9 +19,9 @@ const DashboardOverview = () => {
   const fetchInitiated = useRef(false);
   const { toast } = useToast();
 
-  // Use useCallback to memoize the fetch function
+  // Memoized fetch function to prevent recreation on renders
   const fetchClients = useCallback(async () => {
-    // Prevent duplicate fetches
+    // Guard against duplicate fetches
     if (fetchInitiated.current) return;
     
     fetchInitiated.current = true;
@@ -41,23 +41,24 @@ const DashboardOverview = () => {
     }
   }, [toast]);
 
-  // Use useEffect with proper cleanup and dependencies
+  // Controlled data fetching with cleanup
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!fetchInitiated.current) {
+    // Only attempt to fetch if not already initiated
+    if (!fetchInitiated.current) {
+      const timer = setTimeout(() => {
         fetchClients();
-      }
-    }, 100);
-    
-    return () => clearTimeout(timer);
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
   }, [fetchClients]);
 
-  // Memoize the toggle function to prevent recreation on each render
+  // Memoized calculator toggle to prevent recreation
   const toggleCalculator = useCallback(() => {
     setShowCalculator(prev => !prev);
   }, []);
 
-  // Memoize the default tab value
+  // Memoize default tab value
   const defaultTabValue = useMemo(() => "billings", []);
 
   return (
