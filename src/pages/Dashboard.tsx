@@ -51,7 +51,7 @@ const Dashboard: React.FC = () => {
         timerRef.current = null;
       }
     };
-  }, []);  // Remove dependencies that could cause unnecessary re-renders
+  }, []);  // Empty dependency array to run only once on mount
 
   return (
     <PageLayout>
