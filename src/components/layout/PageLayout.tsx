@@ -4,7 +4,6 @@ import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import MainContent from './MainContent';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLayoutSize } from '@/hooks/useLayoutSize';
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -13,7 +12,7 @@ interface PageLayoutProps {
 const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const { isAuthenticated, currentUser } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleResize = () => {
@@ -31,17 +30,6 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <div className="p-8 bg-white rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold mb-4 text-center">Please log in</h1>
-          <p className="text-gray-600">You need to be logged in to access this page.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col">
