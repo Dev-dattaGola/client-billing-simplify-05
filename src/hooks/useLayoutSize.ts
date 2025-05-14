@@ -7,16 +7,15 @@ export function useLayoutSize() {
   const initialCheckDone = useRef(false);
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Use useCallback to memoize the checkIfMobile function
+  // Check if mobile, but avoid unnecessary state updates
   const checkIfMobile = useCallback(() => {
     const mobile = window.innerWidth < 1024;
     
-    // Only update the state if the value has changed to prevent unnecessary re-renders
+    // Only update if different to prevent re-renders
     if (isMobile !== mobile) {
       setIsMobile(mobile);
       
       // Auto-collapse sidebar only when switching to mobile from desktop
-      // AND only if we haven't done the initial check yet or sidebar is open
       if (mobile && (isSidebarOpen || !initialCheckDone.current)) {
         setIsSidebarOpen(false);
       }
@@ -28,29 +27,22 @@ export function useLayoutSize() {
     }
   }, [isMobile, isSidebarOpen]);
   
-  // Initial check - only run once
+  // Initial check - run once after mount with a small delay
   useEffect(() => {
-    // Only run if not done yet
     if (!initialCheckDone.current) {
-      // Small delay to ensure window size is available
-      const timer = setTimeout(() => {
-        checkIfMobile();
-      }, 10);
-      
+      const timer = setTimeout(checkIfMobile, 10);
       return () => clearTimeout(timer);
     }
   }, [checkIfMobile]);
   
-  // Handle window resize events with debounce
+  // Handle window resize with debounce
   useEffect(() => {
     const handleResize = () => {
       if (resizeTimerRef.current) {
         clearTimeout(resizeTimerRef.current);
       }
       
-      resizeTimerRef.current = setTimeout(() => {
-        checkIfMobile();
-      }, 250);
+      resizeTimerRef.current = setTimeout(checkIfMobile, 250);
     };
     
     window.addEventListener('resize', handleResize);
@@ -62,9 +54,9 @@ export function useLayoutSize() {
       }
       window.removeEventListener('resize', handleResize);
     };
-  }, [checkIfMobile]); // Only re-run if checkIfMobile changes
+  }, [checkIfMobile]);
 
-  // Memoize the toggle function to prevent recreation on re-renders
+  // Memoize the toggle function
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(prev => !prev);
   }, []);

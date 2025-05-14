@@ -17,12 +17,12 @@ const PageLayout: React.FC<PageLayoutProps> = memo(({ children }) => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Memoize toggle handler to prevent re-renders
+  // Memoize toggle handler
   const handleToggleSidebar = useCallback(() => {
     toggleSidebar();
   }, [toggleSidebar]);
 
-  // Prepare the login content only when not authenticated
+  // Pre-render login content for performance
   const loginContent = (
     <div className="p-8 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4 text-center">Welcome to LYZ Law Firm</h1>
