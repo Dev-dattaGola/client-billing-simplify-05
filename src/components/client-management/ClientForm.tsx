@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -42,7 +43,6 @@ interface ClientFormProps {
   initialData: Client | null;
   onSubmit: (data: any) => void;
   onCancel: () => void;
-  attorneys?: Attorney[];
 }
 
 const formSchema = z.object({
@@ -72,7 +72,7 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const ClientForm = ({ initialData, onSubmit, onCancel, attorneys = [] }: ClientFormProps) => {
+const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [currentTag, setCurrentTag] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -82,7 +82,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel, attorneys = [] }: ClientF
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [selectedAttorneyId, setSelectedAttorneyId] = useState("");
   
-  const { attorneys: clientAttorneys, handleDropClient, handleTransferClient, loadAttorneys } = useClient();
+  const { attorneys, handleDropClient, handleTransferClient, loadAttorneys } = useClient();
   const { currentUser } = useAuth();
   
   const userRole = currentUser?.role || currentUser?.user_metadata?.role;
@@ -429,7 +429,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel, attorneys = [] }: ClientF
                           <SelectValue placeholder="Select an attorney" />
                         </SelectTrigger>
                         <SelectContent>
-                          {clientAttorneys
+                          {attorneys
                             .filter(attorney => attorney.id !== initialData?.assignedAttorneyId)
                             .map((attorney) => (
                               <SelectItem key={attorney.id} value={attorney.id}>

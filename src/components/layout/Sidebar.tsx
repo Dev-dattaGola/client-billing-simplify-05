@@ -167,7 +167,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/clients' || item.path === '/dashboard'}
               className={({ isActive }) => cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
                 "hover:bg-accent hover:text-accent-foreground",

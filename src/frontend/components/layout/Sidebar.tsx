@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -16,8 +15,7 @@ import {
   Calculator,
   FileSearch,
   Gavel,
-  Shield,
-  UserMinus
+  Shield
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -27,7 +25,6 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const { hasPermission, currentUser } = useAuth();
-  const location = useLocation();
   
   // Define which roles can access which items
   const roleBasedNavItems = [
@@ -41,12 +38,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Clients', 
       path: '/clients', 
       icon: <Users size={20} />,
-      roles: ['admin', 'attorney'] 
-    },
-    { 
-      title: 'Dropped Clients', 
-      path: '/dropped-clients', 
-      icon: <UserMinus size={20} />,
       roles: ['admin', 'attorney'] 
     },
     { 
@@ -138,11 +129,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             user.email?.split('@')[0] || '');
   };
 
-  const getUserRole = (user: any) => {
-    if (!user) return "";
-    return user.role || user.user_metadata?.role || 'client';
-  };
-
   return (
     <div 
       className={cn(
@@ -150,24 +136,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         isCollapsed ? "w-16" : "w-60"
       )}
     >
-      <div className="p-3 flex items-center gap-2 border-b">
-        <div className="bg-violet-600 text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg">
-          LAW
+      {/* <div className="p-3 flex items-center gap-2 border-b">
+        <div className="bg-lawfirm-light-blue text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg">
+          LYZ
         </div>
-        {!isCollapsed && <div className="font-semibold">LAWerp500</div>}
-      </div>
+        {!isCollapsed && <div className="font-semibold">LYZ Law Firm</div>}
+      </div> */}
 
       <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
         {roleBasedNavItems
-          .filter(item => {
-            const userRole = getUserRole(currentUser);
-            return !currentUser || item.roles.includes(userRole);
-          })
+          .filter(item => !currentUser || item.roles.includes(currentUser.role))
           .map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/clients' || item.path === '/dashboard'}
               className={({ isActive }) => cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
                 "hover:bg-accent hover:text-accent-foreground",
@@ -187,7 +169,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             <div className="font-medium">{getUserDisplayName(currentUser)}</div>
             <div>{currentUser.email}</div>
             <div className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs inline-block mt-1">
-              {getUserRole(currentUser).charAt(0).toUpperCase() + getUserRole(currentUser).slice(1)}
+              {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
             </div>
           </div>
         )}
