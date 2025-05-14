@@ -41,7 +41,6 @@ const Dashboard: React.FC = () => {
     
     // Set a new timer
     timerRef.current = setTimeout(() => {
-      console.log("Dashboard: Authentication state", { isAuthenticated, currentUser: currentUser?.role });
       setIsLoading(false);
     }, 1500);
     
@@ -52,7 +51,7 @@ const Dashboard: React.FC = () => {
         timerRef.current = null;
       }
     };
-  }, [isAuthenticated, currentUser?.role]); // Add dependencies that should trigger the effect
+  }, []);  // Remove dependencies that could cause unnecessary re-renders
 
   return (
     <PageLayout>

@@ -26,7 +26,7 @@ const PageLayout: React.FC<PageLayoutProps> = memo(({ children }) => {
       <div className="flex flex-1 mt-16 h-[calc(100vh-4rem)]">
         <Sidebar 
           isCollapsed={!isSidebarOpen} 
-          setIsCollapsed={() => toggleSidebar()}
+          setIsCollapsed={toggleSidebar}
         />
         <MainContent isSidebarOpen={isSidebarOpen} isMobile={isMobile}>
           {!isAuthenticated ? (

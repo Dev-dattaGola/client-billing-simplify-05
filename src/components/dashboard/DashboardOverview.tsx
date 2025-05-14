@@ -21,7 +21,6 @@ const DashboardOverview = () => {
 
   // Using useCallback to prevent recreation of this function on every render
   const fetchClients = useCallback(async () => {
-    // Only fetch if we haven't already started fetching
     if (fetchInitiated.current) return;
     
     fetchInitiated.current = true;
@@ -42,15 +41,9 @@ const DashboardOverview = () => {
   }, [toast]);
 
   useEffect(() => {
-    // Only fetch data if loading is true and fetch hasn't been initiated
     if (loading && !fetchInitiated.current) {
       fetchClients();
     }
-    
-    return () => {
-      // Mark as not initiated on unmount (for potential remounts)
-      fetchInitiated.current = false;
-    };
   }, [fetchClients, loading]);
 
   const toggleCalculator = useCallback(() => {

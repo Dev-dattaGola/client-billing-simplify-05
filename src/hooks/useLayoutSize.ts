@@ -5,6 +5,7 @@ export function useLayoutSize() {
   const [isMobile, setIsMobile] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const initialCheckDone = useRef(false);
+  const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Use useCallback to memoize the checkIfMobile function
   const checkIfMobile = useCallback(() => {
@@ -28,13 +29,10 @@ export function useLayoutSize() {
   }, [isMobile, isSidebarOpen]);
   
   useEffect(() => {
-    // Properly debounce the resize event with useRef for timer
-    const resizeTimerRef = { current: null };
-    
     // Initial check once on mount with a slight delay
-    setTimeout(() => {
+    const initialCheckTimeout = setTimeout(() => {
       checkIfMobile();
-    }, 0);
+    }, 10);
     
     const handleResize = () => {
       if (resizeTimerRef.current) {
@@ -50,6 +48,7 @@ export function useLayoutSize() {
     
     // Cleanup
     return () => {
+      clearTimeout(initialCheckTimeout);
       if (resizeTimerRef.current) {
         clearTimeout(resizeTimerRef.current);
       }
