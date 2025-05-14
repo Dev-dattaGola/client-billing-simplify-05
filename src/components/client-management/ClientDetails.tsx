@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,9 +14,11 @@ interface ClientDetailsProps {
   client: Client;
   onBack: () => void;
   onEdit: () => void;
+  onDrop?: () => void;
+  onTransfer?: () => void;
 }
 
-const ClientDetails: React.FC<ClientDetailsProps> = ({ client, onBack, onEdit }) => {
+const ClientDetails: React.FC<ClientDetailsProps> = ({ client, onBack, onEdit, onDrop, onTransfer }) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
