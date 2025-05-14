@@ -1,9 +1,8 @@
 
-import React, { useEffect, useState, memo, useRef } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import PageLayout from '@/components/layout/PageLayout';
 import DashboardOverview from '@/components/dashboard/DashboardOverview';
-import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 // Memoize DashboardContent to prevent unnecessary re-renders
@@ -29,27 +28,15 @@ DashboardContent.displayName = "DashboardContent";
 const Dashboard: React.FC = () => {
   // Initialize with true to show loader initially
   const [isLoading, setIsLoading] = useState(true);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Fixed useEffect to prevent re-renders
+  // Use a single effect to handle loading state
   useEffect(() => {
-    // Cleanup previous timer to avoid memory leaks
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    
-    // Set a new timer
-    timerRef.current = setTimeout(() => {
+    const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1500);
     
     // Cleanup function
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    };
+    return () => clearTimeout(timer);
   }, []); // Empty dependency array to run only once on mount
 
   return (

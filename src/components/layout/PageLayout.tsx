@@ -12,7 +12,6 @@ interface PageLayoutProps {
   children: React.ReactNode;
 }
 
-// Used memo to prevent unnecessary re-renders
 const PageLayout: React.FC<PageLayoutProps> = memo(({ children }) => {
   const { isSidebarOpen, isMobile, toggleSidebar } = useLayoutSize();
   const { isAuthenticated } = useAuth();

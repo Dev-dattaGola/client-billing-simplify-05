@@ -1,5 +1,4 @@
 
-import { useAuth } from "@/contexts/AuthContext";
 import LandingPage from "./LandingPage";
 
 const Index = () => {
