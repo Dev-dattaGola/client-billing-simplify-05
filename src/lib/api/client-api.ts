@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Client } from '@/types/client';
 import { toast } from 'sonner';
@@ -46,12 +45,17 @@ export interface Communication {
 
 export const clientsApi = {
   // Get all clients
-  getClients: async (): Promise<Client[]> => {
+  getClients: async (includeDropped: boolean = false): Promise<Client[]> => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('clients')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      if (!includeDropped) {
+        query = query.eq('is_dropped', false).or('is_dropped.is.null');
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching clients:', error);
@@ -70,12 +74,15 @@ export const clientsApi = {
         tags: client.tags || [],
         createdAt: client.created_at,
         updatedAt: client.updated_at,
+        isDropped: client.is_dropped || false,
+        droppedDate: client.dropped_date || '',
+        droppedReason: client.dropped_reason || '',
+        assignedAttorneyId: client.assigned_attorney_id || '',
         // Extended properties with default values
         accountNumber: `A${client.id.substring(0, 3)}`,
         dateOfBirth: '',
         profilePhoto: '',
         caseStatus: 'Initial Consultation',
-        assignedAttorneyId: '',
         accidentDate: '',
         accidentLocation: '',
         injuryType: '',
@@ -87,6 +94,55 @@ export const clientsApi = {
       })) || [];
     } catch (error) {
       console.error('Failed to fetch clients:', error);
+      return [];
+    }
+  },
+
+  // Get dropped clients
+  getDroppedClients: async (): Promise<Client[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('is_dropped', true)
+        .order('dropped_date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching dropped clients:', error);
+        throw error;
+      }
+
+      return data?.map(client => ({
+        id: client.id,
+        fullName: client.full_name,
+        email: client.email,
+        phone: client.phone || '',
+        companyName: client.company_name || '',
+        address: client.address || '',
+        notes: client.notes || '',
+        tags: client.tags || [],
+        createdAt: client.created_at,
+        updatedAt: client.updated_at,
+        isDropped: client.is_dropped || false,
+        droppedDate: client.dropped_date || '',
+        droppedReason: client.dropped_reason || '',
+        assignedAttorneyId: client.assigned_attorney_id || '',
+        // Extended properties with default values
+        accountNumber: `A${client.id.substring(0, 3)}`,
+        dateOfBirth: '',
+        profilePhoto: '',
+        caseStatus: 'Dropped',
+        accidentDate: '',
+        accidentLocation: '',
+        injuryType: '',
+        caseDescription: '',
+        insuranceCompany: '',
+        insurancePolicyNumber: '',
+        insuranceAdjusterName: '',
+        dateRegistered: client.created_at?.split('T')[0] || ''
+      })) || [];
+    } catch (error) {
+      console.error('Failed to fetch dropped clients:', error);
       return [];
     }
   },
@@ -118,12 +174,15 @@ export const clientsApi = {
         tags: data.tags || [],
         createdAt: data.created_at,
         updatedAt: data.updated_at,
+        isDropped: data.is_dropped || false,
+        droppedDate: data.dropped_date || '',
+        droppedReason: data.dropped_reason || '',
+        assignedAttorneyId: data.assigned_attorney_id || '',
         // Extended properties with default values
         accountNumber: `A${data.id.substring(0, 3)}`,
         dateOfBirth: '',
         profilePhoto: '',
-        caseStatus: 'Initial Consultation',
-        assignedAttorneyId: '',
+        caseStatus: data.is_dropped ? 'Dropped' : 'Initial Consultation',
         accidentDate: '',
         accidentLocation: '',
         injuryType: '',
@@ -180,7 +239,9 @@ export const clientsApi = {
             company_name: clientData.companyName,
             address: clientData.address,
             notes: clientData.notes,
-            tags: clientData.tags || []
+            tags: clientData.tags || [],
+            is_dropped: false,
+            assigned_attorney_id: clientData.assignedAttorneyId || null
           }
         ])
         .select()
@@ -204,6 +265,8 @@ export const clientsApi = {
         tags: clientRecord.tags || [],
         createdAt: clientRecord.created_at,
         updatedAt: clientRecord.updated_at,
+        isDropped: false,
+        assignedAttorneyId: clientRecord.assigned_attorney_id || '',
         accountNumber: `A${clientRecord.id.substring(0, 3)}`,
         dateRegistered: clientRecord.created_at?.split('T')[0] || ''
       };
@@ -227,6 +290,23 @@ export const clientsApi = {
         tags: clientData.tags,
         updated_at: new Date().toISOString()
       };
+
+      // Add dropped and transfer fields if they exist
+      if (clientData.isDropped !== undefined) {
+        supabaseData.is_dropped = clientData.isDropped;
+      }
+
+      if (clientData.droppedDate) {
+        supabaseData.dropped_date = clientData.droppedDate;
+      }
+
+      if (clientData.droppedReason) {
+        supabaseData.dropped_reason = clientData.droppedReason;
+      }
+
+      if (clientData.assignedAttorneyId) {
+        supabaseData.assigned_attorney_id = clientData.assignedAttorneyId;
+      }
 
       const { data: updatedClient, error } = await supabase
         .from('clients')
@@ -252,6 +332,10 @@ export const clientsApi = {
         tags: updatedClient.tags || [],
         createdAt: updatedClient.created_at,
         updatedAt: updatedClient.updated_at,
+        isDropped: updatedClient.is_dropped || false,
+        droppedDate: updatedClient.dropped_date || '',
+        droppedReason: updatedClient.dropped_reason || '',
+        assignedAttorneyId: updatedClient.assigned_attorney_id || '',
         accountNumber: `A${updatedClient.id.substring(0, 3)}`,
         dateRegistered: updatedClient.created_at?.split('T')[0] || ''
       };

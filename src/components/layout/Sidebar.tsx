@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -16,7 +16,8 @@ import {
   Calculator,
   FileSearch,
   Gavel,
-  Shield
+  Shield,
+  UserMinus
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -26,6 +27,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const { hasPermission, currentUser } = useAuth();
+  const location = useLocation();
   
   // Define which roles can access which items
   const roleBasedNavItems = [
@@ -39,6 +41,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Clients', 
       path: '/clients', 
       icon: <Users size={20} />,
+      roles: ['admin', 'attorney'] 
+    },
+    { 
+      title: 'Dropped Clients', 
+      path: '/dropped-clients', 
+      icon: <UserMinus size={20} />,
       roles: ['admin', 'attorney'] 
     },
     { 
@@ -132,7 +140,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 
   const getUserRole = (user: any) => {
     if (!user) return "";
-    return user.user_metadata?.role || 'client';
+    return user.role || user.user_metadata?.role || 'client';
   };
 
   return (
@@ -152,7 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
         {roleBasedNavItems
           .filter(item => {
-            const userRole = currentUser?.user_metadata?.role || 'client';
+            const userRole = getUserRole(currentUser);
             return !currentUser || item.roles.includes(userRole);
           })
           .map((item) => (

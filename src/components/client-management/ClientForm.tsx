@@ -1,13 +1,30 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { X, Save, Plus, Eye, EyeOff } from "lucide-react";
+import { X, Save, Plus, Eye, EyeOff, UserMinus, ArrowRightLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -18,6 +35,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Client } from "@/types/client";
+import { Attorney } from '@/types/attorney';
+import { useClient } from "@/contexts/ClientContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ClientFormProps {
   initialData: Client | null;
@@ -57,6 +77,20 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   const [currentTag, setCurrentTag] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isDropDialogOpen, setIsDropDialogOpen] = useState(false);
+  const [dropReason, setDropReason] = useState("");
+  const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  const [selectedAttorneyId, setSelectedAttorneyId] = useState("");
+  
+  const { attorneys, handleDropClient, handleTransferClient, loadAttorneys } = useClient();
+  const { currentUser } = useAuth();
+  
+  const userRole = currentUser?.role || currentUser?.user_metadata?.role;
+  const isAdminOrAttorney = userRole === 'admin' || userRole === 'attorney';
+
+  useEffect(() => {
+    loadAttorneys();
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -106,6 +140,22 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
     }
   };
 
+  const handleDropSubmit = () => {
+    if (initialData && dropReason.trim()) {
+      handleDropClient(initialData.id, dropReason);
+      setIsDropDialogOpen(false);
+      onCancel();
+    }
+  };
+
+  const handleTransferSubmit = () => {
+    if (initialData && selectedAttorneyId) {
+      handleTransferClient(initialData.id, selectedAttorneyId);
+      setIsTransferDialogOpen(false);
+      onCancel();
+    }
+  };
+
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -115,209 +165,306 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="fullName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full Name *</FormLabel>
-                <FormControl>
-                  <Input placeholder="John Doe" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email *</FormLabel>
-                <FormControl>
-                  <Input placeholder="john.doe@example.com" type="email" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone Number *</FormLabel>
-                <FormControl>
-                  <Input placeholder="(555) 123-4567" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="companyName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Company Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Acme Inc." {...field} />
-                </FormControl>
-                <FormDescription>Optional</FormDescription>
-              </FormItem>
-            )}
-          />
+    <>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="john.doe@example.com" type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(555) 123-4567" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="companyName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Company Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Acme Inc." {...field} />
+                  </FormControl>
+                  <FormDescription>Optional</FormDescription>
+                </FormItem>
+              )}
+            />
 
-          {!initialData && (
-            <>
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter password" 
-                          type={showPassword ? "text" : "password"} 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm" 
-                        className="absolute right-0 top-0 h-full px-3"
-                        onClick={togglePasswordVisibility}
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    <FormDescription>Set a password for client account</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {!initialData && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <div className="relative">
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter password" 
+                            type={showPassword ? "text" : "password"} 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm" 
+                          className="absolute right-0 top-0 h-full px-3"
+                          onClick={togglePasswordVisibility}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                      <FormDescription>Set a password for client account</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <div className="relative">
-                      <FormControl>
-                        <Input 
-                          placeholder="Confirm password" 
-                          type={showConfirmPassword ? "text" : "password"} 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm" 
-                        className="absolute right-0 top-0 h-full px-3"
-                        onClick={toggleConfirmPasswordVisibility}
-                      >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </>
-          )}
-          
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>Address</FormLabel>
-                <FormControl>
-                  <Input placeholder="123 Main St, Anytown, USA" {...field} />
-                </FormControl>
-                <FormDescription>Optional</FormDescription>
-              </FormItem>
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <div className="relative">
+                        <FormControl>
+                          <Input 
+                            placeholder="Confirm password" 
+                            type={showConfirmPassword ? "text" : "password"} 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm" 
+                          className="absolute right-0 top-0 h-full px-3"
+                          onClick={toggleConfirmPasswordVisibility}
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
-          />
-          
-          <div className="md:col-span-2">
-            <FormLabel>Tags</FormLabel>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map(tag => (
-                <Badge key={tag} variant="secondary" className="gap-1">
-                  {tag}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => handleRemoveTag(tag)}
-                  />
-                </Badge>
-              ))}
+            
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input placeholder="123 Main St, Anytown, USA" {...field} />
+                  </FormControl>
+                  <FormDescription>Optional</FormDescription>
+                </FormItem>
+              )}
+            />
+            
+            <div className="md:col-span-2">
+              <FormLabel>Tags</FormLabel>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {tags.map(tag => (
+                  <Badge key={tag} variant="secondary" className="gap-1">
+                    {tag}
+                    <X 
+                      className="h-3 w-3 cursor-pointer" 
+                      onClick={() => handleRemoveTag(tag)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add tags (e.g., commercial, personal injury)"
+                  value={currentTag}
+                  onChange={(e) => setCurrentTag(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                />
+                <Button 
+                  type="button" 
+                  size="icon" 
+                  onClick={handleAddTag}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Press Enter or click + to add a tag
+              </p>
             </div>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add tags (e.g., commercial, personal injury)"
-                value={currentTag}
-                onChange={(e) => setCurrentTag(e.target.value)}
-                onKeyDown={handleKeyPress}
-              />
-              <Button 
-                type="button" 
-                size="icon" 
-                onClick={handleAddTag}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              Press Enter or click + to add a tag
-            </p>
+            
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Add any additional notes or information about the client..."
+                      className="min-h-[120px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>Optional</FormDescription>
+                </FormItem>
+              )}
+            />
           </div>
           
-          <FormField
-            control={form.control}
-            name="notes"
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>Notes</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Add any additional notes or information about the client..."
-                    className="min-h-[120px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>Optional</FormDescription>
-              </FormItem>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+            
+            {initialData && isAdminOrAttorney && (
+              <>
+                <Dialog open={isDropDialogOpen} onOpenChange={setIsDropDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="destructive" type="button" className="gap-2">
+                      <UserMinus className="h-4 w-4" />
+                      Drop Client
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Drop Client</DialogTitle>
+                      <DialogDescription>
+                        Are you sure you want to drop this client? This action moves the client to the dropped clients list.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <FormLabel htmlFor="dropReason">Reason for dropping client</FormLabel>
+                      <Textarea
+                        id="dropReason"
+                        value={dropReason}
+                        onChange={(e) => setDropReason(e.target.value)}
+                        placeholder="Please provide a reason for dropping this client..."
+                        className="mt-2"
+                      />
+                    </div>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="outline" type="button">Cancel</Button>
+                      </DialogClose>
+                      <Button 
+                        variant="destructive" 
+                        type="button"
+                        onClick={handleDropSubmit}
+                        disabled={!dropReason.trim()}
+                      >
+                        Drop Client
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="secondary" type="button" className="gap-2">
+                      <ArrowRightLeft className="h-4 w-4" />
+                      Transfer Client
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Transfer Client</DialogTitle>
+                      <DialogDescription>
+                        Select an attorney to transfer this client to.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <FormLabel htmlFor="attorney">Select Attorney</FormLabel>
+                      <Select 
+                        onValueChange={setSelectedAttorneyId} 
+                        defaultValue={selectedAttorneyId}
+                      >
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select an attorney" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {attorneys
+                            .filter(attorney => attorney.id !== initialData?.assignedAttorneyId)
+                            .map((attorney) => (
+                              <SelectItem key={attorney.id} value={attorney.id}>
+                                {attorney.fullName}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="outline" type="button">Cancel</Button>
+                      </DialogClose>
+                      <Button 
+                        variant="default" 
+                        type="button"
+                        onClick={handleTransferSubmit}
+                        disabled={!selectedAttorneyId}
+                      >
+                        Transfer Client
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </>
             )}
-          />
-        </div>
-        
-        <div className="flex justify-end gap-2">
-          <Button 
-            type="button" 
-            variant="outline"
-            onClick={onCancel}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" className="gap-2">
-            <Save className="h-4 w-4" />
-            {initialData ? "Update Client" : "Save Client"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+            
+            <Button type="submit" className="gap-2">
+              <Save className="h-4 w-4" />
+              {initialData ? "Update Client" : "Save Client"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </>
   );
 };
 
