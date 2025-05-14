@@ -2,9 +2,12 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 
-const Index: React.FC = () => {
-  // Use a simple redirect instead of any state changes that might trigger re-renders
+// Using React.memo to prevent unnecessary re-renders
+const Index: React.FC = React.memo(() => {
+  // Use a simple redirect without any state changes or hooks
   return <Navigate to="/dashboard" replace />;
-};
+});
+
+Index.displayName = "Index";
 
 export default Index;

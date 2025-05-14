@@ -3,12 +3,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 export function useLayoutSize() {
   // Use state for only what needs to trigger re-renders
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 1024);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(window.innerWidth >= 1024);
   
   // Use refs for tracking state that shouldn't trigger re-renders
-  const isInitializedRef = useRef<boolean>(false);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitializedRef = useRef<boolean>(true);
+  const debounceTimerRef = useRef<number | null>(null);
   
   // Memoized function to check for mobile size
   const checkMobileSize = useCallback(() => {
@@ -21,15 +21,8 @@ export function useLayoutSize() {
       // Only auto-close sidebar on mobile if already initialized
       if (mobile && isInitializedRef.current) {
         setIsSidebarOpen(false);
-      }
-    }
-    
-    // Mark as initialized after first check
-    if (!isInitializedRef.current) {
-      isInitializedRef.current = true;
-      // Initialize sidebar state based on screen size
-      if (mobile) {
-        setIsSidebarOpen(false);
+      } else if (!mobile && isInitializedRef.current) {
+        setIsSidebarOpen(true);
       }
     }
   }, [isMobile]);
@@ -42,10 +35,10 @@ export function useLayoutSize() {
     // Set up debounced resize handler
     const handleResize = () => {
       if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+        window.clearTimeout(debounceTimerRef.current);
       }
       
-      debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = window.setTimeout(() => {
         checkMobileSize();
       }, 250);
     };
@@ -55,7 +48,7 @@ export function useLayoutSize() {
     // Cleanup function
     return () => {
       if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+        window.clearTimeout(debounceTimerRef.current);
       }
       window.removeEventListener('resize', handleResize);
     };

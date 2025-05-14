@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
@@ -12,7 +12,7 @@ interface PageLayoutProps {
   children: React.ReactNode;
 }
 
-const PageLayout: React.FC<PageLayoutProps> = React.memo(({ children }) => {
+const PageLayout = React.memo<PageLayoutProps>(({ children }) => {
   const { isSidebarOpen, isMobile, toggleSidebar } = useLayoutSize();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ const PageLayout: React.FC<PageLayoutProps> = React.memo(({ children }) => {
   }, [navigate]);
   
   // Memoize login content
-  const loginContent = React.useMemo(() => (
+  const loginContent = useMemo(() => (
     <div className="p-8 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4 text-center">Welcome to LYZ Law Firm</h1>
       <p className="text-gray-600 mb-6 text-center">Please log in to access this page.</p>

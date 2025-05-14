@@ -14,10 +14,17 @@ const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isM
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
+  // Memoize the login handler to prevent recreation on each render
   const handleLoginClick = React.useCallback(() => {
     navigate('/login');
   }, [navigate]);
   
+  // Pre-compute className to avoid recreation on each render
+  const mainClassName = `flex-1 bg-gray-50 overflow-y-auto transition-all duration-300 ${
+    isSidebarOpen && !isMobile ? 'ml-60' : 'ml-0'
+  }`;
+
+  // Different content for authenticated vs unauthenticated users
   if (!isAuthenticated) {
     return (
       <main className="flex-1 bg-gray-50 overflow-y-auto">
@@ -38,11 +45,6 @@ const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isM
       </main>
     );
   }
-
-  // Pre-compute className to avoid recreation on each render
-  const mainClassName = `flex-1 bg-gray-50 overflow-y-auto transition-all duration-300 ${
-    isSidebarOpen && !isMobile ? 'ml-60' : 'ml-0'
-  }`;
 
   return (
     <main className={mainClassName}>

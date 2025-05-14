@@ -16,26 +16,34 @@ const DashboardOverview = () => {
   const [showCalculator, setShowCalculator] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
-  const fetchStartedRef = useRef(false);
   const { toast } = useToast();
+  
+  // Use ref to prevent multiple fetch calls
+  const hasBeenInitialized = useRef(false);
 
   // Use useEffect with proper cleanup and fetch tracking to prevent multiple fetches
   useEffect(() => {
+    // Only fetch if we haven't already
+    if (hasBeenInitialized.current) return;
+    
+    hasBeenInitialized.current = true;
+    
+    // Create a flag to track component mount status
     let isMounted = true;
     
     const fetchData = async () => {
-      if (fetchStartedRef.current) return;
-      
-      fetchStartedRef.current = true;
-      
       try {
         const fetchedClients = await clientsApi.getClients();
+        
+        // Only update state if component is still mounted
         if (isMounted) {
           setClients(fetchedClients);
           setLoading(false);
         }
       } catch (error) {
         console.error("Failed to fetch clients:", error);
+        
+        // Only update state if component is still mounted
         if (isMounted) {
           toast({
             title: "Error",
@@ -46,24 +54,23 @@ const DashboardOverview = () => {
         }
       }
     };
-
-    const timer = setTimeout(() => {
-      if (isMounted) {
-        fetchData();
-      }
-    }, 100);
-
+    
+    // Use setTimeout to slightly delay the fetch to prevent render issues
+    const timer = setTimeout(fetchData, 100);
+    
+    // Cleanup function to prevent state updates after unmount
     return () => {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [toast]);
+  }, [toast]); // Only depend on toast
 
   // Memoize toggle function to prevent recreation on each render
   const toggleCalculator = useCallback(() => {
     setShowCalculator(prev => !prev);
   }, []);
 
+  // Default tab value for the tabs component
   const defaultTabValue = "billings";
 
   // Memoize calculator content to prevent unnecessary re-renders
