@@ -12,7 +12,7 @@ interface PageLayoutProps {
 
 const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   const { isSidebarOpen, isMobile, setIsSidebarOpen, toggleSidebar } = useLayoutSize();
-  const { isAuthenticated, currentUser } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   // Memoize this to prevent unnecessary re-renders
   const handleToggleSidebar = useCallback(() => {

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import PageLayout from '@/frontend/components/layout/PageLayout';
+import PageLayout from '@/components/layout/PageLayout';
 import ClientManagement from "@/components/client-management/ClientManagement";
 import { ClientProvider } from '@/contexts/ClientContext';
 import { EnhancedButton } from '@/components/ui/enhanced-button';

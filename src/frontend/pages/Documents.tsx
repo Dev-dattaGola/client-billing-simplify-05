@@ -1,5 +1,5 @@
 
-import PageLayout from "@/frontend/components/layout/PageLayout";
+import PageLayout from "@/components/layout/PageLayout";
 import DocumentsManagement from "@/components/documents/DocumentsManagement";
 
 const Documents = () => {

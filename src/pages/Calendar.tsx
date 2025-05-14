@@ -1,7 +1,7 @@
 
+import { Helmet } from "react-helmet-async";
 import PageLayout from "@/components/layout/PageLayout";
 import CalendarManagement from "@/components/calendar/CalendarManagement";
-import { Helmet } from "react-helmet-async";
 
 const Calendar = () => {
   return (
@@ -21,15 +21,6 @@ const Calendar = () => {
           <CalendarManagement />
         </div>
       </div>
-      
-      <footer className="px-4 py-6 border-t text-sm text-muted-foreground mt-8">
-        <div className="container mx-auto flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">LAW ERP 500</span> | Calendar System
-          </div>
-          <div className="text-sm">© 2023-2025 All rights reserved.</div>
-        </div>
-      </footer>
     </PageLayout>
   );
 };
