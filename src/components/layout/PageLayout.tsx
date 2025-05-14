@@ -1,5 +1,5 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, memo } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import MainContent from './MainContent';
@@ -10,11 +10,12 @@ interface PageLayoutProps {
   children: React.ReactNode;
 }
 
-const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
+// Used memo to prevent unnecessary re-renders
+const PageLayout: React.FC<PageLayoutProps> = memo(({ children }) => {
   const { isSidebarOpen, isMobile, setIsSidebarOpen, toggleSidebar } = useLayoutSize();
   const { isAuthenticated } = useAuth();
 
-  // Memoize this to prevent unnecessary re-renders
+  // Memoize toggle handler to prevent re-renders
   const handleToggleSidebar = useCallback(() => {
     toggleSidebar();
   }, [toggleSidebar]);
@@ -44,6 +45,8 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
       </div>
     </div>
   );
-};
+});
+
+PageLayout.displayName = "PageLayout";
 
 export default PageLayout;

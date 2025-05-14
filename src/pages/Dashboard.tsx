@@ -11,26 +11,22 @@ const Dashboard: React.FC = () => {
   const { currentUser, isAuthenticated } = useAuth();
   
   useEffect(() => {
-    // Simple initialization check
+    // Simple initialization check with a shorter timeout
     if (isAuthenticated && currentUser) {
-      console.log("Dashboard: User authenticated", currentUser);
+      console.log("Dashboard: User authenticated", currentUser?.role);
       setIsLoading(false);
     } else {
-      console.log("Dashboard: Authentication status:", isAuthenticated);
-      setTimeout(() => setIsLoading(false), 500); // Safety timeout
+      console.log("Dashboard: Authentication pending...");
+      // Reduced timeout for faster feedback
+      const timer = setTimeout(() => setIsLoading(false), 300);
+      return () => clearTimeout(timer); // Clean up timer
     }
   }, [isAuthenticated, currentUser]);
-
-  useEffect(() => {
-    // Just to verify the component is mounting
-    console.log("Dashboard component mounted");
-    return () => console.log("Dashboard component unmounted");
-  }, []);
 
   if (isLoading) {
     return (
       <PageLayout>
-        <div className="flex h-full w-full items-center justify-center">
+        <div className="flex h-[calc(100vh-5rem)] w-full items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <span className="ml-2">Loading dashboard...</span>
         </div>
@@ -43,7 +39,7 @@ const Dashboard: React.FC = () => {
       <Helmet>
         <title>Dashboard - LAWerp500</title>
       </Helmet>
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         <DashboardOverview />
       </div>
     </PageLayout>

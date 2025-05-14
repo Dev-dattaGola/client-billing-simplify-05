@@ -8,17 +8,17 @@ interface MainContentProps {
   isMobile: boolean;
 }
 
-// Use React.memo to prevent re-renders when props don't change
+// Used memo to prevent unnecessary re-renders
 const MainContent = memo<MainContentProps>(({ children, isSidebarOpen, isMobile }) => {
   return (
-    <div 
+    <main 
       className={cn(
-        "flex-1 overflow-y-auto transition-all duration-300",
+        "flex-1 p-4 transition-all duration-300 overflow-y-auto bg-background",
         isMobile ? "w-full" : (isSidebarOpen ? "ml-60" : "ml-16")
       )}
     >
       {children}
-    </div>
+    </main>
   );
 });
 

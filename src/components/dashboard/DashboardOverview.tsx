@@ -10,6 +10,7 @@ import ClientAnalyticsChart from "./ClientAnalyticsChart";
 import { clientsApi } from "@/lib/api/mongodb-api";
 import { Client } from "@/types/client";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const DashboardOverview = () => {
   const [showCalculator, setShowCalculator] = useState(false);
@@ -36,7 +37,16 @@ const DashboardOverview = () => {
     };
 
     fetchClients();
+    
+    // Add cleanup function
+    return () => {
+      // Any cleanup needed
+    };
   }, [toast]);
+
+  const toggleCalculator = () => {
+    setShowCalculator(prev => !prev);
+  };
 
   return (
     <div className="space-y-8">
@@ -50,14 +60,25 @@ const DashboardOverview = () => {
       <Card>
         <CardContent className="p-6">
           {loading ? (
-            <div className="h-80 flex items-center justify-center">
-              <p className="text-muted-foreground">Loading client data...</p>
+            <div className="space-y-4">
+              <Skeleton className="h-[300px] w-full" />
             </div>
           ) : (
             <ClientAnalyticsChart />
           )}
         </CardContent>
       </Card>
+
+      <div className="flex justify-end">
+        <Button 
+          onClick={toggleCalculator} 
+          variant="outline"
+          className="flex items-center gap-1"
+        >
+          {showCalculator ? "Hide Calculator" : "Show Lien Calculator"}
+          <ChevronDown className={`h-4 w-4 transition-transform ${showCalculator ? 'rotate-180' : ''}`} />
+        </Button>
+      </div>
 
       {showCalculator && (
         <Card>
@@ -75,7 +96,11 @@ const DashboardOverview = () => {
           <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
         <TabsContent value="billings">
-          <BillingTable />
+          {loading ? (
+            <Skeleton className="h-[300px] w-full" />
+          ) : (
+            <BillingTable />
+          )}
         </TabsContent>
         <TabsContent value="clients">
           <Card>
