@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import RoleBasedLayout from "../layout/RoleBasedLayout";
 import { useNavigate } from "react-router-dom";
+import { Client } from "@/types/client";
 
 const ClientManagement = () => {
   const { 
@@ -190,7 +191,7 @@ const ClientManagement = () => {
         className="w-full"
       >
         <div className="border-b px-6 py-2">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="view">View Clients</TabsTrigger>
             <TabsTrigger value="add">{clientToEdit ? "Edit Client" : "Add Client"}</TabsTrigger>
           </TabsList>
@@ -227,17 +228,17 @@ const ClientManagement = () => {
           {clientListTab === "active" ? (
             <ClientList 
               clients={clients} 
-              onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
+              onEditClient={startEditClient}
               onViewClient={handleViewClient}
-              onDeleteClient={(client) => hasPermission('edit:clients') ? handleDeleteClient(client) : null}
+              onDeleteClient={handleDeleteClient}
               loading={loading}
             />
           ) : (
             <ClientList 
               clients={droppedClients} 
-              onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
+              onEditClient={startEditClient}
               onViewClient={handleViewClient}
-              onDeleteClient={(client) => hasPermission('edit:clients') ? handleDeleteClient(client) : null}
+              onDeleteClient={handleDeleteClient}
               loading={loading}
               showDroppedInfo={true}
             />
@@ -293,12 +294,12 @@ const ClientManagement = () => {
           <div className="mt-4">
             <ClientList 
               clients={clients} 
-              onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
+              onEditClient={startEditClient}
               onViewClient={(client) => {
                 handleViewClient(client);
                 setIsSearchOpen(false);
               }}
-              onDeleteClient={(client) => hasPermission('edit:clients') ? handleDeleteClient(client) : null}
+              onDeleteClient={handleDeleteClient}
               loading={loading}
             />
           </div>

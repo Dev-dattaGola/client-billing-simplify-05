@@ -24,7 +24,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface ClientListProps {
   clients: Client[];
-  onEditClient: (clientId: string) => void;
+  onEditClient: (client: Client) => void;
   onViewClient: (client: Client) => void;
   onDeleteClient: (clientId: string) => void;
   loading?: boolean;
