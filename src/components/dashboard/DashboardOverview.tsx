@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -38,9 +38,13 @@ const DashboardOverview = () => {
   useEffect(() => {
     let isMounted = true;
     
-    if (loading && isMounted) {
-      fetchClients();
-    }
+    const loadData = async () => {
+      if (loading && isMounted) {
+        await fetchClients();
+      }
+    };
+    
+    loadData();
     
     return () => {
       isMounted = false;
@@ -50,6 +54,9 @@ const DashboardOverview = () => {
   const toggleCalculator = useCallback(() => {
     setShowCalculator(prev => !prev);
   }, []);
+
+  // Using useMemo to memoize the initial tab value
+  const defaultTabValue = useMemo(() => "billings", []);
 
   return (
     <div className="space-y-8">
@@ -89,7 +96,7 @@ const DashboardOverview = () => {
         </Card>
       )}
 
-      <Tabs defaultValue="billings">
+      <Tabs defaultValue={defaultTabValue}>
         <TabsList className="mb-4">
           <TabsTrigger value="billings">Billings</TabsTrigger>
           <TabsTrigger value="clients">Clients</TabsTrigger>

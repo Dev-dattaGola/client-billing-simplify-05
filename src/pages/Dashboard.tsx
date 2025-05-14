@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useCallback, memo } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import PageLayout from '@/components/layout/PageLayout';
 import DashboardOverview from '@/components/dashboard/DashboardOverview';
@@ -35,20 +35,13 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     
-    // Using a single timeout to prevent multiple state updates
     const timer = setTimeout(() => {
       if (isMounted) {
-        if (isAuthenticated && currentUser) {
-          console.log("Dashboard: User authenticated", currentUser?.role);
-        } else {
-          console.log("Dashboard: Authentication pending...");
-        }
-        // Always set loading to false after a delay, regardless of auth state
+        console.log("Dashboard: Authentication state", { isAuthenticated, currentUser: currentUser?.role });
         setIsLoading(false);
       }
-    }, 500);
+    }, 800); // Increased timeout for more stable behavior
     
-    // Cleanup function to prevent state updates on unmounted component
     return () => {
       isMounted = false;
       clearTimeout(timer);
@@ -65,4 +58,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default React.memo(Dashboard);
+export default memo(Dashboard);

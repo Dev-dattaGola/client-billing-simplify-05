@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
 export const useLayoutSize = () => {
-  // State initialization in hooks should be as simple as possible
+  // Use function for initial state to prevent unnecessary recalculations
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 1024);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
   
@@ -11,26 +11,28 @@ export const useLayoutSize = () => {
     const mobile = window.innerWidth < 1024;
     setIsMobile(mobile);
     
-    // Only auto-collapse on mobile if the sidebar was actually open
+    // Only auto-collapse on mobile if the sidebar was actually open and we're transitioning to mobile
     if (mobile && isSidebarOpen) {
       setIsSidebarOpen(false);
     }
   }, [isSidebarOpen]);
   
   useEffect(() => {
-    // Initial check
-    checkIfMobile();
-    
-    // Use better, more optimized event listener management with debouncing
-    let resizeTimer: number | null = null;
+    // Use proper debouncing for resize events
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
     
     const handleResize = () => {
       if (resizeTimer !== null) {
         clearTimeout(resizeTimer);
       }
       // Using a debounced timeout for better performance
-      resizeTimer = window.setTimeout(checkIfMobile, 250);
+      resizeTimer = setTimeout(() => {
+        checkIfMobile();
+      }, 250);
     };
+    
+    // Initial check
+    checkIfMobile();
     
     window.addEventListener('resize', handleResize);
     
