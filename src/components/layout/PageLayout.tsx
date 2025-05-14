@@ -1,5 +1,5 @@
 
-import React, { useCallback, memo, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
@@ -13,7 +13,7 @@ interface PageLayoutProps {
 }
 
 // Memoize the entire component to prevent unnecessary re-renders
-const PageLayout: React.FC<PageLayoutProps> = memo(({ children }) => {
+const PageLayout: React.FC<PageLayoutProps> = React.memo(({ children }) => {
   const { isSidebarOpen, isMobile, toggleSidebar } = useLayoutSize();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ const PageLayout: React.FC<PageLayoutProps> = memo(({ children }) => {
     toggleSidebar();
   }, [toggleSidebar]);
   
-  // Pre-compute the login content - static content that doesn't change
+  // Pre-compute the login content
   const loginContent = useMemo(() => (
     <div className="p-8 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4 text-center">Welcome to LYZ Law Firm</h1>
@@ -39,19 +39,22 @@ const PageLayout: React.FC<PageLayoutProps> = memo(({ children }) => {
     </div>
   ), [navigate]);
 
-  // Conditionally prepare the content based on authentication state
+  // Conditionally prepare the content
   const content = isAuthenticated ? children : loginContent;
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar toggleSidebar={handleToggleSidebar} />
       <div className="flex flex-1 mt-16 h-[calc(100vh-4rem)]">
-        <Sidebar 
-          isCollapsed={!isSidebarOpen} 
-          setIsCollapsed={toggleSidebar}
-        />
+        {/* Only render Sidebar when authenticated */}
+        {isAuthenticated && (
+          <Sidebar 
+            isCollapsed={!isSidebarOpen} 
+            setIsCollapsed={toggleSidebar}
+          />
+        )}
         <MainContent 
-          isSidebarOpen={isSidebarOpen} 
+          isSidebarOpen={isAuthenticated ? isSidebarOpen : false} 
           isMobile={isMobile}
         >
           {content}

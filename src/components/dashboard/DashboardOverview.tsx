@@ -24,7 +24,6 @@ const DashboardOverview = () => {
   const fetchClients = useCallback(async () => {
     // Guard against duplicate fetches
     if (fetchInitiated.current) return;
-    
     fetchInitiated.current = true;
     
     try {
@@ -79,6 +78,27 @@ const DashboardOverview = () => {
   // Memoize default tab value
   const defaultTabValue = useMemo(() => "billings", []);
 
+  // Memoize the calculator content
+  const calculatorContent = useMemo(() => {
+    if (!showCalculator) return null;
+    
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <LienCalculator />
+        </CardContent>
+      </Card>
+    );
+  }, [showCalculator]);
+
+  // Memoize the billing content
+  const billingContent = useMemo(() => {
+    if (loading) {
+      return <Skeleton className="h-[300px] w-full" />;
+    }
+    return <BillingTable />;
+  }, [loading]);
+
   return (
     <div className="space-y-8">
       <div className="space-y-3 pt-2">
@@ -109,13 +129,7 @@ const DashboardOverview = () => {
         </Button>
       </div>
 
-      {showCalculator && (
-        <Card>
-          <CardContent className="p-6">
-            <LienCalculator />
-          </CardContent>
-        </Card>
-      )}
+      {calculatorContent}
 
       <Tabs defaultValue={defaultTabValue}>
         <TabsList className="mb-4">
@@ -125,11 +139,7 @@ const DashboardOverview = () => {
           <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
         <TabsContent value="billings">
-          {loading ? (
-            <Skeleton className="h-[300px] w-full" />
-          ) : (
-            <BillingTable />
-          )}
+          {billingContent}
         </TabsContent>
         <TabsContent value="clients">
           <Card>

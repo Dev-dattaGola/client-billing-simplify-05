@@ -1,5 +1,5 @@
 
-import React, { memo } from 'react';
+import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface MainContentProps {
@@ -8,8 +8,8 @@ interface MainContentProps {
   isMobile: boolean;
 }
 
-// Pure memoized component to prevent unnecessary re-renders
-const MainContent = memo<MainContentProps>(({ children, isSidebarOpen, isMobile }) => {
+// Using React.memo to prevent unnecessary re-renders
+const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isMobile }) => {
   return (
     <main className={cn(
       "flex-1 bg-gray-50 overflow-y-auto transition-all duration-300",

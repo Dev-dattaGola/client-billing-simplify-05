@@ -5,19 +5,20 @@ export function useLayoutSize() {
   const [isMobile, setIsMobile] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const initialCheckDone = useRef(false);
-  const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
+  const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Memoized mobile check function to prevent unnecessary renders
+  // Memoized mobile check function
   const checkIfMobile = useCallback(() => {
+    if (!isMountedRef.current) return;
+    
     const mobile = window.innerWidth < 1024;
     
     // Only update if different to prevent re-renders
-    if (mobile !== isMobile && isMountedRef.current) {
+    if (mobile !== isMobile) {
       setIsMobile(mobile);
       
-      // Auto-collapse sidebar only when switching to mobile from desktop
-      // and only if initial check hasn't been done or sidebar is open
+      // Auto-collapse sidebar when switching to mobile
       if (mobile && (isSidebarOpen || !initialCheckDone.current)) {
         setIsSidebarOpen(false);
       }
@@ -29,9 +30,8 @@ export function useLayoutSize() {
     }
   }, [isMobile, isSidebarOpen]);
   
-  // Initial check - run once after mount with a small delay
+  // Initial check - run once after mount
   useEffect(() => {
-    // Set up mounted ref
     isMountedRef.current = true;
     
     // Only run this once
@@ -39,7 +39,6 @@ export function useLayoutSize() {
       const timer = setTimeout(checkIfMobile, 10);
       return () => {
         clearTimeout(timer);
-        isMountedRef.current = false;
       };
     }
     
@@ -75,7 +74,7 @@ export function useLayoutSize() {
     };
   }, [checkIfMobile]);
 
-  // Memoize toggle function with stable reference
+  // Memoize toggle function
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(prev => !prev);
   }, []);
