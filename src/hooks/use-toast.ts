@@ -1,9 +1,6 @@
 
 import * as React from "react";
-import { 
-  ToastActionElement, 
-  ToastProps 
-} from "@/components/ui/toast";
+import { ToastActionElement, ToastProps } from "@/components/ui/toast";
 
 const TOAST_LIMIT = 5;
 const TOAST_REMOVE_DELAY = 1000000;
@@ -74,7 +71,6 @@ const reducer = (state: State, action: Action): State => {
     case actionTypes.DISMISS_TOAST: {
       const { toastId } = action;
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action
       if (toastId) {
         addToRemoveQueue(toastId);
       } else {

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { useChatbot } from '@/contexts/ChatbotContext';
 import { MessageCircle, Scale } from 'lucide-react';
@@ -10,6 +10,7 @@ const ChatbotButton: React.FC = () => {
   const { isOpen, openChatbot, setCurrentRoute } = useChatbot();
   const location = useLocation();
   const { toast } = useToast();
+  const hasShownNotification = useRef(false);
   
   // Update current route when location changes
   useEffect(() => {
@@ -31,7 +32,9 @@ const ChatbotButton: React.FC = () => {
   useEffect(() => {
     const hasSeenChatNotification = localStorage.getItem('hasSeenChatNotification');
     
-    if (!hasSeenChatNotification && location.pathname !== '/login') {
+    if (!hasSeenChatNotification && location.pathname !== '/login' && !hasShownNotification.current) {
+      hasShownNotification.current = true;
+      
       const timer = setTimeout(() => {
         toast({
           title: "Legal Assistant Available",
