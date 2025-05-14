@@ -149,7 +149,7 @@ const Sidebar = memo<SidebarProps>(({ isCollapsed, setIsCollapsed }) => {
   return (
     <div 
       className={cn(
-        "border-r border-border h-screen transition-all duration-300 flex flex-col bg-gray-100 dark:bg-gray-900 sticky top-0 z-10",
+        "border-r border-sidebar-border h-screen transition-all duration-300 flex flex-col bg-sidebar text-sidebar-foreground sticky top-0 z-10",
         isCollapsed ? "w-16" : "w-60"
       )}
     >
@@ -172,7 +172,7 @@ const Sidebar = memo<SidebarProps>(({ isCollapsed, setIsCollapsed }) => {
                 "hover:bg-lawfirm-light-blue hover:text-lawfirm-dark-purple",
                 isActive 
                   ? "bg-lawfirm-light-blue text-lawfirm-dark-purple font-medium" 
-                  : "text-gray-700 dark:text-gray-300",
+                  : "text-sidebar-foreground",
                 isCollapsed && "justify-center px-0"
               )}
             >

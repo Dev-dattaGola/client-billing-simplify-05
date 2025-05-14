@@ -37,13 +37,18 @@ const Dashboard: React.FC = () => {
       setIsLoading(false);
     } else {
       console.log("Dashboard: Authentication pending...");
-      const timer = setTimeout(() => setIsLoading(false), 200); // Even shorter timeout
-      return () => clearTimeout(timer);
+      // Use a single timeout that doesn't get recreated unnecessarily
+      setIsLoading(false);
     }
   }, [isAuthenticated, currentUser]);
 
   useEffect(() => {
-    initializeDashboard();
+    // Only run once
+    const timer = setTimeout(() => {
+      initializeDashboard();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [initializeDashboard]);
 
   return (
