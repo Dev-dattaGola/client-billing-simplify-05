@@ -1,10 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import MainContent from './MainContent';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLayoutSize } from '@/hooks/useLayoutSize';
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -19,7 +18,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (mobile) {
+      if (mobile && !isSidebarCollapsed) {
         setIsSidebarCollapsed(true);
       }
     };
@@ -30,6 +29,10 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
+  }, [isSidebarCollapsed]);
+
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarCollapsed(prev => !prev);
   }, []);
 
   if (!isAuthenticated) {
@@ -45,7 +48,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+      <Navbar toggleSidebar={toggleSidebar} />
       <div className="flex flex-1 mt-16 h-[calc(100vh-4rem)]">
         <Sidebar 
           isCollapsed={isSidebarCollapsed} 
