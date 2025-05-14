@@ -8,4 +8,7 @@ export interface User {
   assignedAttorneyId?: string;
   assignedClientIds?: string[];
   permissions: string[];
+  isDropped?: boolean;
+  droppedReason?: string;
+  droppedAt?: string;
 }
