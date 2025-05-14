@@ -38,8 +38,9 @@ const DashboardOverview = () => {
   useEffect(() => {
     let isMounted = true;
     
+    // Only fetch once when component mounts
     const loadData = async () => {
-      if (loading && isMounted) {
+      if (isMounted) {
         await fetchClients();
       }
     };
@@ -49,7 +50,7 @@ const DashboardOverview = () => {
     return () => {
       isMounted = false;
     };
-  }, [fetchClients, loading]);
+  }, []); // Empty dependency array to run only once
 
   const toggleCalculator = useCallback(() => {
     setShowCalculator(prev => !prev);

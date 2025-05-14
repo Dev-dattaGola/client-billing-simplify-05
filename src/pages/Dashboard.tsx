@@ -34,19 +34,18 @@ const Dashboard: React.FC = () => {
   // Fixed useEffect to prevent re-renders
   useEffect(() => {
     let isMounted = true;
-    
     const timer = setTimeout(() => {
       if (isMounted) {
         console.log("Dashboard: Authentication state", { isAuthenticated, currentUser: currentUser?.role });
         setIsLoading(false);
       }
-    }, 800); // Increased timeout for more stable behavior
+    }, 1000); // Increased timeout for more stable behavior
     
     return () => {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [isAuthenticated, currentUser]);
+  }, []); // Empty dependency array to run only once
 
   return (
     <PageLayout>

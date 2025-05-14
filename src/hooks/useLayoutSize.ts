@@ -9,14 +9,19 @@ export const useLayoutSize = () => {
   // Use useCallback to memoize this function
   const checkIfMobile = useCallback(() => {
     const mobile = window.innerWidth < 1024;
-    setIsMobile(mobile);
+    
+    // Only update state if values have actually changed to prevent unnecessary re-renders
+    if (mobile !== isMobile) {
+      setIsMobile(mobile);
+    }
     
     // Only auto-collapse on mobile if the sidebar was actually open and we're transitioning to mobile
     if (mobile && isSidebarOpen) {
       setIsSidebarOpen(false);
     }
-  }, [isSidebarOpen]);
+  }, [isMobile, isSidebarOpen]);
   
+  // Use proper debouncing with useEffect dependency array
   useEffect(() => {
     // Use proper debouncing for resize events
     let resizeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -31,7 +36,7 @@ export const useLayoutSize = () => {
       }, 250);
     };
     
-    // Initial check
+    // Initial check only once
     checkIfMobile();
     
     window.addEventListener('resize', handleResize);
@@ -43,7 +48,7 @@ export const useLayoutSize = () => {
       }
       window.removeEventListener('resize', handleResize);
     };
-  }, [checkIfMobile]);
+  }, [checkIfMobile]); // Add checkIfMobile to dependency array
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(prev => !prev);

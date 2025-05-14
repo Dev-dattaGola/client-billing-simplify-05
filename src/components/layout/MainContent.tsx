@@ -10,14 +10,14 @@ interface MainContentProps {
 
 // Used memo to prevent unnecessary re-renders
 const MainContent = memo<MainContentProps>(({ children, isSidebarOpen, isMobile }) => {
-  // Wrap the children in a container to better control the rendering
+  // Using computed class name that doesn't change on each render
+  const contentClassName = cn(
+    "flex-1 p-4 transition-all duration-300 overflow-y-auto bg-background",
+    isMobile ? "w-full" : (isSidebarOpen ? "ml-60" : "ml-16")
+  );
+  
   return (
-    <main 
-      className={cn(
-        "flex-1 p-4 transition-all duration-300 overflow-y-auto bg-background",
-        isMobile ? "w-full" : (isSidebarOpen ? "ml-60" : "ml-16")
-      )}
-    >
+    <main className={contentClassName}>
       {children}
     </main>
   );

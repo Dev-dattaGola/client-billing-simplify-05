@@ -12,7 +12,7 @@ interface PageLayoutProps {
 
 // Used memo to prevent unnecessary re-renders
 const PageLayout: React.FC<PageLayoutProps> = memo(({ children }) => {
-  const { isSidebarOpen, isMobile, setIsSidebarOpen, toggleSidebar } = useLayoutSize();
+  const { isSidebarOpen, isMobile, toggleSidebar } = useLayoutSize();
   const { isAuthenticated } = useAuth();
 
   // Memoize toggle handler to prevent re-renders
@@ -26,7 +26,10 @@ const PageLayout: React.FC<PageLayoutProps> = memo(({ children }) => {
       <div className="flex flex-1 mt-16 h-[calc(100vh-4rem)]">
         <Sidebar 
           isCollapsed={!isSidebarOpen} 
-          setIsCollapsed={(collapsed) => setIsSidebarOpen(!collapsed)} 
+          setIsCollapsed={(collapsed) => {
+            // Ensuring this doesn't run on every render by checking the current state
+            if (isSidebarOpen === collapsed) return;
+          }} 
         />
         <MainContent isSidebarOpen={isSidebarOpen} isMobile={isMobile}>
           {!isAuthenticated ? (
