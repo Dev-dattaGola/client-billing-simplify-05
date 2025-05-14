@@ -39,6 +39,10 @@ const Clients = () => {
     toast.success('Client data refreshed');
   };
 
+  const navigateToDroppedClients = () => {
+    navigate('/dropped-clients');
+  };
+
   return (
     <PageLayout>
       <Helmet>
@@ -84,6 +88,14 @@ const Clients = () => {
               successText="Clients exported successfully"
             >
               <FileDown className="h-4 w-4 mr-1" /> Export
+            </EnhancedButton>
+            
+            <EnhancedButton 
+              variant="outline"
+              size="sm"
+              onClick={navigateToDroppedClients}
+            >
+              Dropped Clients
             </EnhancedButton>
             
             <EnhancedButton 

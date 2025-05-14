@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Client } from '@/types/client';
 import { Attorney } from '@/types/attorney';
@@ -66,10 +65,16 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       if (error) throw error;
       
       if (data) {
-        const mappedAttorneys: Attorney[] = data.map(attorney => ({
+        const mappedAttorneys = data.map(attorney => ({
           id: attorney.id,
           fullName: attorney.full_name,
-          email: attorney.email
+          email: attorney.email,
+          firstName: attorney.full_name.split(' ')[0],
+          lastName: attorney.full_name.split(' ').slice(1).join(' '),
+          phone: '',
+          isActive: true,
+          createdAt: '',
+          updatedAt: ''
         }));
         setAttorneys(mappedAttorneys);
       }
@@ -256,10 +261,9 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
           client.id === clientId ? updatedClient : client
         ));
         
-        // If the transferred client was selected, clear the selection
+        // If the transferred client was selected, update the selection
         if (selectedClient && selectedClient.id === clientId) {
-          setSelectedClient(null);
-          setActiveTab("view");
+          setSelectedClient(updatedClient);
         }
         
         toast({
