@@ -226,7 +226,7 @@ const LandingPage: React.FC = () => {
         <div className="container mx-auto max-w-7xl">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-semibold mb-4">LYZ Law Firm</h3>
+              <h3 className="text-xl font-semibold mb-4">LAWerp500</h3>
               <p className="text-white/70">
                 Advanced law firm management system designed for desktop performance.
               </p>
