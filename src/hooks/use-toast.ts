@@ -13,7 +13,7 @@ export interface Toast {
 
 interface ToastContext {
   toasts: Toast[];
-  toast: (toast: Omit<Toast, "id">) => void;
+  toast: (toast: Omit<Toast, "id">) => string;
   dismiss: (toastId: string) => void;
 }
 
