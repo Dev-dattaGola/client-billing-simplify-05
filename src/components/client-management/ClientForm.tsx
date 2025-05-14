@@ -1,9 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { X, Save, Plus, Eye, EyeOff } from "lucide-react";
+import { X, Save, Plus, Eye, EyeOff, UserX, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,11 +18,32 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Client } from "@/types/client";
+import { Attorney } from "@/types/attorney";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "@/hooks/use-toast";
 
 interface ClientFormProps {
   initialData: Client | null;
   onSubmit: (data: any) => void;
   onCancel: () => void;
+  onDropClient?: (clientId: string, reason: string) => void;
+  onTransferClient?: (clientId: string, newAttorneyId: string) => void;
+  attorneys?: Attorney[];
 }
 
 const formSchema = z.object({
@@ -52,11 +73,22 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
+const ClientForm = ({ 
+  initialData, 
+  onSubmit, 
+  onCancel, 
+  onDropClient, 
+  onTransferClient,
+  attorneys = []
+}: ClientFormProps) => {
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [currentTag, setCurrentTag] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [dropReason, setDropReason] = useState("");
+  const [selectedAttorney, setSelectedAttorney] = useState("");
+  const [showDropDialog, setShowDropDialog] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -113,6 +145,33 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
+
+  const handleDropClient = () => {
+    if (!initialData) return;
+    if (!dropReason.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide a reason for dropping the client.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    onDropClient?.(initialData.id, dropReason);
+    setShowDropDialog(false);
+  };
+
+  const handleTransferClient = () => {
+    if (!initialData || !selectedAttorney) return;
+    
+    onTransferClient?.(initialData.id, selectedAttorney);
+    setShowTransferDialog(false);
+  };
+
+  // Filter out the current attorney from the list
+  const availableAttorneys = attorneys.filter(attorney => 
+    attorney.id !== initialData?.assignedAttorneyId
+  );
 
   return (
     <Form {...form}>
@@ -303,18 +362,113 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
           />
         </div>
         
-        <div className="flex justify-end gap-2">
-          <Button 
-            type="button" 
-            variant="outline"
-            onClick={onCancel}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" className="gap-2">
-            <Save className="h-4 w-4" />
-            {initialData ? "Update Client" : "Save Client"}
-          </Button>
+        <div className="flex justify-between gap-2">
+          {/* Client management actions - only show for existing clients */}
+          {initialData && onDropClient && onTransferClient && (
+            <div className="flex gap-2">
+              {/* Drop Client Dialog */}
+              <Dialog open={showDropDialog} onOpenChange={setShowDropDialog}>
+                <DialogTrigger asChild>
+                  <Button type="button" variant="outline" className="text-red-500 border-red-300 hover:bg-red-50 hover:text-red-600">
+                    <UserX className="h-4 w-4 mr-1" /> Drop Client
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Drop Client</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to drop {initialData.fullName} as a client? 
+                      This action will remove them from your active client list.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="py-4">
+                    <FormLabel htmlFor="drop-reason">Reason for dropping client</FormLabel>
+                    <Textarea
+                      id="drop-reason"
+                      placeholder="Please provide a reason for dropping this client..."
+                      value={dropReason}
+                      onChange={(e) => setDropReason(e.target.value)}
+                      className="mt-2"
+                    />
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowDropDialog(false)}>Cancel</Button>
+                    <Button variant="destructive" onClick={handleDropClient}>
+                      Confirm Drop
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
+              {/* Transfer Client Dialog */}
+              <Dialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
+                <DialogTrigger asChild>
+                  <Button type="button" variant="outline">
+                    <UserPlus className="h-4 w-4 mr-1" /> Transfer Client
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Transfer Client</DialogTitle>
+                    <DialogDescription>
+                      Transfer {initialData.fullName} to another attorney in your firm.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="py-4">
+                    {availableAttorneys.length > 0 ? (
+                      <>
+                        <FormLabel htmlFor="attorney-select">Select Attorney</FormLabel>
+                        <Select value={selectedAttorney} onValueChange={setSelectedAttorney}>
+                          <SelectTrigger className="mt-2">
+                            <SelectValue placeholder="Select an attorney" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableAttorneys.map((attorney) => (
+                              <SelectItem key={attorney.id} value={attorney.id}>
+                                {attorney.fullName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </>
+                    ) : (
+                      <p className="text-center py-2 text-muted-foreground">
+                        No other attorneys available for transfer.
+                      </p>
+                    )}
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowTransferDialog(false)}>Cancel</Button>
+                    <Button 
+                      onClick={handleTransferClient} 
+                      disabled={!selectedAttorney || availableAttorneys.length === 0}
+                    >
+                      Transfer Client
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
+          
+          {/* Form submission/cancel actions */}
+          <div className="flex gap-2 ml-auto">
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" className="gap-2">
+              <Save className="h-4 w-4" />
+              {initialData ? "Update Client" : "Save Client"}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Client } from '@/types/client';
+import { Attorney } from '@/types/attorney';
 import { toast } from 'sonner';
 
 // Define additional types needed by the components
@@ -68,6 +68,10 @@ export const clientsApi = {
         address: client.address || '',
         notes: client.notes || '',
         tags: client.tags || [],
+        isDropped: client.is_dropped || false,
+        droppedDate: client.dropped_date || null,
+        droppedReason: client.dropped_reason || '',
+        assignedAttorneyId: client.assigned_attorney_id || '',
         createdAt: client.created_at,
         updatedAt: client.updated_at,
         // Extended properties with default values
@@ -75,7 +79,6 @@ export const clientsApi = {
         dateOfBirth: '',
         profilePhoto: '',
         caseStatus: 'Initial Consultation',
-        assignedAttorneyId: '',
         accidentDate: '',
         accidentLocation: '',
         injuryType: '',
@@ -87,6 +90,41 @@ export const clientsApi = {
       })) || [];
     } catch (error) {
       console.error('Failed to fetch clients:', error);
+      return [];
+    }
+  },
+
+  // Get all attorneys
+  getAttorneys: async (): Promise<Attorney[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('attorneys')
+        .select('*')
+        .order('full_name', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching attorneys:', error);
+        throw error;
+      }
+
+      // Convert snake_case to camelCase
+      return data?.map(attorney => ({
+        id: attorney.id,
+        firstName: attorney.full_name.split(' ')[0] || '',
+        lastName: attorney.full_name.split(' ').slice(1).join(' ') || '',
+        fullName: attorney.full_name,
+        email: attorney.email,
+        phone: attorney.phone || '',
+        specialization: attorney.specialization || '',
+        bio: attorney.bio || '',
+        office_location: attorney.office_location || '',
+        yearsOfExperience: attorney.years_of_experience || 0,
+        isActive: true,
+        createdAt: attorney.created_at,
+        updatedAt: attorney.updated_at
+      })) || [];
+    } catch (error) {
+      console.error('Failed to fetch attorneys:', error);
       return [];
     }
   },
@@ -116,6 +154,10 @@ export const clientsApi = {
         address: data.address || '',
         notes: data.notes || '',
         tags: data.tags || [],
+        isDropped: data.is_dropped || false,
+        droppedDate: data.dropped_date || null,
+        droppedReason: data.dropped_reason || '',
+        assignedAttorneyId: data.assigned_attorney_id || '',
         createdAt: data.created_at,
         updatedAt: data.updated_at,
         // Extended properties with default values
@@ -123,7 +165,6 @@ export const clientsApi = {
         dateOfBirth: '',
         profilePhoto: '',
         caseStatus: 'Initial Consultation',
-        assignedAttorneyId: '',
         accidentDate: '',
         accidentLocation: '',
         injuryType: '',
@@ -202,6 +243,8 @@ export const clientsApi = {
         address: clientRecord.address || '',
         notes: clientRecord.notes || '',
         tags: clientRecord.tags || [],
+        isDropped: false,
+        assignedAttorneyId: '',
         createdAt: clientRecord.created_at,
         updatedAt: clientRecord.updated_at,
         accountNumber: `A${clientRecord.id.substring(0, 3)}`,
@@ -250,6 +293,10 @@ export const clientsApi = {
         address: updatedClient.address || '',
         notes: updatedClient.notes || '',
         tags: updatedClient.tags || [],
+        isDropped: updatedClient.is_dropped || false,
+        droppedDate: updatedClient.dropped_date || null,
+        droppedReason: updatedClient.dropped_reason || '',
+        assignedAttorneyId: updatedClient.assigned_attorney_id || '',
         createdAt: updatedClient.created_at,
         updatedAt: updatedClient.updated_at,
         accountNumber: `A${updatedClient.id.substring(0, 3)}`,
@@ -278,6 +325,98 @@ export const clientsApi = {
     } catch (error) {
       console.error('Failed to delete client:', error);
       return false;
+    }
+  },
+
+  // Drop client
+  dropClient: async (id: string, reason: string): Promise<Client | null> => {
+    try {
+      const now = new Date().toISOString();
+      
+      const { data: updatedClient, error } = await supabase
+        .from('clients')
+        .update({
+          is_dropped: true,
+          dropped_date: now,
+          dropped_reason: reason,
+          updated_at: now
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error dropping client:', error);
+        throw error;
+      }
+
+      // Convert back to app Client format
+      return {
+        id: updatedClient.id,
+        fullName: updatedClient.full_name,
+        email: updatedClient.email,
+        phone: updatedClient.phone || '',
+        companyName: updatedClient.company_name || '',
+        address: updatedClient.address || '',
+        notes: updatedClient.notes || '',
+        tags: updatedClient.tags || [],
+        isDropped: updatedClient.is_dropped,
+        droppedDate: updatedClient.dropped_date,
+        droppedReason: updatedClient.dropped_reason,
+        assignedAttorneyId: updatedClient.assigned_attorney_id || '',
+        createdAt: updatedClient.created_at,
+        updatedAt: updatedClient.updated_at,
+        accountNumber: `A${updatedClient.id.substring(0, 3)}`,
+        dateRegistered: updatedClient.created_at?.split('T')[0] || ''
+      };
+    } catch (error) {
+      console.error('Failed to drop client:', error);
+      return null;
+    }
+  },
+
+  // Transfer client to another attorney
+  transferClient: async (id: string, newAttorneyId: string): Promise<Client | null> => {
+    try {
+      const now = new Date().toISOString();
+      
+      const { data: updatedClient, error } = await supabase
+        .from('clients')
+        .update({
+          assigned_attorney_id: newAttorneyId,
+          updated_at: now
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error transferring client:', error);
+        throw error;
+      }
+
+      // Convert back to app Client format
+      return {
+        id: updatedClient.id,
+        fullName: updatedClient.full_name,
+        email: updatedClient.email,
+        phone: updatedClient.phone || '',
+        companyName: updatedClient.company_name || '',
+        address: updatedClient.address || '',
+        notes: updatedClient.notes || '',
+        tags: updatedClient.tags || [],
+        isDropped: updatedClient.is_dropped || false,
+        droppedDate: updatedClient.dropped_date || null,
+        droppedReason: updatedClient.dropped_reason || '',
+        assignedAttorneyId: updatedClient.assigned_attorney_id,
+        createdAt: updatedClient.created_at,
+        updatedAt: updatedClient.updated_at,
+        accountNumber: `A${updatedClient.id.substring(0, 3)}`,
+        dateRegistered: updatedClient.created_at?.split('T')[0] || ''
+      };
+    } catch (error) {
+      console.error('Failed to transfer client:', error);
+      return null;
     }
   },
 
@@ -311,6 +450,7 @@ export const clientsApi = {
     ];
   },
 
+  // ... keep existing code (getAppointmentsByStatus, getDocuments, etc.)
   getAppointmentsByStatus: async (clientId: string, status: string): Promise<Appointment[]> => {
     const appointments = await clientsApi.getAppointments(clientId);
     return appointments.filter(apt => apt.visitStatus === status);

@@ -1,4 +1,5 @@
 
+// Create new client type file
 export interface Client {
   id: string;
   fullName: string;
@@ -8,15 +9,16 @@ export interface Client {
   address?: string;
   notes?: string;
   tags?: string[];
+  isDropped?: boolean;
+  droppedDate?: string;
+  droppedReason?: string;
+  assignedAttorneyId?: string;
   createdAt: string;
   updatedAt: string;
-  
-  // Extended client properties
   accountNumber?: string;
   dateOfBirth?: string;
   profilePhoto?: string;
   caseStatus?: string;
-  assignedAttorneyId?: string;
   accidentDate?: string;
   accidentLocation?: string;
   injuryType?: string;
@@ -25,13 +27,4 @@ export interface Client {
   insurancePolicyNumber?: string;
   insuranceAdjusterName?: string;
   dateRegistered?: string;
-}
-
-export interface ClientFilterParams {
-  search?: string;
-  tag?: string;
-  dateRange?: {
-    from?: Date;
-    to?: Date;
-  };
 }

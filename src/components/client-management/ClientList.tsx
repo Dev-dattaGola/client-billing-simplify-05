@@ -1,9 +1,5 @@
 
-import { useState } from "react";
-import { Search, Filter, Trash2, Edit, FileText, Tags, Loader2, Eye } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Client, ClientFilterParams } from "@/types/client";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -12,335 +8,204 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Client } from "@/types/client";
+import { MoreHorizontal, AlertTriangle, Calendar, FileText } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { format, isAfter, isBefore, isValid } from "date-fns";
-import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ClientListProps {
   clients: Client[];
-  onEditClient: (client: Client) => void;
+  onEditClient: (clientId: string) => void;
   onViewClient: (client: Client) => void;
   onDeleteClient: (clientId: string) => void;
   loading?: boolean;
+  showDroppedInfo?: boolean;
 }
 
-const ClientList = ({ clients, onEditClient, onViewClient, onDeleteClient, loading = false }: ClientListProps) => {
-  const [filterParams, setFilterParams] = useState<ClientFilterParams>({
-    search: "",
-    tag: undefined,
-    dateRange: undefined
-  });
-  const [showFilters, setShowFilters] = useState(false);
-  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
-  
-  const uniqueTags = [...new Set(clients.flatMap(client => client.tags || []))];
-  
-  const filteredClients = clients.filter(client => {
-    const searchMatch = !filterParams.search || 
-      client.fullName.toLowerCase().includes(filterParams.search.toLowerCase()) ||
-      client.email.toLowerCase().includes(filterParams.search.toLowerCase()) ||
-      client.companyName?.toLowerCase().includes(filterParams.search.toLowerCase()) ||
-      false;
-    
-    const tagMatch = !filterParams.tag || 
-      client.tags?.includes(filterParams.tag) || 
-      false;
-    
-    let dateMatch = true;
-    if (filterParams.dateRange?.from || filterParams.dateRange?.to) {
-      const createdDate = new Date(client.createdAt);
-      
-      if (filterParams.dateRange.from && isValid(filterParams.dateRange.from)) {
-        dateMatch = dateMatch && isAfter(createdDate, filterParams.dateRange.from);
-      }
-      
-      if (filterParams.dateRange.to && isValid(filterParams.dateRange.to)) {
-        dateMatch = dateMatch && isBefore(createdDate, filterParams.dateRange.to);
-      }
-    }
-    
-    return searchMatch && tagMatch && dateMatch;
+const ClientList: React.FC<ClientListProps> = ({
+  clients,
+  onEditClient,
+  onViewClient,
+  onDeleteClient,
+  loading = false,
+  showDroppedInfo = false
+}) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const { hasPermission } = useAuth();
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const filteredClients = clients.filter((client) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      client.fullName.toLowerCase().includes(searchLower) ||
+      client.email.toLowerCase().includes(searchLower) ||
+      client.phone?.toLowerCase().includes(searchLower) ||
+      client.companyName?.toLowerCase().includes(searchLower) ||
+      client.tags?.some((tag) => tag.toLowerCase().includes(searchLower))
+    );
   });
 
-  return (
-    <>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap gap-2">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search clients..."
-              className="pl-9"
-              value={filterParams.search}
-              onChange={(e) => setFilterParams({...filterParams, search: e.target.value})}
-            />
-          </div>
-          
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4" />
-            Filters
-          </Button>
+  if (loading) {
+    return (
+      <div>
+        <div className="pb-4">
+          <Skeleton className="h-10 w-full" />
         </div>
-        
-        {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
-            <div>
-              <p className="text-sm font-medium mb-2">Filter by Tag</p>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start gap-2">
-                    <Tags className="h-4 w-4" />
-                    {filterParams.tag || "Select Tag"}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setFilterParams({...filterParams, tag: undefined})}>
-                    All Tags
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {uniqueTags.map(tag => (
-                    <DropdownMenuItem 
-                      key={tag}
-                      onClick={() => setFilterParams({...filterParams, tag})}
-                    >
-                      {tag}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+        <div className="rounded-md border">
+          <div className="grid grid-cols-4 py-3 px-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Skeleton key={index} className="h-5 w-[80%]" />
+            ))}
+          </div>
+          {Array.from({ length: 5 }).map((_, rowIndex) => (
+            <div key={rowIndex} className="grid grid-cols-4 py-3 px-4 border-t">
+              {Array.from({ length: 4 }).map((_, cellIndex) => (
+                <Skeleton key={cellIndex} className="h-5 w-[80%]" />
+              ))}
             </div>
-            
-            <div>
-              <p className="text-sm font-medium mb-2">Created Date Range</p>
-              <div className="grid grid-cols-2 gap-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "justify-start text-left font-normal",
-                        !filterParams.dateRange?.from && "text-muted-foreground"
-                      )}
-                    >
-                      {filterParams.dateRange?.from ? (
-                        format(filterParams.dateRange.from, "PPP")
-                      ) : (
-                        "From date"
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={filterParams.dateRange?.from}
-                      onSelect={(date) =>
-                        setFilterParams({
-                          ...filterParams,
-                          dateRange: { 
-                            ...filterParams.dateRange,
-                            from: date
-                          }
-                        })
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "justify-start text-left font-normal",
-                        !filterParams.dateRange?.to && "text-muted-foreground"
-                      )}
-                    >
-                      {filterParams.dateRange?.to ? (
-                        format(filterParams.dateRange.to, "PPP")
-                      ) : (
-                        "To date"
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={filterParams.dateRange?.to}
-                      onSelect={(date) =>
-                        setFilterParams({
-                          ...filterParams,
-                          dateRange: {
-                            ...filterParams.dateRange,
-                            to: date
-                          }
-                        })
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-            
-            <div className="flex items-end">
-              <Button 
-                variant="ghost" 
-                onClick={() => setFilterParams({ search: "" })}
-              >
-                Reset Filters
-              </Button>
-            </div>
-          </div>
-        )}
-        
-        {loading ? (
-          <div className="text-center py-12 border rounded-lg bg-muted/20">
-            <Loader2 className="mx-auto h-12 w-12 text-muted-foreground opacity-50 animate-spin" />
-            <h3 className="mt-4 text-lg font-medium">Loading clients...</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Please wait while we fetch client data
-            </p>
-          </div>
-        ) : filteredClients.length === 0 ? (
-          <div className="text-center py-12 border rounded-lg bg-muted/20">
-            <FileText className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
-            <h3 className="mt-4 text-lg font-medium">No clients found</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Try adjusting your search or filter criteria
-            </p>
-          </div>
-        ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="hidden md:table-cell">Email</TableHead>
-                  <TableHead className="hidden md:table-cell">Phone</TableHead>
-                  <TableHead className="hidden md:table-cell">Company</TableHead>
-                  <TableHead className="hidden lg:table-cell">Tags</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredClients.map((client) => (
-                  <TableRow key={client.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium">
-                      {client.fullName}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {client.email}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {client.phone}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {client.companyName || "-"}
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <div className="flex flex-wrap gap-1">
-                        {client.tags?.map(tag => (
-                          <Badge key={tag} variant="outline">{tag}</Badge>
-                        ))}
-                        {!client.tags?.length && "-"}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => onViewClient(client)}
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="sr-only">View</span>
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => onEditClient(client)}
-                        >
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => setClientToDelete(client)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
-      
-      <Dialog 
-        open={!!clientToDelete} 
-        onOpenChange={(isOpen) => !isOpen && setClientToDelete(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Are you sure you want to delete this client?</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. This will permanently delete the client
-              and remove their data from our servers.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setClientToDelete(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                if (clientToDelete) {
-                  onDeleteClient(clientToDelete.id);
-                  setClientToDelete(null);
-                }
-              }}
-            >
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+    );
+  }
+
+  if (clients.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No clients found.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="pb-4">
+        <Input
+          placeholder="Search clients..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Client Name</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Tags</TableHead>
+              {showDroppedInfo && <TableHead>Dropped Date</TableHead>}
+              {showDroppedInfo && <TableHead>Reason</TableHead>}
+              <TableHead className="w-[80px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredClients.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={showDroppedInfo ? 6 : 4}
+                  className="text-center py-8"
+                >
+                  <p className="text-muted-foreground">No matching clients found.</p>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredClients.map((client) => (
+                <TableRow key={client.id}>
+                  <TableCell>
+                    <div>
+                      <div
+                        className="font-medium hover:underline cursor-pointer"
+                        onClick={() => onViewClient(client)}
+                      >
+                        {client.fullName}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {client.companyName}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <div>{client.email}</div>
+                      <div className="text-muted-foreground">{client.phone}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {client.tags?.map((tag) => (
+                        <Badge key={tag} variant="outline">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </TableCell>
+                  {showDroppedInfo && (
+                    <TableCell>
+                      {client.droppedDate ? new Date(client.droppedDate).toLocaleDateString() : 'N/A'}
+                    </TableCell>
+                  )}
+                  {showDroppedInfo && (
+                    <TableCell>
+                      <div className="max-w-xs truncate" title={client.droppedReason || ''}>
+                        {client.droppedReason || 'N/A'}
+                      </div>
+                    </TableCell>
+                  )}
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Open menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onViewClient(client)}>
+                          <FileText className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        {hasPermission('edit:clients') && (
+                          <DropdownMenuItem onClick={() => onEditClient(client)}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Edit Client
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onClick={() => onViewClient(client)}>
+                          <Calendar className="mr-2 h-4 w-4" />
+                          View Appointments
+                        </DropdownMenuItem>
+                        {hasPermission('edit:clients') && (
+                          <DropdownMenuItem
+                            onClick={() => onDeleteClient(client.id)}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <AlertTriangle className="mr-2 h-4 w-4" />
+                            Delete Client
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 };
 

@@ -12,7 +12,7 @@ import {
   SheetTitle 
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Search, Download, FileText, AlertTriangle, UserPlus } from 'lucide-react';
+import { Search, Download, FileText, AlertTriangle, UserPlus, UserX } from 'lucide-react';
 import ClientMedicalRecords from "./ClientMedicalRecords";
 import ClientDocuments from "./ClientDocuments";
 import ClientAppointments from "./ClientAppointments";
@@ -26,8 +26,10 @@ import { useNavigate } from "react-router-dom";
 const ClientManagement = () => {
   const { 
     clients,
+    droppedClients,
     selectedClient, 
     clientToEdit,
+    attorneys,
     loading,
     activeTab,
     activeDetailTab,
@@ -36,13 +38,16 @@ const ClientManagement = () => {
     handleAddClient,
     handleEditClient,
     handleDeleteClient,
+    handleDropClient,
+    handleTransferClient,
     handleViewClient,
     startEditClient,
-    clearClientToEdit
+    clearClientToEdit,
   } = useClient();
   
   const { hasPermission, currentUser } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [clientListTab, setClientListTab] = useState<"active" | "dropped">("active");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -192,7 +197,24 @@ const ClientManagement = () => {
         </div>
         
         <TabsContent value="view" className="p-6 space-y-4">
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-between mb-4">
+            <TabsList>
+              <TabsTrigger 
+                value="active" 
+                onClick={() => setClientListTab("active")}
+                className={clientListTab === "active" ? "bg-primary text-primary-foreground" : ""}
+              >
+                Active Clients
+              </TabsTrigger>
+              <TabsTrigger 
+                value="dropped" 
+                onClick={() => setClientListTab("dropped")}
+                className={clientListTab === "dropped" ? "bg-primary text-primary-foreground" : ""}
+              >
+                Dropped Clients {droppedClients.length > 0 && `(${droppedClients.length})`}
+              </TabsTrigger>
+            </TabsList>
+            
             <Button 
               onClick={handleAddNewClient} 
               className="flex items-center gap-2"
@@ -202,13 +224,24 @@ const ClientManagement = () => {
             </Button>
           </div>
           
-          <ClientList 
-            clients={clients} 
-            onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
-            onViewClient={handleViewClient}
-            onDeleteClient={(client) => hasPermission('edit:clients') ? handleDeleteClient(client) : null}
-            loading={loading}
-          />
+          {clientListTab === "active" ? (
+            <ClientList 
+              clients={clients} 
+              onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
+              onViewClient={handleViewClient}
+              onDeleteClient={(client) => hasPermission('edit:clients') ? handleDeleteClient(client) : null}
+              loading={loading}
+            />
+          ) : (
+            <ClientList 
+              clients={droppedClients} 
+              onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
+              onViewClient={handleViewClient}
+              onDeleteClient={(client) => hasPermission('edit:clients') ? handleDeleteClient(client) : null}
+              loading={loading}
+              showDroppedInfo={true}
+            />
+          )}
         </TabsContent>
         
         <RoleBasedLayout 
@@ -235,7 +268,10 @@ const ClientManagement = () => {
           <TabsContent value="add" className="p-6">
             <ClientForm 
               initialData={clientToEdit} 
-              onSubmit={clientToEdit ? handleEditClient : handleAddClient} 
+              onSubmit={clientToEdit ? handleEditClient : handleAddClient}
+              onDropClient={handleDropClient}
+              onTransferClient={handleTransferClient}
+              attorneys={attorneys}
               onCancel={() => {
                 clearClientToEdit();
                 setActiveTab("view");
