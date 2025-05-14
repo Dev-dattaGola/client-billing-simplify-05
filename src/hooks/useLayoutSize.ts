@@ -2,10 +2,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 export function useLayoutSize() {
-  // Use refs to track state without causing renders
   const [isMobile, setIsMobile] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const initialCheckDone = useRef(false);
+  
+  // Use refs to track state without causing renders
+  const initialCheckDoneRef = useRef(false);
   const isMountedRef = useRef(true);
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -21,14 +22,14 @@ export function useLayoutSize() {
       
       // Auto-collapse sidebar when switching to mobile
       // But only if we're not in the initial setup
-      if (mobile && initialCheckDone.current) {
+      if (mobile && initialCheckDoneRef.current) {
         setIsSidebarOpen(false);
       }
     }
     
     // Mark initial check as done
-    if (!initialCheckDone.current) {
-      initialCheckDone.current = true;
+    if (!initialCheckDoneRef.current) {
+      initialCheckDoneRef.current = true;
       
       // Initial mobile check - set sidebar state only once
       if (mobile && isSidebarOpen) {
