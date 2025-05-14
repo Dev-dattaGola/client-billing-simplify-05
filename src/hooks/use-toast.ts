@@ -6,7 +6,7 @@ type ToastProps = Toast & {
   title?: string;
   description?: string;
   variant?: "default" | "destructive";
-}
+};
 
 const ToastContext = createContext<{
   toast: (props: ToastProps) => void;
