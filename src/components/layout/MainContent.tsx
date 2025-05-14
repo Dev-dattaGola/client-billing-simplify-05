@@ -10,11 +10,14 @@ interface MainContentProps {
 
 // Using React.memo to prevent unnecessary re-renders
 const MainContent = React.memo<MainContentProps>(({ children, isSidebarOpen, isMobile }) => {
+  // Calculate the sidebar classes once instead of conditionally in the JSX
+  const mainClasses = cn(
+    "flex-1 bg-gray-50 overflow-y-auto transition-all duration-300",
+    isMobile ? "w-full" : (isSidebarOpen ? "ml-60" : "ml-0")
+  );
+
   return (
-    <main className={cn(
-      "flex-1 bg-gray-50 overflow-y-auto transition-all duration-300",
-      isMobile ? "w-full" : (isSidebarOpen ? "ml-60" : "ml-0")
-    )}>
+    <main className={mainClasses}>
       {children}
     </main>
   );

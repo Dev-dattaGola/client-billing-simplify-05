@@ -40,21 +40,23 @@ const PageLayout: React.FC<PageLayoutProps> = React.memo(({ children }) => {
   ), [navigate]);
 
   // Conditionally prepare the content
-  const content = isAuthenticated ? children : loginContent;
+  const content = useMemo(() => isAuthenticated ? children : loginContent, [isAuthenticated, children, loginContent]);
+  
+  // Conditionally determine whether the sidebar should be shown
+  const shouldShowSidebar = useMemo(() => isAuthenticated, [isAuthenticated]);
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar toggleSidebar={handleToggleSidebar} />
       <div className="flex flex-1 mt-16 h-[calc(100vh-4rem)]">
-        {/* Only render Sidebar when authenticated */}
-        {isAuthenticated && (
+        {shouldShowSidebar && (
           <Sidebar 
             isCollapsed={!isSidebarOpen} 
             setIsCollapsed={toggleSidebar}
           />
         )}
         <MainContent 
-          isSidebarOpen={isAuthenticated ? isSidebarOpen : false} 
+          isSidebarOpen={shouldShowSidebar ? isSidebarOpen : false} 
           isMobile={isMobile}
         >
           {content}

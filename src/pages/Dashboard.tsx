@@ -30,7 +30,7 @@ const Dashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const mountedRef = React.useRef(true);
   
-  // Use a single effect with cleanup
+  // Use a single effect with cleanup to avoid potential memory leaks
   useEffect(() => {
     // Reset mount status
     mountedRef.current = true;

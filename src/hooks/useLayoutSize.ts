@@ -8,7 +8,7 @@ export function useLayoutSize() {
   const isMountedRef = useRef(true);
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Memoized mobile check function
+  // Memoized mobile check function to prevent recreating on each render
   const checkIfMobile = useCallback(() => {
     if (!isMountedRef.current) return;
     
@@ -18,31 +18,38 @@ export function useLayoutSize() {
     if (mobile !== isMobile) {
       setIsMobile(mobile);
       
-      // Auto-collapse sidebar when switching to mobile
-      if (mobile && (isSidebarOpen || !initialCheckDone.current)) {
+      // Auto-collapse sidebar when switching to mobile - but only when not initial render
+      if (mobile && initialCheckDone.current) {
         setIsSidebarOpen(false);
+      } else if (initialCheckDone.current && !mobile && !isSidebarOpen) {
+        // Don't automatically expand when switching to desktop
+        // Let the user control this
       }
     }
     
     // Mark initial check as done
     if (!initialCheckDone.current) {
       initialCheckDone.current = true;
+      
+      // Handle initial mobile setup, but don't trigger a re-render if we don't need to
+      if (mobile && isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
     }
   }, [isMobile, isSidebarOpen]);
   
-  // Initial check - run once after mount
+  // Initial check - run once after mount with a small delay
   useEffect(() => {
     isMountedRef.current = true;
     
-    // Only run this once
-    if (!initialCheckDone.current) {
-      const timer = setTimeout(checkIfMobile, 10);
-      return () => {
-        clearTimeout(timer);
-      };
-    }
+    const timer = setTimeout(() => {
+      if (isMountedRef.current) {
+        checkIfMobile();
+      }
+    }, 10);
     
     return () => {
+      clearTimeout(timer);
       isMountedRef.current = false;
     };
   }, [checkIfMobile]);
@@ -59,7 +66,7 @@ export function useLayoutSize() {
           checkIfMobile();
         }
         resizeTimerRef.current = null;
-      }, 250);
+      }, 250); // 250ms debounce
     };
     
     window.addEventListener('resize', handleResize);
@@ -70,11 +77,10 @@ export function useLayoutSize() {
         clearTimeout(resizeTimerRef.current);
       }
       window.removeEventListener('resize', handleResize);
-      isMountedRef.current = false;
     };
   }, [checkIfMobile]);
 
-  // Memoize toggle function
+  // Memoize toggle function to prevent recreation on each render
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen(prev => !prev);
   }, []);
