@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,10 +42,13 @@ const DashboardOverview = () => {
 
   // Use a separate effect for data fetching to avoid rendering loops
   useEffect(() => {
-    if (!fetchInitiated.current) {
-      fetchClients();
-    }
-    // Only depend on fetchClients
+    const timer = setTimeout(() => {
+      if (!fetchInitiated.current) {
+        fetchClients();
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [fetchClients]);
 
   const toggleCalculator = useCallback(() => {

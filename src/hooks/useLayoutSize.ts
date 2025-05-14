@@ -28,18 +28,20 @@ export function useLayoutSize() {
     }
   }, [isMobile, isSidebarOpen]);
   
+  // Initial check - only run once
   useEffect(() => {
-    // Use a ref to ensure we don't run the initial check multiple times
+    // Only run if not done yet
     if (!initialCheckDone.current) {
-      // Initial check once on mount with a slight delay
-      const initialCheckTimeout = setTimeout(() => {
+      // Small delay to ensure window size is available
+      const timer = setTimeout(() => {
         checkIfMobile();
       }, 10);
       
-      return () => clearTimeout(initialCheckTimeout);
+      return () => clearTimeout(timer);
     }
   }, [checkIfMobile]);
   
+  // Handle window resize events with debounce
   useEffect(() => {
     const handleResize = () => {
       if (resizeTimerRef.current) {
