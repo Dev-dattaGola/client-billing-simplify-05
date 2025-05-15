@@ -1,6 +1,6 @@
 
-import { Toast, ToastActionElement, ToastProps } from "@/components/ui/toast";
 import * as React from "react";
+import { Toast, ToastActionElement, ToastProps } from "@/components/ui/toast";
 
 // Define toast context types
 type ToastType = ToastProps & {
@@ -13,12 +13,7 @@ type ToastType = ToastProps & {
 const TOAST_LIMIT = 5;
 const TOAST_REMOVE_DELAY = 5000;
 
-type ToasterToast = ToastType & {
-  id: string;
-  title?: React.ReactNode;
-  description?: React.ReactNode;
-  action?: ToastActionElement;
-};
+type ToasterToast = ToastType;
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
