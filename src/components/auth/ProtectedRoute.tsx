@@ -2,7 +2,7 @@
 import { ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { useAuthToast } from "@/hooks/useAuthToast";
 import LoadingScreen from "@/components/common/LoadingScreen";
 
 interface ProtectedRouteProps {
@@ -17,7 +17,7 @@ const ProtectedRoute = ({
   roles = [] 
 }: ProtectedRouteProps) => {
   const { isAuthenticated, currentUser, hasPermission, updateAuthState, isLoading } = useAuth();
-  const { toast } = useToast();
+  const { showAuthRequiredToast, showAccessDeniedToast } = useAuthToast();
   const location = useLocation();
   
   // Force auth state refresh on mount
@@ -29,11 +29,7 @@ const ProtectedRoute = ({
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to access this page.",
-          variant: "destructive",
-        });
+        showAuthRequiredToast();
       } else if (
         !(currentUser?.role === 'admin' || currentUser?.role === 'superadmin') && 
         requiredPermissions.length > 0 && 
@@ -41,14 +37,10 @@ const ProtectedRoute = ({
         roles.length > 0 && 
         !(currentUser?.role && roles.includes(currentUser.role))
       ) {
-        toast({
-          title: "Access Denied",
-          description: "You don't have permission to access this page.",
-          variant: "destructive",
-        });
+        showAccessDeniedToast();
       }
     }
-  }, [isLoading, isAuthenticated, currentUser, requiredPermissions, roles, hasPermission, toast]);
+  }, [isLoading, isAuthenticated, currentUser, requiredPermissions, roles, hasPermission, showAuthRequiredToast, showAccessDeniedToast]);
   
   // Show loading screen while checking authentication
   if (isLoading) {

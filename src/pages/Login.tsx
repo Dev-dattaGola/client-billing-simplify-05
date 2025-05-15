@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Info } from 'lucide-react';
 
 const Login: React.FC = () => {
   const { login, isAuthenticated, isLoading } = useAuth();
@@ -75,6 +75,20 @@ const Login: React.FC = () => {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
+                <div className="flex gap-2">
+                  <Info className="h-5 w-5 text-blue-500" />
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-800">Demo Accounts:</h4>
+                    <ul className="mt-1 text-sm text-blue-700">
+                      <li><strong>Admin:</strong> admin@lyzlawfirm.com / admin123</li>
+                      <li><strong>Attorney:</strong> attorney@lyzlawfirm.com / attorney123</li>
+                      <li><strong>Client:</strong> client@example.com / client123</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
