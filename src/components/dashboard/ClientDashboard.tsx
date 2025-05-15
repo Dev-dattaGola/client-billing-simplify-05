@@ -68,35 +68,31 @@ const ClientDashboard = () => {
 
         if (clientError) throw clientError;
 
-        // Get client cases
+        // Get client cases with proper type annotations
         const { data: casesData, error: casesError } = await supabase
-          .rpc('get_cases_by_client_id', { client_id: clientData.id });
+          .rpc<ClientCase[]>('get_cases_by_client_id', { client_id: clientData.id });
 
         if (casesError) {
           console.error("Error fetching cases:", casesError);
           setClientCases([]);
         } else {
-          // Safe type casting
-          const typedCasesData = casesData as ClientCase[];
-          setClientCases(typedCasesData || []);
+          setClientCases(casesData || []);
         }
 
-        // Get upcoming court dates
+        // Get upcoming court dates with proper type annotations
         const { data: datesData, error: datesError } = await supabase
-          .rpc('get_court_dates_by_client_id', { client_id: clientData.id });
+          .rpc<CourtDate[]>('get_court_dates_by_client_id', { client_id: clientData.id });
 
         if (datesError) {
           console.error("Error fetching court dates:", datesError);
           setCourtDates([]);
         } else {
-          // Safe type casting
-          const typedDatesData = datesData as CourtDate[];
-          setCourtDates(typedDatesData || []);
+          setCourtDates(datesData || []);
         }
 
-        // Get billing information
+        // Get billing information with proper type annotations
         const { data: billingData, error: billingError } = await supabase
-          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id });
+          .rpc<BillingInfo[]>('get_billing_summary_by_client_id', { client_id: clientData.id });
 
         if (billingError) {
           console.error("Error fetching billing info:", billingError);
@@ -107,10 +103,8 @@ const ClientDashboard = () => {
             pendingAmount: 0
           });
         } else {
-          // Type safely and check if we have data
-          const typedBillingData = billingData as BillingInfo[];
-          if (typedBillingData && typedBillingData.length > 0) {
-            setBillingInfo(typedBillingData[0]);
+          if (billingData && billingData.length > 0) {
+            setBillingInfo(billingData[0]);
           } else {
             setBillingInfo({
               totalHours: 0,
