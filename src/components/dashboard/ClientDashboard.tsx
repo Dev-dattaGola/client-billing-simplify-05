@@ -69,46 +69,44 @@ const ClientDashboard = () => {
 
         if (clientError) throw clientError;
 
-        // Get client cases - using a more generic approach
+        // Get client cases using RPC function
         const { data: cases, error: casesError } = await supabase
           .rpc('get_cases_by_client_id', { client_id: clientData.id });
 
         if (casesError) {
           console.error("Error fetching cases:", casesError);
-          // Fallback to an empty array if we couldn't get cases
           setClientCases([]);
         } else {
           setClientCases(cases || []);
         }
 
-        // Get upcoming court dates - using a more generic approach
+        // Get upcoming court dates using RPC function
         const { data: dates, error: datesError } = await supabase
           .rpc('get_court_dates_by_client_id', { client_id: clientData.id });
 
         if (datesError) {
           console.error("Error fetching court dates:", datesError);
-          // Fallback to an empty array if we couldn't get court dates
           setCourtDates([]);
         } else {
-          // Use dates directly since they should already have the structure we need
           setCourtDates(dates || []);
         }
 
-        // Get billing information - using a more generic approach
+        // Get billing information using RPC function
         const { data: billing, error: billingError } = await supabase
           .rpc('get_billing_summary_by_client_id', { client_id: clientData.id });
 
         if (billingError) {
           console.error("Error fetching billing info:", billingError);
-          // Set default values if we couldn't get the billing data
           setBillingInfo({
             totalHours: 0,
             totalAmount: 0,
             lastBilledDate: new Date().toISOString(),
             pendingAmount: 0
           });
+        } else if (billing && billing.length > 0) {
+          setBillingInfo(billing[0]);
         } else {
-          setBillingInfo(billing || {
+          setBillingInfo({
             totalHours: 0,
             totalAmount: 0,
             lastBilledDate: new Date().toISOString(),

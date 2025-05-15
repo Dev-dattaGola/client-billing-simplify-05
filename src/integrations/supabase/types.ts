@@ -59,6 +59,59 @@ export type Database = {
           },
         ]
       }
+      cases: {
+        Row: {
+          casenumber: string
+          casetype: string
+          clientid: string
+          courtdate: string | null
+          created_at: string
+          description: string | null
+          id: string
+          notes: string | null
+          opendate: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          casenumber: string
+          casetype: string
+          clientid: string
+          courtdate?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          opendate?: string
+          status: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          casenumber?: string
+          casetype?: string
+          clientid?: string
+          courtdate?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          opendate?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cases_clientid_fkey"
+            columns: ["clientid"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
