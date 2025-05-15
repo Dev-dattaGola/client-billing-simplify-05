@@ -43,8 +43,13 @@ const Login: React.FC = () => {
     }
 
     try {
-      // Check if login function expects rememberMe parameter
-      const success = await login(email, password);
+      // Pass login credentials as a single object parameter
+      const success = await login({
+        email,
+        password,
+        remember: rememberMe
+      });
+      
       if (!success) {
         setError('Invalid email or password');
       }
