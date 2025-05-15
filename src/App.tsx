@@ -1,6 +1,6 @@
 
 import React, { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
@@ -29,28 +29,26 @@ function App() {
     <HelmetProvider>
       <ToastProvider>
         <AuthProvider>
-          <Router>
-            <Suspense fallback={<LoadingScreen />}>
-              <Routes>
-                <Route path="/" element={<LoginPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/clients" element={<ClientsPage />} />
-                <Route path="/cases" element={<CasesPage />} />
-                <Route path="/documents" element={<DocumentsPage />} />
-                <Route path="/medical" element={<MedicalPage />} />
-                <Route path="/billing" element={<BillingPage />} />
-                <Route path="/reports" element={<ReportsPage />} />
-                <Route path="/calendar" element={<CalendarPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/depositions" element={<DepositionsPage />} />
-                <Route path="/firm-management" element={<FirmManagementPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/super-admin" element={<SuperAdminPage />} />
-              </Routes>
-            </Suspense>
-          </Router>
+          <Suspense fallback={<LoadingScreen />}>
+            <Routes>
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/clients" element={<ClientsPage />} />
+              <Route path="/cases" element={<CasesPage />} />
+              <Route path="/documents" element={<DocumentsPage />} />
+              <Route path="/medical" element={<MedicalPage />} />
+              <Route path="/billing" element={<BillingPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/depositions" element={<DepositionsPage />} />
+              <Route path="/firm-management" element={<FirmManagementPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/super-admin" element={<SuperAdminPage />} />
+            </Routes>
+          </Suspense>
           <Toaster />
         </AuthProvider>
       </ToastProvider>
