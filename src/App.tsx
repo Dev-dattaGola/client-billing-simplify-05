@@ -1,91 +1,58 @@
 
 import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { ClientProvider } from '@/contexts/ClientContext';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from "@/components/ui/toaster";
 import LoadingScreen from '@/components/common/LoadingScreen';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 // Lazy load pages
-const Login = React.lazy(() => import('@/pages/Login'));
-const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
-const Admin = React.lazy(() => import('@/pages/Admin'));
-const SuperAdmin = React.lazy(() => import('@/pages/SuperAdmin'));
-const Index = React.lazy(() => import('@/pages/Index'));
-const LandingPage = React.lazy(() => import('@/pages/LandingPage'));
-const Clients = React.lazy(() => import('@/pages/Clients'));
-const Cases = React.lazy(() => import('@/pages/Cases'));
-const Documents = React.lazy(() => import('@/pages/Documents'));
-const FirmManagement = React.lazy(() => import('@/pages/FirmManagement'));
+const LoginPage = React.lazy(() => import('@/pages/Login'));
+const RegisterPage = React.lazy(() => import('@/pages/Register'));
+const DashboardPage = React.lazy(() => import('@/pages/Dashboard'));
+const ClientsPage = React.lazy(() => import('@/pages/Clients'));
+const CasesPage = React.lazy(() => import('@/pages/Cases'));
+const DocumentsPage = React.lazy(() => import('@/pages/Documents'));
+const MedicalPage = React.lazy(() => import('@/pages/Medical'));
+const BillingPage = React.lazy(() => import('@/pages/Billing'));
+const ReportsPage = React.lazy(() => import('@/pages/Reports'));
+const CalendarPage = React.lazy(() => import('@/pages/Calendar'));
+const AdminPage = React.lazy(() => import('@/pages/Admin'));
+const DepositionsPage = React.lazy(() => import('@/pages/Depositions'));
+const FirmManagementPage = React.lazy(() => import('@/pages/FirmManagement'));
+const SettingsPage = React.lazy(() => import('@/pages/Settings'));
+const SuperAdminPage = React.lazy(() => import('@/pages/SuperAdmin'));
 
 function App() {
   return (
     <HelmetProvider>
-      <Helmet 
-        titleTemplate="%s | Lawerp500" 
-        defaultTitle="Lawerp500"
-      />
       <ToastProvider>
-        <ClientProvider>
-          <Suspense fallback={<LoadingScreen />}>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Index />} />
-              <Route path="/landing" element={<LandingPage />} />
-              
-              {/* Protected routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/admin" element={
-                <ProtectedRoute roles={['admin']}>
-                  <Admin />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/super-admin" element={
-                <ProtectedRoute roles={['superadmin']}>
-                  <SuperAdmin />
-                </ProtectedRoute>
-              } />
-              
-              {/* New routes for sidebar items */}
-              <Route path="/clients" element={
-                <ProtectedRoute>
-                  <Clients />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/cases" element={
-                <ProtectedRoute>
-                  <Cases />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/documents" element={
-                <ProtectedRoute>
-                  <Documents />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/firm-management" element={
-                <ProtectedRoute roles={['admin']}>
-                  <FirmManagement />
-                </ProtectedRoute>
-              } />
-              
-              {/* Fallback for unknown routes */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
+        <AuthProvider>
+          <Router>
+            <Suspense fallback={<LoadingScreen />}>
+              <Routes>
+                <Route path="/" element={<LoginPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/clients" element={<ClientsPage />} />
+                <Route path="/cases" element={<CasesPage />} />
+                <Route path="/documents" element={<DocumentsPage />} />
+                <Route path="/medical" element={<MedicalPage />} />
+                <Route path="/billing" element={<BillingPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/depositions" element={<DepositionsPage />} />
+                <Route path="/firm-management" element={<FirmManagementPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/super-admin" element={<SuperAdminPage />} />
+              </Routes>
+            </Suspense>
+          </Router>
           <Toaster />
-        </ClientProvider>
+        </AuthProvider>
       </ToastProvider>
     </HelmetProvider>
   );

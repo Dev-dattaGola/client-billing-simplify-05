@@ -1,84 +1,49 @@
 
-import React from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
-import PageLayout from "@/components/layout/PageLayout";
-import DepositionManagement from "@/components/deposition-management/DepositionManagement";
-import DepositionForm from "@/components/deposition-management/DepositionForm";
-import DepositionDetail from "@/components/deposition-management/DepositionDetail";
-import AdminDepositionList from "@/components/admin/deposition/AdminDepositionList";
+import React from 'react';
+import { Helmet } from 'react-helmet-async';
+import PageLayout from '@/components/layout/PageLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DepositionProvider } from '@/contexts/DepositionContext';
+import DepositionList from '@/components/admin/deposition/DepositionList';
 import { useAuth } from '@/contexts/AuthContext';
+import AdminDepositionList from '@/components/admin/deposition/AdminDepositionList';
 
-const Depositions = () => {
-  const location = useLocation();
+const Depositions: React.FC = () => {
   const { currentUser } = useAuth();
   const isAdmin = currentUser?.role === 'admin';
-  
-  // Determine page title based on route
-  const getPageTitle = () => {
-    if (isAdmin) {
-      return "Deposition Management";
-    }
-    
-    if (location.pathname.includes("/create")) {
-      return "Create Deposition";
-    } else if (location.pathname.includes("/edit")) {
-      return "Edit Deposition";
-    } else if (location.pathname.split("/").length > 2 && !location.pathname.includes("/edit")) {
-      return "Deposition Details";
-    } else {
-      return "Deposition Management";
-    }
-  };
-
-  // Determine page description based on route
-  const getPageDescription = () => {
-    if (isAdmin) {
-      return "Review all depositions scheduled by attorneys";
-    }
-    
-    if (location.pathname.includes("/create")) {
-      return "Create a new deposition record";
-    } else if (location.pathname.includes("/edit")) {
-      return "Modify an existing deposition";
-    } else if (location.pathname.split("/").length > 2 && !location.pathname.includes("/edit")) {
-      return "View detailed deposition information";
-    } else {
-      return "Manage client depositions, schedules, and documentation";
-    }
-  };
 
   return (
     <PageLayout>
+      <Helmet>
+        <title>Depositions - Law EMR</title>
+      </Helmet>
+      
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">{getPageTitle()}</h1>
+          <h1 className="text-2xl font-bold">Depositions</h1>
           <p className="text-muted-foreground mt-1">
-            {getPageDescription()}
+            {isAdmin 
+              ? "View and manage all depositions across attorneys" 
+              : "Schedule and manage depositions for your cases"}
           </p>
         </div>
         
         <div className="max-w-7xl mx-auto">
-          {isAdmin ? (
-            <AdminDepositionList />
-          ) : (
-            <Routes>
-              <Route path="/" element={<DepositionManagement />} />
-              <Route path="/create" element={<DepositionForm />} />
-              <Route path="/edit/:id" element={<DepositionForm />} />
-              <Route path="/:id" element={<DepositionDetail />} />
-            </Routes>
-          )}
+          <DepositionProvider>
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xl font-bold">
+                  {isAdmin ? "All Depositions" : "Your Depositions"}
+                </CardTitle>
+              </CardHeader>
+              
+              <CardContent>
+                {isAdmin ? <AdminDepositionList /> : <DepositionList />}
+              </CardContent>
+            </Card>
+          </DepositionProvider>
         </div>
       </div>
-      
-      <footer className="px-4 py-6 border-t text-sm text-muted-foreground">
-        <div className="container mx-auto flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">LYZ Law Firm</span> | Deposition Management
-          </div>
-          <div className="text-sm">© 2023 LYZ Law Firm. All rights reserved.</div>
-        </div>
-      </footer>
     </PageLayout>
   );
 };

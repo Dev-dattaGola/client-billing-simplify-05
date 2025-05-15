@@ -10,10 +10,8 @@ import {
   Folder,
   Building2,
   Calendar,
-  MessageSquare,
   Settings,
   BarChart,
-  Calculator,
   FileSearch,
   Gavel,
   Shield,
@@ -74,12 +72,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       roles: ['admin', 'attorney'] 
     },
     { 
-      title: 'Calculator', 
-      path: '/calculator', 
-      icon: <Calculator size={20} />,
-      roles: ['admin', 'attorney'] 
-    },
-    { 
       title: 'Reports', 
       path: '/reports', 
       icon: <FileSearch size={20} />,
@@ -89,12 +81,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Calendar', 
       path: '/calendar', 
       icon: <Calendar size={20} />,
-      roles: ['admin', 'attorney', 'client'] 
-    },
-    { 
-      title: 'Messages', 
-      path: '/messages', 
-      icon: <MessageSquare size={20} />,
       roles: ['admin', 'attorney', 'client'] 
     },
     { 
