@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,8 +26,8 @@ const PatientsDocuments: React.FC = () => {
       id: "legal",
       label: "Legal Documents",
       documents: [
-        { id: "doc4", name: "Letter of Protection", type: "pdf", date: "April 6, 2025", uploadedBy: "Jack Peters" },
-        { id: "doc5", name: "Letter of Representation", type: "pdf", date: "April 4, 2025", uploadedBy: "Jack Peters" }
+        { id: "doc4", name: "Letter of Protection", type: "pdf", date: "April 6, 2025", uploadedBy: "Jane Doelawyer" },
+        { id: "doc5", name: "Letter of Representation", type: "pdf", date: "April 4, 2025", uploadedBy: "Jane Doelawyer" }
       ]
     },
     {

@@ -7,10 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { UserProfile } from '@/backend/settings-api';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Upload, PenLine } from 'lucide-react';
+import { Upload, PenLine, User } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from '@/contexts/UserContext';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileSettingsProps {
   profile: UserProfile | null;
@@ -19,7 +18,6 @@ interface ProfileSettingsProps {
 }
 
 const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, isLoading, onUpdate }) => {
-  const { currentUser } = useAuth();
   const [name, setName] = useState(profile?.name || '');
   const [phone, setPhone] = useState(profile?.phone || '');
   const [address, setAddress] = useState(profile?.address || '');
@@ -35,30 +33,15 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, isLoading, o
   // Update form when profile changes
   React.useEffect(() => {
     if (profile) {
-      setName(profile.name || currentUser?.name || '');
+      setName(profile.name || '');
       setPhone(profile.phone || '');
       setAddress(profile.address || '');
       setBio(profile.bio || '');
-      
-      // Set appropriate title based on role
-      if (currentUser) {
-        if (currentUser.role === 'attorney') {
-          setTitle('Attorney');
-        } else if (currentUser.role === 'admin') {
-          setTitle('System Administrator');
-        } else if (currentUser.role === 'client') {
-          setTitle('Client');
-        } else {
-          setTitle(profile.title || '');
-        }
-      } else {
-        setTitle(profile.title || '');
-      }
-      
+      setTitle(profile.title || '');
       setBarNumber(profile.barNumber || '');
       setAvatarPreview(null);
     }
-  }, [profile, currentUser]);
+  }, [profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,16 +92,6 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, isLoading, o
     }
   };
 
-  // Get name initials for avatar fallback
-  const getNameInitials = () => {
-    if (currentUser?.name) {
-      return currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
-    }
-    return profile?.name 
-      ? profile.name.split(' ').map(part => part[0]).join('').toUpperCase()
-      : 'US';
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -154,18 +127,16 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, isLoading, o
               <div className="relative group">
                 <Avatar className="h-24 w-24 cursor-pointer" onClick={handleAvatarClick}>
                   <AvatarImage src={profile?.avatar || `https://i.pravatar.cc/150?u=${profile?.userId}`} />
-                  <AvatarFallback className="text-2xl bg-purple-600 text-white">
-                    {getNameInitials()}
-                  </AvatarFallback>
+                  <AvatarFallback className="text-2xl bg-purple-600 text-white">{name?.slice(0, 2).toUpperCase() || 'US'}</AvatarFallback>
                 </Avatar>
                 <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer" onClick={handleAvatarClick}>
                   <Upload className="h-8 w-8 text-white" />
                 </div>
               </div>
               <div className="space-y-1">
-                <h3 className="text-xl font-semibold">{currentUser?.name || profile?.name || 'User Name'}</h3>
-                <p className="text-muted-foreground">{title || 'No title set'}</p>
-                <p className="text-sm text-muted-foreground">{currentUser?.email || profile?.email || `${profile?.userId}@example.com`}</p>
+                <h3 className="text-xl font-semibold">{profile?.name || 'User Name'}</h3>
+                <p className="text-muted-foreground">{profile?.title || 'No title set'}</p>
+                <p className="text-sm text-muted-foreground">{profile?.email || `${profile?.userId}@example.com`}</p>
               </div>
             </div>
             <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
@@ -206,9 +177,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, isLoading, o
               />
               <Avatar className="h-24 w-24 cursor-pointer" onClick={handleAvatarClick}>
                 <AvatarImage src={avatarPreview || profile?.avatar || `https://i.pravatar.cc/150?u=${profile?.userId}`} />
-                <AvatarFallback className="text-2xl bg-purple-600 text-white">
-                  {getNameInitials()}
-                </AvatarFallback>
+                <AvatarFallback className="text-2xl bg-purple-600 text-white">{name?.slice(0, 2).toUpperCase() || 'US'}</AvatarFallback>
               </Avatar>
               <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer" onClick={handleAvatarClick}>
                 <Upload className="h-8 w-8 text-white" />

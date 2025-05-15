@@ -9,7 +9,7 @@ const Documents = () => {
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Documents Management</h1>
           <p className="text-muted-foreground mt-1">
-            Manage client documents including Insurance records and Bills
+            Manage client documents including LOP, LOR, Insurance records, and Bills
           </p>
         </div>
         

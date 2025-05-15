@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 
 // Settings types
@@ -53,11 +52,11 @@ export interface PrivacyPolicyDetails {
 }
 
 // Mock data for user settings
-const mockUserSettings = [
+const mockUserSettings: UserSettings[] = [
   {
     id: 'settings1',
     userId: 'user1',
-    theme: 'light' as const,
+    theme: 'light',
     notifications: {
       email: true,
       browser: true,
@@ -71,7 +70,7 @@ const mockUserSettings = [
   {
     id: 'settings2',
     userId: 'user2',
-    theme: 'dark' as const,
+    theme: 'dark',
     notifications: {
       email: true,
       browser: false,
@@ -85,7 +84,7 @@ const mockUserSettings = [
   {
     id: 'settings3',
     userId: 'user3',
-    theme: 'system' as const,
+    theme: 'system',
     notifications: {
       email: false,
       browser: true,
@@ -99,7 +98,7 @@ const mockUserSettings = [
   {
     id: 'settings4',
     userId: 'user4',
-    theme: 'light' as const,
+    theme: 'light',
     notifications: {
       email: true,
       browser: true,
@@ -130,38 +129,38 @@ const mockUserProfiles: UserProfile[] = [
   {
     id: 'profile2',
     userId: 'user2',
-    name: 'Jack Peters',
-    email: 'attorney@lyzlawfirm.com',
+    name: 'Jane Smith',
+    email: 'jane.smith@example.com',
     avatar: 'https://i.pravatar.cc/150?u=user2',
     phone: '(555) 234-5678',
     address: '456 Oak St, City, ST 12345',
-    bio: 'Attorney specializing in personal injury and medical malpractice cases with over 10 years of experience.',
-    title: 'Attorney',
-    barNumber: 'BAR789012',
+    bio: 'Attorney specializing in personal injury and medical malpractice cases.',
+    title: 'Associate Attorney',
+    barNumber: 'BAR23456',
     updatedAt: new Date(Date.now() - 45 * 24 * 3600000).toISOString()
   },
   {
     id: 'profile3',
     userId: 'user3',
-    name: 'Andrew Johnson',
-    email: 'client@example.com',
+    name: 'Michael Johnson',
+    email: 'michael.johnson@example.com',
     avatar: 'https://i.pravatar.cc/150?u=user3',
     phone: '(555) 345-6789',
     address: '789 Pine St, City, ST 12345',
-    bio: 'Client with ongoing personal injury case.',
-    title: 'Client',
+    bio: 'Paralegal with expertise in research and case preparation.',
+    title: 'Senior Paralegal',
     updatedAt: new Date(Date.now() - 30 * 24 * 3600000).toISOString()
   },
   {
     id: 'profile4',
     userId: 'user4',
-    name: 'Smith Hook',
-    email: 'admin@lyzlawfirm.com',
+    name: 'Sarah Williams',
+    email: 'sarah.williams@example.com',
     avatar: 'https://i.pravatar.cc/150?u=user4',
     phone: '(555) 456-7890',
     address: '101 Elm St, City, ST 12345',
-    bio: 'System administrator responsible for managing firm operations and technical infrastructure.',
-    title: 'System Administrator',
+    bio: 'Administrative assistant responsible for client communications and scheduling.',
+    title: 'Administrative Assistant',
     updatedAt: new Date(Date.now() - 15 * 24 * 3600000).toISOString()
   }
 ];
@@ -243,7 +242,7 @@ export const settingsApi = {
       id: uuidv4(),
       updatedAt: new Date().toISOString()
     };
-    mockUserSettings.push(newSettings as any);
+    mockUserSettings.push(newSettings);
     return newSettings;
   },
 

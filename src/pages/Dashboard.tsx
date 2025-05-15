@@ -23,8 +23,8 @@ const Dashboard: React.FC = () => {
     }
   }, [isAuthenticated, currentUser]);
 
-  // Just to verify the component is mounting
   useEffect(() => {
+    // Just to verify the component is mounting
     console.log("Dashboard component mounted");
     return () => console.log("Dashboard component unmounted");
   }, []);
@@ -43,11 +43,7 @@ const Dashboard: React.FC = () => {
   return (
     <PageLayout>
       <Helmet>
-        <title>
-          {currentUser?.role === 'client' 
-            ? 'My Case Dashboard - LAW ERP 500' 
-            : 'Dashboard - LAW ERP 500'}
-        </title>
+        <title>Dashboard - LAW ERP 500</title>
       </Helmet>
       <div className="space-y-6">
         <DashboardOverview />

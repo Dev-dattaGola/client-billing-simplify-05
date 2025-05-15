@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 
 // Patient types
@@ -64,14 +65,14 @@ const mockPatients: Patient[] = [
   {
     id: 'patient1',
     accountNumber: 'A001',
-    fullName: 'Andrew Johnson',  // Updated to match client name
+    fullName: 'John Doe',
     dateOfBirth: '1985-05-15',
     phone: '555-0123',
-    email: 'andrew@example.com',  // Updated to match client name
+    email: 'john@example.com',
     address: '123 Main St, Anytown, CA 12345',
     dateRegistered: '2025-04-01',
     caseStatus: 'Active Treatment',
-    assignedAttorneyId: 'user2', // Jack Peters attorney ID
+    assignedAttorneyId: 'user2', // Jane Smith attorney ID
     accidentDate: '2025-03-25',
     accidentLocation: 'Intersection of 5th Ave and Main St',
     injuryType: 'Back and Neck Injury',
@@ -260,9 +261,9 @@ const mockCommunications: Communication[] = [
     date: '2025-04-20',
     time: '10:15 AM',
     type: 'email',
-    sender: 'Jack Peters',  // Updated to match attorney name
+    sender: 'Jane Doelawyer',
     subject: 'Case Update - Treatment Progress',
-    content: 'Your case is progressing as expected. We have submitted your initial medical records to the insurance company and are awaiting their response. You are currently in the "Active Treatment" phase, where it\'s important that you continue to attend all scheduled medical appointments and follow your treatment plan.\n\nPlease be aware that you missed your physical therapy appointment on April 15. It\'s crucial for your case that you maintain consistent treatment. I\'ve instructed my assistant to contact you to reschedule this appointment.\n\nOur next step will be to collect additional medical documentation once your current treatment phase is complete. We anticipate this will be in approximately 4-6 weeks, depending on your recovery progress.\n\nBest regards,\nJack Peters\nPersonal Injury Attorney\nLYZ Law Firm',
+    content: 'Your case is progressing as expected. We have submitted your initial medical records to the insurance company and are awaiting their response. You are currently in the "Active Treatment" phase, where it\'s important that you continue to attend all scheduled medical appointments and follow your treatment plan.\n\nPlease be aware that you missed your physical therapy appointment on April 15. It\'s crucial for your case that you maintain consistent treatment. I\'ve instructed my assistant to contact you to reschedule this appointment.\n\nOur next step will be to collect additional medical documentation once your current treatment phase is complete. We anticipate this will be in approximately 4-6 weeks, depending on your recovery progress.\n\nBest regards,\nJane Doelawyer\nPersonal Injury Attorney\nLYZ Law Firm',
     read: true,
     actionRequired: false
   },
@@ -272,7 +273,7 @@ const mockCommunications: Communication[] = [
     date: '2025-04-18',
     time: '2:45 PM',
     type: 'phone',
-    sender: 'Jack Peters',  // Updated to match attorney name
+    sender: 'Jane Doelawyer',
     subject: 'Missed Appointment Follow-up',
     content: 'Call to discuss the missed physical therapy appointment and importance of consistent treatment.',
     read: true,
