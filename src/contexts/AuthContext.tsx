@@ -1,9 +1,8 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { AuthContextType, LoginCredentials } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -14,6 +13,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Initialize auth state
   useEffect(() => {
@@ -95,12 +95,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.user) {
         toast({
           title: "Login successful",
-          description: `Welcome back, ${data.user.email}!`
+          description: `Welcome back, ${data.user.email || 'user'}!`
         });
         
         // Navigate to dashboard
         navigate('/dashboard');
-        return data.user;
+        
+        // Convert Supabase user to our app's User type
+        const appUser = {
+          id: data.user.id,
+          email: data.user.email || '',
+          role: userRole || 'client'
+        };
+        
+        return appUser;
       }
       
       return null;
@@ -181,7 +189,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value: AuthContextType = {
     isLoading,
     isAuthenticated: !!currentUser,
-    currentUser,
+    currentUser: currentUser ? {
+      id: currentUser.id,
+      email: currentUser.email || '',
+      role: userRole || 'client'
+    } : null,
     login,
     logout,
     hasPermission,

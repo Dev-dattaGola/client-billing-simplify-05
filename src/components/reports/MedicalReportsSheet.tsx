@@ -19,7 +19,7 @@ import {
   Search,
   Filter
 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import MedicalReportForm from "./MedicalReportForm";
 
@@ -90,6 +90,7 @@ const MedicalReportsSheet = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [reportToEdit, setReportToEdit] = useState<MedicalReport | null>(null);
+  const { toast } = useToast();
   
   const filteredReports = reports.filter(report => 
     report.provider_name.toLowerCase().includes(searchTerm.toLowerCase()) ||

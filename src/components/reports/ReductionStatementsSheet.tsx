@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +20,7 @@ import {
   Clock
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import ReductionStatementForm from "./ReductionStatementForm";
 
@@ -105,6 +104,7 @@ const getStatusColor = (status: string) => {
 };
 
 const ReductionStatementsSheet = () => {
+  const { toast } = useToast();
   const [statements, setStatements] = useState<ReductionStatement[]>(mockReductionStatements);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);

@@ -21,7 +21,7 @@ export const saveAuthData = (user: User, remember: boolean): void => {
       localStorage.removeItem('authToken');
     }
     
-    console.log(`Auth data saved for ${user.name} in ${remember ? 'localStorage' : 'sessionStorage'}`);
+    console.log(`Auth data saved for ${user.name || user.email} in ${remember ? 'localStorage' : 'sessionStorage'}`);
   } catch (error) {
     console.error('Error saving auth data:', error);
     throw new Error('Failed to save authentication data');
@@ -90,9 +90,25 @@ export const checkPermission = (user: User, permission: string): boolean => {
     return true;
   }
   
-  // For other roles, check the permissions array
-  if (user.permissions) {
-    return user.permissions.includes(permission) || user.permissions.includes('all');
+  // For other roles, use role-based permissions since our User type doesn't have a permissions array
+  if (user.role === 'attorney') {
+    const attorneyPermissions = [
+      'view:clients', 'edit:clients',
+      'view:cases', 'create:cases', 'edit:cases',
+      'view:documents', 'upload:documents', 'download:documents',
+      'view:calendar', 'create:events', 'edit:events',
+      'view:reports'
+    ];
+    
+    return attorneyPermissions.includes(permission);
+  } else if (user.role === 'client') {
+    const clientPermissions = [
+      'view:documents', 'upload:documents', 'download:documents',
+      'view:calendar', 'view:appointments',
+      'view:messages', 'send:messages'
+    ];
+    
+    return clientPermissions.includes(permission);
   }
   
   return false;
