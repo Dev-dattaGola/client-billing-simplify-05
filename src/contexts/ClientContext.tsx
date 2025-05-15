@@ -40,7 +40,11 @@ const ClientContext = createContext<ClientContextType>({
   dropClient: () => {},
 });
 
-export const useClient = () => useContext(ClientContext);
+// Export the hook with the correct name to match imports
+export const useClientContext = () => useContext(ClientContext);
+
+// Keep the old name for backward compatibility
+export const useClient = useClientContext;
 
 interface ClientProviderProps {
   children: React.ReactNode;

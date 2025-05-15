@@ -20,10 +20,12 @@ const ClientManagement = () => {
   const { 
     clients,
     selectedClient, 
-    editingClient,
-    addClient,
-    updateClient,
-    deleteClient,
+    clientToEdit,
+    activeTab,
+    setActiveTab,
+    handleAddClient,
+    handleEditClient,
+    handleDeleteClient,
     handleViewClient,
     startEditClient,
     clearClientToEdit,
@@ -32,7 +34,6 @@ const ClientManagement = () => {
   } = useClientContext();
   
   // Local state
-  const [activeTab, setActiveTab] = useState<string>("view");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [isDropClientModalOpen, setIsDropClientModalOpen] = useState(false);
@@ -89,7 +90,7 @@ const ClientManagement = () => {
   const handleConfirmDelete = () => {
     if (!selectedClient || deleteConfirmText !== "DELETE") return;
     
-    deleteClient(selectedClient.id);
+    handleDeleteClient(selectedClient);
     setIsDeleteModalOpen(false);
     setDeleteConfirmText("");
     setActiveTab("view");
@@ -101,25 +102,15 @@ const ClientManagement = () => {
   
   // Handle form submission for adding a new client
   const handleAddSubmit = (clientData: Omit<Client, "id">) => {
-    addClient(clientData);
+    handleAddClient(clientData);
     setActiveTab("view");
     
     toast.success("Client added successfully", {
       position: "bottom-right",
     });
-    
-    // Simulate loading time to show toast
-    setTimeout(() => {
-      // After a client is added, view the newly added client
-      // In reality, the API would return the new client with an ID
-      const newClient = clients[clients.length - 1];
-      if (newClient) {
-        handleViewClient(newClient);
-      }
-    }, 2000);
   };
   
-  // Handle client transfer function - fix type error by passing the client object instead of just ID
+  // Handle client transfer function - using the client object
   const handleTransferClient = () => {
     if (!selectedClient || !selectedAttorneyForTransfer) return;
     
@@ -134,7 +125,7 @@ const ClientManagement = () => {
     
     const attorneyName = getAttorneyName(selectedAttorneyForTransfer);
     
-    // Pass the entire client object instead of just the ID
+    // Pass the entire client object 
     transferClient(selectedClient, selectedAttorneyForTransfer, attorneyName);
     setIsTransferModalOpen(false);
     setSelectedAttorneyForTransfer("");
@@ -145,11 +136,11 @@ const ClientManagement = () => {
     });
   };
   
-  // Handle drop client function - fix type error by passing the client object instead of just ID
+  // Handle drop client function - using the client object
   const handleDropClient = () => {
     if (!selectedClient || !dropReason) return;
     
-    // Pass the entire client object instead of just the ID
+    // Pass the entire client object
     dropClient(selectedClient, dropReason);
     setIsDropClientModalOpen(false);
     setDropReason("");
@@ -162,10 +153,10 @@ const ClientManagement = () => {
   
   // Handle form submission for editing client
   const handleEditSubmit = (clientData: Omit<Client, "id">) => {
-    if (!editingClient) return;
+    if (!clientToEdit) return;
     
-    updateClient({
-      id: editingClient.id,
+    handleEditClient({
+      id: clientToEdit.id,
       ...clientData
     });
     
@@ -181,7 +172,7 @@ const ClientManagement = () => {
         <TabsList>
           <TabsTrigger value="view">View Clients</TabsTrigger>
           <TabsTrigger value="add">Add Client</TabsTrigger>
-          {editingClient && <TabsTrigger value="edit">Edit Client</TabsTrigger>}
+          {clientToEdit && <TabsTrigger value="edit">Edit Client</TabsTrigger>}
         </TabsList>
         
         <div className="flex gap-2">
@@ -218,11 +209,26 @@ const ClientManagement = () => {
       <TabsContent value="view" className="flex-1 overflow-auto">
         <div className="grid md:grid-cols-3 gap-6 h-full">
           <div className="md:col-span-1 border rounded-md shadow-sm overflow-hidden">
-            <ClientList />
+            <ClientList 
+              clients={clients}
+              onEditClient={startEditClient}
+              onViewClient={handleViewClient}
+              onDeleteClient={(clientId: string) => {
+                const client = clients.find(c => c.id === clientId);
+                if (client) {
+                  handleDeleteClient(client);
+                }
+              }}
+              loading={false}
+            />
           </div>
           <div className="md:col-span-2 border rounded-md shadow-sm p-4">
             {selectedClient ? (
-              <ClientDetails client={selectedClient} />
+              <ClientDetails 
+                client={selectedClient}
+                onBack={() => handleViewClient(null as any)}
+                onEdit={handleEditClick}
+              />
             ) : (
               <div className="flex h-full items-center justify-center text-muted-foreground">
                 Select a client to view details
@@ -235,15 +241,19 @@ const ClientManagement = () => {
       <TabsContent value="add" className="flex-1">
         <div className="max-w-3xl mx-auto border rounded-md shadow-sm p-6">
           <h2 className="text-lg font-semibold mb-4">Add New Client</h2>
-          <ClientForm onSubmit={handleAddSubmit} onCancel={() => setActiveTab("view")} />
+          <ClientForm 
+            initialData={null} 
+            onSubmit={handleAddSubmit} 
+            onCancel={() => setActiveTab("view")} 
+          />
         </div>
       </TabsContent>
       
       <TabsContent value="edit" className="flex-1">
-        {editingClient ? (
+        {clientToEdit ? (
           <div className="max-w-3xl mx-auto border rounded-md shadow-sm p-6">
             <h2 className="text-lg font-semibold mb-4">Edit Client</h2>
-            <ClientForm initialData={editingClient} onSubmit={handleEditSubmit} onCancel={() => setActiveTab("view")} />
+            <ClientForm initialData={clientToEdit} onSubmit={handleEditSubmit} onCancel={() => setActiveTab("view")} />
           </div>
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">
