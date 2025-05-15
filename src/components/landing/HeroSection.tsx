@@ -27,7 +27,7 @@ const HeroSection: React.FC = () => {
                 src="/lovable-uploads/f821edb6-2ada-465d-a812-7f4c9e81f81d.png" 
                 alt="LAWerp500 Logo" 
                 className="h-24 mb-4"
-                width="400px"
+                width="300px"
                 height="300px"
               />
             </div>
