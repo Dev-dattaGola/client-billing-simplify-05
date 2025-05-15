@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,9 +70,9 @@ const ClientDashboard = () => {
         if (clientError) throw clientError;
 
         // Get client cases using RPC function
-        // We need to use a type assertion that specifies the function returns exactly what we expect
+        // Fix: Using the proper generic type parameters for RPC
         const { data: casesData, error: casesError } = await supabase
-          .rpc<ClientCase[]>('get_cases_by_client_id', { client_id: clientData.id });
+          .rpc<ClientCase[], { client_id: string }>('get_cases_by_client_id', { client_id: clientData.id });
 
         if (casesError) {
           console.error("Error fetching cases:", casesError);
@@ -81,9 +82,9 @@ const ClientDashboard = () => {
         }
 
         // Get upcoming court dates using RPC function
-        // Again, using a proper type assertion
+        // Fix: Using the proper generic type parameters for RPC
         const { data: datesData, error: datesError } = await supabase
-          .rpc<CourtDate[]>('get_court_dates_by_client_id', { client_id: clientData.id });
+          .rpc<CourtDate[], { client_id: string }>('get_court_dates_by_client_id', { client_id: clientData.id });
 
         if (datesError) {
           console.error("Error fetching court dates:", datesError);
@@ -93,8 +94,9 @@ const ClientDashboard = () => {
         }
 
         // Get billing information using RPC function
+        // Fix: Using the proper generic type parameters for RPC
         const { data: billingData, error: billingError } = await supabase
-          .rpc<BillingInfo[]>('get_billing_summary_by_client_id', { client_id: clientData.id });
+          .rpc<BillingInfo[], { client_id: string }>('get_billing_summary_by_client_id', { client_id: clientData.id });
 
         if (billingError) {
           console.error("Error fetching billing info:", billingError);
