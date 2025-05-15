@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Client } from '@/types/client';
 import { clientsApi } from '@/lib/api/client-api';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ClientContextType {
   clients: Client[];
@@ -11,15 +12,19 @@ interface ClientContextType {
   loading: boolean;
   activeTab: string;
   activeDetailTab: string;
+  showDropped: boolean;
+  setShowDropped: (show: boolean) => void;
   setActiveTab: (tab: string) => void;
   setActiveDetailTab: (tab: string) => void;
   handleAddClient: (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   handleEditClient: (clientData: Client) => Promise<void>;
   handleDeleteClient: (clientId: string) => Promise<void>;
+  handleDropClient: (clientId: string, reason: string) => Promise<void>;
   handleViewClient: (client: Client) => void;
   startEditClient: (client: Client) => void;
   clearClientToEdit: () => void;
   refreshClients: () => Promise<void>;
+  getAttorneyOptions: () => { value: string; label: string }[];
 }
 
 export const ClientContext = createContext<ClientContextType | undefined>(undefined);
@@ -31,7 +36,9 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("view");
   const [activeDetailTab, setActiveDetailTab] = useState("overview");
+  const [showDropped, setShowDropped] = useState(false);
   const { toast } = useToast();
+  const { currentUser } = useAuth();
 
   const refreshClients = async () => {
     try {
@@ -146,6 +153,54 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   };
 
+  const handleDropClient = async (clientId: string, reason: string) => {
+    try {
+      const client = clients.find(c => c.id === clientId);
+      if (!client) {
+        throw new Error("Client not found");
+      }
+      
+      const updatedData = {
+        ...client,
+        is_dropped: true,
+        dropped_date: new Date().toISOString(),
+        dropped_reason: reason
+      };
+      
+      const updatedClient = await clientsApi.updateClient(clientId, updatedData);
+      
+      if (updatedClient) {
+        const updatedClients = clients.map(client => 
+          client.id === clientId ? updatedClient : client
+        );
+        
+        setClients(updatedClients);
+        
+        // If the dropped client was selected, update the selected client
+        if (selectedClient && selectedClient.id === clientId) {
+          setSelectedClient(updatedClient);
+        }
+        
+        toast({
+          title: "Client Dropped",
+          description: `${updatedClient.fullName} has been marked as dropped.`,
+        });
+        
+        // Return to the client list view
+        setActiveTab("view");
+      } else {
+        throw new Error("Failed to drop client");
+      }
+    } catch (error) {
+      console.error("Error dropping client:", error);
+      toast({
+        title: "Error",
+        description: "Failed to drop client. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleViewClient = (client: Client) => {
     setSelectedClient(client);
     setActiveTab("details");
@@ -161,6 +216,18 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setClientToEdit(null);
   };
 
+  // Function to get attorney options for dropdown
+  const getAttorneyOptions = () => {
+    // This would typically be fetched from an API
+    // For now, we'll return mock data
+    return [
+      { value: "attorney1", label: "John Smith" },
+      { value: "attorney2", label: "Jane Doelawyer" },
+      { value: "attorney3", label: "Robert Johnson" },
+      { value: "attorney4", label: "Maria Rodriguez" }
+    ];
+  };
+
   const contextValue = {
     clients,
     selectedClient,
@@ -168,15 +235,19 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     loading,
     activeTab,
     activeDetailTab,
+    showDropped,
+    setShowDropped,
     setActiveTab,
     setActiveDetailTab,
     handleAddClient,
     handleEditClient,
     handleDeleteClient,
+    handleDropClient,
     handleViewClient,
     startEditClient,
     clearClientToEdit,
-    refreshClients
+    refreshClients,
+    getAttorneyOptions
   };
 
   return (

@@ -284,11 +284,23 @@ export const clientsApi = {
       const index = mockClients.findIndex(c => c.id === id);
       if (index === -1) return null;
       
-      mockClients[index] = {
-        ...mockClients[index],
-        ...clientData,
-        updatedAt: new Date().toISOString()
-      };
+      // Special handling for dropped clients
+      if (clientData.is_dropped) {
+        mockClients[index] = {
+          ...mockClients[index],
+          ...clientData,
+          is_dropped: true,
+          dropped_date: clientData.dropped_date || new Date().toISOString(),
+          dropped_reason: clientData.dropped_reason || "No reason provided",
+          updatedAt: new Date().toISOString()
+        };
+      } else {
+        mockClients[index] = {
+          ...mockClients[index],
+          ...clientData,
+          updatedAt: new Date().toISOString()
+        };
+      }
       
       return mockClients[index];
     }
@@ -415,5 +427,45 @@ export const clientsApi = {
     }
     
     return notifications;
+  },
+
+  // Add a new function to get only dropped clients
+  getDroppedClients: async (): Promise<Client[]> => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/clients?is_dropped=true`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching dropped clients:', error);
+      console.warn('Falling back to mock data');
+      return mockClients.filter(client => client.is_dropped === true);
+    }
+  },
+
+  // Add a new function to restore a dropped client
+  restoreClient: async (id: string): Promise<Client | null> => {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/clients/${id}`, { 
+        is_dropped: false,
+        dropped_date: null,
+        dropped_reason: null
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error restoring client:', error);
+      console.warn('Falling back to mock data');
+      
+      const index = mockClients.findIndex(c => c.id === id);
+      if (index === -1) return null;
+      
+      mockClients[index] = {
+        ...mockClients[index],
+        is_dropped: false,
+        dropped_date: undefined,
+        dropped_reason: undefined,
+        updatedAt: new Date().toISOString()
+      };
+      
+      return mockClients[index];
+    }
   }
 };

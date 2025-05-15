@@ -30,11 +30,14 @@ const ClientManagement = () => {
     loading,
     activeTab,
     activeDetailTab,
+    showDropped,
+    setShowDropped,
     setActiveTab,
     setActiveDetailTab,
     handleAddClient,
     handleEditClient,
     handleDeleteClient,
+    handleDropClient,
     handleViewClient,
     startEditClient,
     clearClientToEdit
@@ -42,6 +45,8 @@ const ClientManagement = () => {
   
   const { hasPermission, currentUser } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [dropClientDialogOpen, setDropClientDialogOpen] = useState(false);
+  const [dropReason, setDropReason] = useState("");
   const { toast } = useToast();
 
   const handleSearchClick = () => {
@@ -168,7 +173,7 @@ const ClientManagement = () => {
   };
 
   // Determine which tabs should be visible based on user role
-  const shouldShowAddTab = currentUser && ['admin'].includes(currentUser.role);
+  const shouldShowAddTab = currentUser && ['admin', 'superadmin'].includes(currentUser.role);
 
   return (
     <div className="bg-white rounded-lg border shadow-sm">
@@ -188,6 +193,24 @@ const ClientManagement = () => {
         </div>
         
         <TabsContent value="view" className="p-6 space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-medium">
+              {showDropped ? "Dropped Clients" : "Active Clients"}
+            </h2>
+            <div className="flex items-center gap-2">
+              {/* This button will only appear for admin users */}
+              {shouldShowAddTab && !showDropped && (
+                <Button 
+                  onClick={() => {
+                    clearClientToEdit();
+                    setActiveTab("add");
+                  }}
+                >
+                  Add New Client
+                </Button>
+              )}
+            </div>
+          </div>
           <ClientList 
             clients={clients} 
             onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
@@ -198,7 +221,7 @@ const ClientManagement = () => {
         </TabsContent>
         
         <RoleBasedLayout 
-          requiredRoles={['admin']}
+          requiredRoles={['admin', 'superadmin']}
           fallback={
             <TabsContent value="add" className="p-6">
               <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 flex flex-col items-center justify-center">
@@ -226,6 +249,7 @@ const ClientManagement = () => {
                 clearClientToEdit();
                 setActiveTab("view");
               }}
+              onDropClient={(client, reason) => handleDropClient(client.id, reason)}
             />
           </TabsContent>
         </RoleBasedLayout>
