@@ -1,13 +1,13 @@
 
 import * as React from "react";
-import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 import { ToastContext } from "@/contexts/ToastContext";
 
 export interface ToastOptions {
   title?: React.ReactNode;
   description?: React.ReactNode;
-  action?: ToastActionElement;
+  action?: React.ReactNode;
   variant?: "default" | "destructive";
+  duration?: number;
 }
 
 export type ToastContextType = {
@@ -31,6 +31,7 @@ export interface Toast {
   id: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
-  action?: ToastActionElement;
+  action?: React.ReactNode;
   variant?: "default" | "destructive";
+  duration?: number;
 }

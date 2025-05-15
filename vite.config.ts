@@ -21,12 +21,24 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: ['react', 'react-dom', 'react-router-dom', 'sonner', '@radix-ui/react-toast'],
+    esbuildOptions: {
+      target: 'es2020'
+    }
   },
   build: {
     sourcemap: true,
+    target: 'es2020',
     commonjsOptions: {
       transformMixedEsModules: true,
     },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-components': ['@radix-ui/react-toast', 'sonner']
+        }
+      }
+    }
   }
 }));

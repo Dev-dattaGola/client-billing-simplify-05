@@ -6,12 +6,18 @@ import App from './App.tsx';
 import './index.css';
 import { ToastProvider } from '@/contexts/ToastContext';
 
-// Make sure DOM is ready before mounting
+// Wait for document to be fully loaded before mounting React
 document.addEventListener('DOMContentLoaded', () => {
   const rootElement = document.getElementById('root');
-  if (!rootElement) throw new Error('Failed to find the root element');
+  
+  if (!rootElement) {
+    console.error('Failed to find the root element');
+    return;
+  }
 
-  createRoot(rootElement).render(
+  const root = createRoot(rootElement);
+  
+  root.render(
     <React.StrictMode>
       <BrowserRouter>
         <ToastProvider>
