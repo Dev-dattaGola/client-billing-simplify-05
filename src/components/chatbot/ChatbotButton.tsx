@@ -25,21 +25,18 @@ const ChatbotButton: React.FC = () => {
         toast({
           title: "Legal Assistant Available",
           description: "Our AI assistant can help with all legal services.",
-          action: {
-            altText: "Connect with assistant",
-            action: (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => {
-                  openChatbot();
-                  localStorage.setItem('hasSeenChatNotification', 'true');
-                }}
-              >
-                Connect
-              </Button>
-            )
-          }
+          action: (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                openChatbot();
+                localStorage.setItem('hasSeenChatNotification', 'true');
+              }}
+            >
+              Connect
+            </Button>
+          )
         });
       }, 3000);
     }

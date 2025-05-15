@@ -1,7 +1,7 @@
 
 import * as React from "react";
 import { ToastContext } from "@/contexts/ToastContext";
-import { ToastType, ToastActionElement } from "@/types/toast";
+import { ToastType } from "@/types/toast";
 
 export function useToast() {
   const { toast, dismiss, update, toasts } = React.useContext(ToastContext);
@@ -14,4 +14,4 @@ export function useToast() {
   };
 }
 
-export type { ToastType, ToastActionElement };
+export type { ToastType };

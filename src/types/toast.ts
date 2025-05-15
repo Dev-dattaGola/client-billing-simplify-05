@@ -22,7 +22,7 @@ export type ToastType = ToastProps & {
   id: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
-  action?: ToastActionElement;
+  action?: React.ReactNode;
 };
 
 export type ToasterToast = ToastType;
