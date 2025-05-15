@@ -1,3 +1,4 @@
+
 import { Toast, ToastActionElement, ToastProps } from "@/components/ui/toast";
 import * as React from "react";
 
@@ -10,7 +11,7 @@ type ToastType = ToastProps & {
 };
 
 const TOAST_LIMIT = 5;
-const TOAST_REMOVE_DELAY = 1000000;
+const TOAST_REMOVE_DELAY = 5000;
 
 type ToasterToast = ToastType & {
   id: string;
@@ -79,8 +80,7 @@ const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action;
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
+      // Side effects - clear timeouts
       if (toastId) {
         if (toastTimeouts.has(toastId)) {
           clearTimeout(toastTimeouts.get(toastId));
@@ -121,12 +121,12 @@ const reducer = (state: State, action: Action): State => {
 
 const ToastContext = React.createContext<{
   toasts: ToasterToast[];
-  toast: (props: ToastType) => void;
+  toast: (props: ToastType) => string;
   dismiss: (toastId?: string) => void;
   update: (id: string, toast: ToastType) => void;
 }>({
   toasts: [],
-  toast: () => {},
+  toast: () => "",
   dismiss: () => {},
   update: () => {},
 });
