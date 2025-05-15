@@ -16,7 +16,9 @@ import {
   Calculator,
   FileSearch,
   Gavel,
-  Shield
+  Shield,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,7 +27,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
-  const { hasPermission, currentUser } = useAuth();
+  const { currentUser } = useAuth();
   
   // Define which roles can access which items
   const roleBasedNavItems = [
@@ -33,7 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Dashboard', 
       path: '/dashboard', 
       icon: <Home size={20} />,
-      roles: ['admin', 'attorney', 'client'] // All users
+      roles: ['admin', 'attorney', 'client', 'superadmin'] 
     },
     { 
       title: 'Clients', 
@@ -51,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Documents', 
       path: '/documents', 
       icon: <FileText size={20} />,
-      roles: ['admin', 'attorney', 'client'] // All users
+      roles: ['admin', 'attorney', 'client'] 
     },
     { 
       title: 'Files', 
@@ -87,19 +89,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Calendar', 
       path: '/calendar', 
       icon: <Calendar size={20} />,
-      roles: ['admin', 'attorney', 'client'] // All users - clients can see appointments
+      roles: ['admin', 'attorney', 'client'] 
     },
     { 
       title: 'Messages', 
       path: '/messages', 
       icon: <MessageSquare size={20} />,
-      roles: ['admin', 'attorney', 'client'] // All users - clients can message attorneys
+      roles: ['admin', 'attorney', 'client'] 
     },
     { 
       title: 'Admin', 
       path: '/admin', 
       icon: <Shield size={20} />,
-      roles: ['admin'] // Admin only
+      roles: ['admin'] 
     },
     { 
       title: 'Depositions', 
@@ -108,16 +110,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       roles: ['admin', 'attorney'] 
     },
     { 
-      title: 'Attorneys', 
-      path: '/attorneys', 
-      icon: <Users size={20} />,
-      roles: ['admin'] // Admin only
+      title: 'Firm Management', 
+      path: '/firm-management', 
+      icon: <Building2 size={20} />,
+      roles: ['admin'] 
     },
     { 
       title: 'Settings', 
       path: '/settings', 
       icon: <Settings size={20} />,
-      roles: ['admin', 'attorney', 'client'] // All users
+      roles: ['admin', 'attorney', 'client', 'superadmin'] 
     }
   ];
 
@@ -163,7 +165,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="w-full flex items-center justify-center h-10 border rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
         >
-          {isCollapsed ? "→" : "←"}
+          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
     </div>
