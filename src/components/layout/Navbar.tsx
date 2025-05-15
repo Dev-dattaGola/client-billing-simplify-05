@@ -34,9 +34,19 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
   const [searchValue, setSearchValue] = useState("");
   const [isCommandOpen, setIsCommandOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout, currentUser } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Get user initials for the avatar
+  const getUserInitials = () => {
+    if (!currentUser?.name) return "U";
+    
+    const nameParts = currentUser.name.split(" ");
+    if (nameParts.length === 1) return nameParts[0].charAt(0).toUpperCase();
+    
+    return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+  };
 
   // Handle keyboard shortcut for command palette
   useEffect(() => {
@@ -362,7 +372,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full hover:bg-[#9F5AE0]">
                   <Avatar className="h-9 w-9">
                     <AvatarImage src="" />
-                    <AvatarFallback className="bg-white/20 text-white">AT</AvatarFallback>
+                    <AvatarFallback className="bg-white/20 text-white">{getUserInitials()}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
