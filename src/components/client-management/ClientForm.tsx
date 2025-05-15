@@ -47,6 +47,9 @@ import {
 import { useClient } from "@/contexts/ClientContext";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Define a type to match the Client interface's caseStatus type
+type CaseStatusType = 'Active Treatment' | 'Initial Consultation' | 'Case Review' | 'Settlement Negotiation' | 'Closed';
+
 const clientSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Invalid email address").min(1, "Email is required"),
@@ -145,7 +148,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel, onDropClient }: ClientFor
       address: data.address,
       accountNumber: data.accountNumber,
       dateOfBirth: data.dateOfBirth,
-      caseStatus: data.caseStatus,
+      caseStatus: data.caseStatus as CaseStatusType, // Cast to the specific type
       assignedAttorneyId: data.assignedAttorneyId,
       accidentDate: data.accidentDate,
       accidentLocation: data.accidentLocation,
