@@ -1,5 +1,6 @@
 
 import React, { createContext, useCallback, useState } from 'react';
+import { Toaster as Sonner } from 'sonner';
 
 // Define our own types matching what's available from use-toast
 interface Toast {
@@ -68,6 +69,3 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     </ToastContext.Provider>
   );
 }
-
-// Import Sonner only once it's referenced
-import { Toaster as Sonner } from 'sonner';

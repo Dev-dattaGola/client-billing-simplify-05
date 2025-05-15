@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Client } from "@/types/client";
 
 const ClientManagement = () => {
   const { 
@@ -90,6 +91,7 @@ const ClientManagement = () => {
   const handleTransferClient = () => {
     if (!selectedClient || !selectedAttorneyForTransfer) return;
     
+    // Convert attorney ID to client ID for transfer
     transferClient(selectedClient.id, selectedAttorneyForTransfer);
     setIsTransferModalOpen(false);
     setSelectedAttorneyForTransfer("");
@@ -104,6 +106,7 @@ const ClientManagement = () => {
   const handleDropClient = () => {
     if (!selectedClient || !dropReason) return;
     
+    // Pass client ID and reason for dropping
     dropClient(selectedClient.id, dropReason);
     setIsDropClientModalOpen(false);
     setDropReason("");

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Client } from '@/types/client';
 import { useToast } from '@/hooks/use-toast';
@@ -230,7 +229,6 @@ export const ClientProvider: React.FC<ClientProviderProps> = ({ children }) => {
     toast({
       title: "Client dropped",
       description: "Client has been dropped from the firm.",
-      variant: "destructive",
     });
   };
 
