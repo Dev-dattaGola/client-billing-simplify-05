@@ -17,6 +17,11 @@ interface ClientDataResult {
   billingInfo: BillingInfo | null;
 }
 
+// Define input types for RPC functions
+interface ClientIdParam {
+  client_id: string;
+}
+
 export const useClientData = ({ userId }: UseClientDataProps): ClientDataResult => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -50,7 +55,7 @@ export const useClientData = ({ userId }: UseClientDataProps): ClientDataResult 
 
         // Get client cases - Fix the RPC function typing with both input and output types
         const { data: casesData, error: casesError } = await supabase
-          .rpc('get_cases_by_client_id', { client_id: clientData.id });
+          .rpc<ClientCase[], ClientIdParam>('get_cases_by_client_id', { client_id: clientData.id });
 
         if (casesError) {
           console.error("Error fetching cases:", casesError);
@@ -61,7 +66,7 @@ export const useClientData = ({ userId }: UseClientDataProps): ClientDataResult 
 
         // Get upcoming court dates - Fix the RPC function typing with both input and output types
         const { data: datesData, error: datesError } = await supabase
-          .rpc('get_court_dates_by_client_id', { client_id: clientData.id });
+          .rpc<CourtDate[], ClientIdParam>('get_court_dates_by_client_id', { client_id: clientData.id });
 
         if (datesError) {
           console.error("Error fetching court dates:", datesError);
@@ -72,7 +77,7 @@ export const useClientData = ({ userId }: UseClientDataProps): ClientDataResult 
 
         // Get billing information - Fix the RPC function typing with both input and output types
         const { data: billingData, error: billingError } = await supabase
-          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id });
+          .rpc<BillingInfo[], ClientIdParam>('get_billing_summary_by_client_id', { client_id: clientData.id });
 
         if (billingError) {
           console.error("Error fetching billing info:", billingError);
