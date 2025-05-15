@@ -47,7 +47,7 @@ const mockAttorneys = [
   }
 ];
 
-// Mock data for client billing details
+// Mock data for client billing details with proper typing for status
 const mockClientBillings = [
   {
     id: 'bill1',
@@ -59,7 +59,7 @@ const mockClientBillings = [
     caseTitle: 'Smith v. ABC Corp',
     billDate: '2025-03-15',
     amount: 2850.00,
-    status: 'paid',
+    status: 'paid' as const,
     paymentDate: '2025-03-25'
   },
   {
@@ -72,7 +72,7 @@ const mockClientBillings = [
     caseTitle: 'Garcia v. XYZ Inc',
     billDate: '2025-03-18',
     amount: 1950.00,
-    status: 'pending',
+    status: 'pending' as const,
     paymentDate: null
   },
   {
@@ -85,7 +85,7 @@ const mockClientBillings = [
     caseTitle: 'Johnson Medical Claim',
     billDate: '2025-03-10',
     amount: 3250.00,
-    status: 'paid',
+    status: 'paid' as const,
     paymentDate: '2025-03-20'
   },
   {
@@ -98,7 +98,7 @@ const mockClientBillings = [
     caseTitle: 'Chen Personal Injury',
     billDate: '2025-03-22',
     amount: 1750.00,
-    status: 'overdue',
+    status: 'overdue' as const,
     paymentDate: null
   },
   {
@@ -111,7 +111,7 @@ const mockClientBillings = [
     caseTitle: 'Williams v. State',
     billDate: '2025-03-05',
     amount: 4200.00,
-    status: 'paid',
+    status: 'paid' as const,
     paymentDate: '2025-03-15'
   }
 ];
@@ -157,7 +157,7 @@ const AdminBillingView = () => {
         const filtered = mockClientBillings.filter(
           bill => bill.attorneyId === selectedAttorney
         );
-        setClientBillings(filtered);
+        setClientBillings(filtered as ClientBilling[]);
         setLoading(false);
       }, 500);
     } else {
@@ -209,7 +209,10 @@ const AdminBillingView = () => {
     setTimeout(() => {
       setAttorneyBillings(mockAttorneys);
       if (selectedAttorney) {
-        setClientBillings(mockClientBillings.filter(bill => bill.attorneyId === selectedAttorney));
+        const filtered = mockClientBillings.filter(
+          bill => bill.attorneyId === selectedAttorney
+        );
+        setClientBillings(filtered as ClientBilling[]);
       }
       setLoading(false);
       toast({
