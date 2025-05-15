@@ -43,7 +43,7 @@ const Login: React.FC = () => {
     }
 
     try {
-      // Pass login credentials as a single object parameter
+      // Fix: Pass login credentials as a single object parameter
       const success = await login({
         email,
         password,

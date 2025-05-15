@@ -1,13 +1,14 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '@/types/user';
+import { LoginCredentials } from '@/types/auth';
 import { saveAuthData, clearAuthData, checkPermission, getMockUser } from '@/lib/utils/auth-utils';
 
 interface AuthContextType {
   currentUser: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string, remember?: boolean) => Promise<User | null>;
+  login: (credentials: LoginCredentials) => Promise<User | null>;
   logout: () => void;
   hasPermission: (permission: string) => boolean;
 }
@@ -53,21 +54,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initAuthState();
   }, []);
 
-  const login = async (email: string, password: string, remember = false): Promise<User | null> => {
+  const login = async (credentials: LoginCredentials): Promise<User | null> => {
     setIsLoading(true);
     
     try {
       // Simulate API call with delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      const user = getMockUser(email, password);
+      const user = getMockUser(credentials.email, credentials.password);
       
       if (!user) {
         return null;
       }
       
       // Save to storage based on 'remember' flag
-      saveAuthData(user, remember);
+      saveAuthData(user, credentials.remember || false);
       setCurrentUser(user);
       
       return user;
