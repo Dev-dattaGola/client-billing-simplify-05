@@ -69,56 +69,52 @@ const ClientDashboard = () => {
 
         if (clientError) throw clientError;
 
-        // Get client cases
+        // Get client cases - using a more generic approach
         const { data: cases, error: casesError } = await supabase
-          .from('cases')
-          .select('id, title, caseNumber, status, description, openDate, courtDate, caseType')
-          .eq('clientId', clientData.id);
+          .rpc('get_cases_by_client_id', { client_id: clientData.id });
 
-        if (casesError) throw casesError;
-        setClientCases(cases || []);
-
-        // Get upcoming court dates
-        const { data: dates, error: datesError } = await supabase
-          .from('court_dates')
-          .select('id, title, date, time, location, caseId, cases(title)')
-          .eq('clientId', clientData.id)
-          .order('date', { ascending: true })
-          .limit(5);
-
-        if (datesError) throw datesError;
-        
-        // Transform dates data to include case title
-        const formattedDates = dates?.map(date => ({
-          id: date.id,
-          title: date.title,
-          date: date.date,
-          time: date.time,
-          location: date.location,
-          caseId: date.caseId,
-          caseTitle: date.cases?.title
-        })) || [];
-        
-        setCourtDates(formattedDates);
-
-        // Get billing information
-        const { data: billing, error: billingError } = await supabase
-          .from('billing_summaries')
-          .select('totalHours, totalAmount, lastBilledDate, pendingAmount')
-          .eq('clientId', clientData.id)
-          .single();
-
-        if (billingError && billingError.code !== 'PGRST116') {
-          // PGRST116 is "no rows returned" which is OK - we'll show zeros
-          throw billingError;
+        if (casesError) {
+          console.error("Error fetching cases:", casesError);
+          // Fallback to an empty array if we couldn't get cases
+          setClientCases([]);
+        } else {
+          setClientCases(cases || []);
         }
 
-        setBillingInfo(billing || {
-          totalHours: 0,
-          totalAmount: 0,
-          lastBilledDate: new Date().toISOString(),
-          pendingAmount: 0
-        });
+        // Get upcoming court dates - using a more generic approach
+        const { data: dates, error: datesError } = await supabase
+          .rpc('get_court_dates_by_client_id', { client_id: clientData.id });
+
+        if (datesError) {
+          console.error("Error fetching court dates:", datesError);
+          // Fallback to an empty array if we couldn't get court dates
+          setCourtDates([]);
+        } else {
+          // Use dates directly since they should already have the structure we need
+          setCourtDates(dates || []);
+        }
+
+        // Get billing information - using a more generic approach
+        const { data: billing, error: billingError } = await supabase
+          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id });
+
+        if (billingError) {
+          console.error("Error fetching billing info:", billingError);
+          // Set default values if we couldn't get the billing data
+          setBillingInfo({
+            totalHours: 0,
+            totalAmount: 0,
+            lastBilledDate: new Date().toISOString(),
+            pendingAmount: 0
+          });
+        } else {
+          setBillingInfo(billing || {
+            totalHours: 0,
+            totalAmount: 0,
+            lastBilledDate: new Date().toISOString(),
+            pendingAmount: 0
+          });
+        }
 
       } catch (error: any) {
         console.error('Error fetching client data:', error);
