@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClientList from "./ClientList";
@@ -21,6 +20,23 @@ import ClientCaseReport from "./ClientCaseReport";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import RoleBasedLayout from "../layout/RoleBasedLayout";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 const ClientManagement = () => {
   const { 
@@ -38,8 +54,8 @@ const ClientManagement = () => {
     handleViewClient,
     startEditClient,
     clearClientToEdit,
-    transferClient, // New function for transferring clients
-    dropClient, // New function for dropping clients
+    transferClient,
+    dropClient
   } = useClient();
   
   const { hasPermission, currentUser } = useAuth();

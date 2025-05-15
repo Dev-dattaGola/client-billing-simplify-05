@@ -1,7 +1,28 @@
 
 import React, { createContext, useCallback, useState } from 'react';
-import type { Toast, ToastContextType, ToastOptions } from '@/hooks/use-toast';
-import { Toaster as Sonner } from 'sonner';
+
+// Define our own types matching what's available from use-toast
+interface Toast {
+  id: string;
+  title?: string;
+  description?: React.ReactNode;
+  variant?: 'default' | 'destructive';
+  action?: React.ReactNode;
+}
+
+interface ToastOptions {
+  title?: string;
+  description?: React.ReactNode;
+  variant?: 'default' | 'destructive';
+  action?: React.ReactNode;
+}
+
+interface ToastContextType {
+  toast: (options: ToastOptions) => string;
+  dismiss: (toastId?: string) => void;
+  update: (options: ToastOptions & { id: string }) => void;
+  toasts: Toast[];
+}
 
 // Create context with default values
 export const ToastContext = createContext<ToastContextType>({
@@ -47,3 +68,6 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     </ToastContext.Provider>
   );
 }
+
+// Import Sonner only once it's referenced
+import { Toaster as Sonner } from 'sonner';

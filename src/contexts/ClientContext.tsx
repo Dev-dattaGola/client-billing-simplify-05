@@ -20,6 +20,9 @@ interface ClientContextType {
   startEditClient: (client: Client) => void;
   clearClientToEdit: () => void;
   refreshClients: () => Promise<void>;
+  // New functions for transferring and dropping clients
+  transferClient: (clientId: string, newAttorneyId: string) => Promise<void>;
+  dropClient: (clientId: string, reason: string) => Promise<void>;
 }
 
 export const ClientContext = createContext<ClientContextType | undefined>(undefined);
@@ -161,6 +164,93 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setClientToEdit(null);
   };
 
+  // New function to transfer a client to another attorney
+  const transferClient = async (clientId: string, newAttorneyId: string) => {
+    try {
+      const client = clients.find(c => c.id === clientId);
+      if (!client) {
+        throw new Error("Client not found");
+      }
+      
+      const updatedClient = { 
+        ...client, 
+        assignedAttorneyId: newAttorneyId 
+      };
+      
+      const result = await clientsApi.updateClient(clientId, updatedClient);
+      
+      if (result) {
+        const updatedClients = clients.map(c => 
+          c.id === clientId ? { ...c, assignedAttorneyId: newAttorneyId } : c
+        );
+        
+        setClients(updatedClients);
+        
+        // Update selected client if it's the one being transferred
+        if (selectedClient && selectedClient.id === clientId) {
+          setSelectedClient({ ...selectedClient, assignedAttorneyId: newAttorneyId });
+        }
+        
+        toast({
+          title: "Client Transferred",
+          description: `${client.fullName} has been transferred to a new attorney.`,
+        });
+      } else {
+        throw new Error("Failed to transfer client");
+      }
+    } catch (error) {
+      console.error("Error transferring client:", error);
+      toast({
+        title: "Error",
+        description: "Failed to transfer client. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // New function to drop a client from the firm with a reason
+  const dropClient = async (clientId: string, reason: string) => {
+    try {
+      const client = clients.find(c => c.id === clientId);
+      if (!client) {
+        throw new Error("Client not found");
+      }
+      
+      // In a real application, you would update the client status in the database
+      // For now, we'll just remove them from the list as if they were deleted
+      const success = await clientsApi.deleteClient(clientId);
+      
+      if (success) {
+        // Remove client from the list
+        setClients(clients.filter(c => c.id !== clientId));
+        
+        // If the dropped client was selected, clear the selection
+        if (selectedClient && selectedClient.id === clientId) {
+          setSelectedClient(null);
+          setActiveTab("view");
+        }
+        
+        toast({
+          title: "Client Dropped",
+          description: `${client.fullName} has been dropped from the firm.`,
+          variant: "destructive",
+        });
+        
+        // In a real application, you might log this action with the reason
+        console.log(`Client ${clientId} dropped. Reason: ${reason}`);
+      } else {
+        throw new Error("Failed to drop client");
+      }
+    } catch (error) {
+      console.error("Error dropping client:", error);
+      toast({
+        title: "Error",
+        description: "Failed to drop client. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const contextValue = {
     clients,
     selectedClient,
@@ -176,7 +266,9 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     handleViewClient,
     startEditClient,
     clearClientToEdit,
-    refreshClients
+    refreshClients,
+    transferClient,
+    dropClient
   };
 
   return (
