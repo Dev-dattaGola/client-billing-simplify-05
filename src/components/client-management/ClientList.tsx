@@ -36,9 +36,6 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isAfter, isBefore, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { useClient } from "@/contexts/ClientContext";
 
 interface ClientListProps {
   clients: Client[];
@@ -49,12 +46,10 @@ interface ClientListProps {
 }
 
 const ClientList = ({ clients, onEditClient, onViewClient, onDeleteClient, loading = false }: ClientListProps) => {
-  const { showDropped, setShowDropped } = useClient();
   const [filterParams, setFilterParams] = useState<ClientFilterParams>({
     search: "",
     tag: undefined,
-    dateRange: undefined,
-    showDropped: showDropped
+    dateRange: undefined
   });
   const [showFilters, setShowFilters] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
@@ -85,10 +80,7 @@ const ClientList = ({ clients, onEditClient, onViewClient, onDeleteClient, loadi
       }
     }
     
-    // Only show dropped clients if showDropped is true
-    const droppedMatch = showDropped || !client.is_dropped;
-    
-    return searchMatch && tagMatch && dateMatch && droppedMatch;
+    return searchMatch && tagMatch && dateMatch;
   });
 
   return (
@@ -105,28 +97,14 @@ const ClientList = ({ clients, onEditClient, onViewClient, onDeleteClient, loadi
             />
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="show-dropped"
-                checked={showDropped}
-                onCheckedChange={(checked) => {
-                  setShowDropped(checked);
-                  setFilterParams({...filterParams, showDropped: checked});
-                }}
-              />
-              <Label htmlFor="show-dropped">Show Dropped Clients</Label>
-            </div>
-            
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter className="h-4 w-4" />
-              Filters
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="h-4 w-4" />
+            Filters
+          </Button>
         </div>
         
         {showFilters && (
@@ -267,23 +245,14 @@ const ClientList = ({ clients, onEditClient, onViewClient, onDeleteClient, loadi
                   <TableHead className="hidden md:table-cell">Phone</TableHead>
                   <TableHead className="hidden md:table-cell">Company</TableHead>
                   <TableHead className="hidden lg:table-cell">Tags</TableHead>
-                  <TableHead className="hidden md:table-cell">Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredClients.map((client) => (
-                  <TableRow key={client.id} className={cn(
-                    "hover:bg-muted/50",
-                    client.is_dropped && "bg-red-50/30"
-                  )}>
+                  <TableRow key={client.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
                       {client.fullName}
-                      {client.is_dropped && (
-                        <Badge variant="outline" className="ml-2 bg-red-50 text-red-800 border-red-200">
-                          Dropped
-                        </Badge>
-                      )}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {client.email}
@@ -301,15 +270,6 @@ const ClientList = ({ clients, onEditClient, onViewClient, onDeleteClient, loadi
                         ))}
                         {!client.tags?.length && "-"}
                       </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {client.is_dropped ? (
-                        <Badge variant="outline" className="bg-red-50 text-red-800 border-red-200">
-                          Dropped on {new Date(client.dropped_date || "").toLocaleDateString()}
-                        </Badge>
-                      ) : (
-                        client.caseStatus || "-"
-                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2 justify-end">
@@ -329,16 +289,14 @@ const ClientList = ({ clients, onEditClient, onViewClient, onDeleteClient, loadi
                           <Edit className="h-4 w-4" />
                           <span className="sr-only">Edit</span>
                         </Button>
-                        {!client.is_dropped && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => setClientToDelete(client)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Delete</span>
-                          </Button>
-                        )}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => setClientToDelete(client)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete</span>
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>

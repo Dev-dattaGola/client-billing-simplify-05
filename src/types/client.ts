@@ -24,10 +24,6 @@ export interface Client {
   insurancePolicyNumber?: string;
   insuranceAdjusterName?: string;
   dateRegistered?: string;
-  // Dropped client fields
-  is_dropped?: boolean;
-  dropped_date?: string;
-  dropped_reason?: string;
 }
 
 export type ClientFormData = Omit<Client, 'id' | 'createdAt' | 'updatedAt'>;
@@ -39,5 +35,4 @@ export interface ClientFilterParams {
     from: Date | undefined;
     to: Date | undefined;
   };
-  showDropped?: boolean;
 }

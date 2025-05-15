@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -26,7 +26,6 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const { hasPermission, currentUser } = useAuth();
-  const location = useLocation();
   
   // Define which roles can access which items
   const roleBasedNavItems = [
@@ -129,6 +128,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         isCollapsed ? "w-16" : "w-60"
       )}
     >
+      {/* <div className="p-3 flex items-center gap-2 border-b">
+        <div className="bg-lawfirm-light-blue text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg">
+          LYZ
+        </div>
+        {!isCollapsed && <div className="font-semibold">LYZ Law Firm</div>}
+      </div> */}
+
       <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
         {roleBasedNavItems
           .filter(item => !currentUser || item.roles.includes(currentUser.role))
@@ -136,7 +142,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/dashboard'}
               className={({ isActive }) => cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
                 "hover:bg-accent hover:text-accent-foreground",
