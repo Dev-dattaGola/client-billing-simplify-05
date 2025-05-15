@@ -12,6 +12,8 @@ const Login = React.lazy(() => import('@/pages/Login'));
 const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
 const Admin = React.lazy(() => import('@/pages/Admin'));
 const SuperAdmin = React.lazy(() => import('@/pages/SuperAdmin'));
+const Index = React.lazy(() => import('@/pages/Index'));
+const LandingPage = React.lazy(() => import('@/pages/LandingPage'));
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/landing" element={<LandingPage />} />
             
             {/* Protected routes */}
             <Route path="/dashboard" element={
@@ -45,11 +49,8 @@ function App() {
               </ProtectedRoute>
             } />
             
-            {/* Redirect home to dashboard */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            
             {/* Fallback for unknown routes */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
         <Toaster />

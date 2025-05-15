@@ -1,118 +1,87 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { AuthContextType, LoginCredentials } from '@/types/auth';
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { User, LoginCredentials, AuthContextType } from '@/types/auth';
+import { useToast } from '@/hooks/use-toast';
+import { restoreAuthState, saveAuthData, clearAuthData, checkPermission, getMockUser } from '@/lib/utils/auth-utils';
+
+const AuthContext = createContext<AuthContextType>({
+  isLoading: true,
+  isAuthenticated: false,
+  currentUser: null,
+  login: async () => null,
+  logout: () => {},
+  hasPermission: () => false,
+  updateAuthState: () => {}
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
-  const [session, setSession] = useState<Session | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
-  // Initialize auth state
+  // Initialize auth state from storage
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
-        setSession(newSession);
-        setCurrentUser(newSession?.user ?? null);
-        
-        // If session changed, fetch user role
-        if (newSession?.user) {
-          setTimeout(() => {
-            fetchUserRole(newSession.user.id);
-          }, 0);
-        } else {
-          setUserRole(null);
-        }
+    const initAuth = () => {
+      try {
+        const { user, isAuthenticated: isAuth } = restoreAuthState();
+        setCurrentUser(user);
+        setIsAuthenticated(isAuth);
+      } catch (error) {
+        console.error("Error initializing auth state:", error);
+      } finally {
+        setIsLoading(false);
       }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      setSession(initialSession);
-      setCurrentUser(initialSession?.user ?? null);
-      
-      if (initialSession?.user) {
-        fetchUserRole(initialSession.user.id);
-      }
-      
-      setIsLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
     };
+    
+    initAuth();
   }, []);
 
-  // Fetch user role from profiles table
-  async function fetchUserRole(userId: string) {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return;
-      }
-
-      if (data) {
-        setUserRole(data.role);
-      }
-    } catch (error) {
-      console.error('Error in fetchUserRole:', error);
-    }
-  }
-
   // Login function
-  async function login({ email, password, remember = false }: LoginCredentials) {
+  const login = async (credentials: LoginCredentials): Promise<User | null> => {
+    setIsLoading(true);
+    console.log("AuthContext login attempt with:", credentials.email);
+    
     try {
-      setIsLoading(true);
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Get mock user for demo
+      const user = getMockUser(credentials.email, credentials.password);
+      console.log("Mock user result:", user ? "User found" : "User not found");
+      
+      if (!user) {
+        console.error("Login failed: Invalid credentials");
         toast({
           title: "Login failed",
-          description: error.message,
+          description: "Invalid email or password",
           variant: "destructive"
         });
         return null;
       }
 
-      if (data.user) {
-        toast({
-          title: "Login successful",
-          description: `Welcome back, ${data.user.email || 'user'}!`
-        });
-        
-        // Navigate to dashboard
-        navigate('/dashboard');
-        
-        // Convert Supabase user to our app's User type
-        const appUser = {
-          id: data.user.id,
-          email: data.user.email || '',
-          role: userRole || 'client'
-        };
-        
-        return appUser;
-      }
+      // Save authentication data
+      saveAuthData(user, credentials.remember || false);
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      console.log("Auth data saved for user:", user.name);
       
-      return null;
+      toast({
+        title: "Login successful",
+        description: `Welcome back, ${user.name || user.email}!`
+      });
+      
+      // Navigate to dashboard or originally requested page
+      const origin = location.state?.from?.pathname || '/dashboard';
+      console.log("Navigating to:", origin);
+      navigate(origin);
+      
+      return user;
     } catch (error: any) {
+      console.error('Login error:', error);
       toast({
         title: "Login error",
         description: error.message || "An unexpected error occurred",
@@ -122,78 +91,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   // Logout function
-  async function logout() {
-    try {
-      setIsLoading(true);
-      await supabase.auth.signOut();
-      navigate('/login');
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out."
-      });
-    } catch (error: any) {
-      toast({
-        title: "Logout error",
-        description: error.message || "An error occurred during logout",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const logout = () => {
+    clearAuthData();
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    toast({
+      title: "Logged out",
+      description: "You have been logged out successfully"
+    });
+    navigate('/login');
+  };
 
   // Check if user has a specific permission
-  function hasPermission(permission: string) {
-    // Superadmin and admin roles have all permissions
-    if (userRole === 'superadmin' || userRole === 'admin') {
-      return true;
+  const hasPermission = (permission: string): boolean => {
+    try {
+      if (!currentUser) return false;
+      return checkPermission(currentUser, permission);
+    } catch (error) {
+      console.error("Error checking permission:", error);
+      return false;
     }
-
-    // Attorney permissions
-    if (userRole === 'attorney') {
-      const attorneyPermissions = [
-        'view:clients', 'edit:clients',
-        'view:cases', 'create:cases', 'edit:cases',
-        'view:documents', 'upload:documents', 'download:documents',
-        'view:calendar', 'create:events', 'edit:events',
-        'view:reports'
-      ];
-      
-      return attorneyPermissions.includes(permission);
-    }
-
-    // Client permissions
-    if (userRole === 'client') {
-      const clientPermissions = [
-        'view:documents', 'upload:documents', 'download:documents',
-        'view:calendar', 'view:appointments',
-        'view:messages', 'send:messages'
-      ];
-      
-      return clientPermissions.includes(permission);
-    }
-
-    return false;
-  }
+  };
 
   // Function to manually refresh auth state (useful after profile updates)
-  function updateAuthState() {
-    if (currentUser?.id) {
-      fetchUserRole(currentUser.id);
+  const updateAuthState = () => {
+    try {
+      const { user, isAuthenticated: isAuth } = restoreAuthState();
+      setCurrentUser(user);
+      setIsAuthenticated(isAuth);
+    } catch (error) {
+      console.error("Error updating auth state:", error);
     }
-  }
+  };
 
   const value: AuthContextType = {
     isLoading,
-    isAuthenticated: !!currentUser,
-    currentUser: currentUser ? {
-      id: currentUser.id,
-      email: currentUser.email || '',
-      role: userRole || 'client'
-    } : null,
+    isAuthenticated,
+    currentUser,
     login,
     logout,
     hasPermission,
@@ -203,12 +140,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth(): AuthContextType {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  
   return context;
-}
+};
