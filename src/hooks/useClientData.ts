@@ -48,10 +48,9 @@ export const useClientData = ({ userId }: UseClientDataProps): ClientDataResult 
 
         if (clientError) throw clientError;
 
-        // Get client cases
+        // Get client cases - Add explicit type for the RPC function
         const { data: casesData, error: casesError } = await supabase
-          .rpc('get_cases_by_client_id', { client_id: clientData.id })
-          .returns<ClientCase[]>();
+          .rpc<ClientCase[]>('get_cases_by_client_id', { client_id: clientData.id });
 
         if (casesError) {
           console.error("Error fetching cases:", casesError);
@@ -60,10 +59,9 @@ export const useClientData = ({ userId }: UseClientDataProps): ClientDataResult 
           setClientCases(casesData || []);
         }
 
-        // Get upcoming court dates
+        // Get upcoming court dates - Add explicit type for the RPC function
         const { data: datesData, error: datesError } = await supabase
-          .rpc('get_court_dates_by_client_id', { client_id: clientData.id })
-          .returns<CourtDate[]>();
+          .rpc<CourtDate[]>('get_court_dates_by_client_id', { client_id: clientData.id });
 
         if (datesError) {
           console.error("Error fetching court dates:", datesError);
@@ -72,10 +70,9 @@ export const useClientData = ({ userId }: UseClientDataProps): ClientDataResult 
           setCourtDates(datesData || []);
         }
 
-        // Get billing information
+        // Get billing information - Add explicit type for the RPC function
         const { data: billingData, error: billingError } = await supabase
-          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id })
-          .returns<BillingInfo[]>();
+          .rpc<BillingInfo[]>('get_billing_summary_by_client_id', { client_id: clientData.id });
 
         if (billingError) {
           console.error("Error fetching billing info:", billingError);
