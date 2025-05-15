@@ -17,8 +17,8 @@ interface ClientContextType {
   handleViewClient: (client: Client) => void;
   startEditClient: (client: Client) => void;
   clearClientToEdit: () => void;
-  transferClient: (clientId: string, attorneyId: string, attorneyName: string) => void;
-  dropClient: (clientId: string, reason: string) => void;
+  transferClient: (client: Client, attorneyId: string, attorneyName: string) => void;
+  dropClient: (client: Client, reason: string) => void;
 }
 
 const ClientContext = createContext<ClientContextType>({
@@ -170,20 +170,20 @@ export const ClientProvider: React.FC<ClientProviderProps> = ({ children }) => {
   };
   
   // New function to transfer client to another attorney
-  const transferClient = (clientId: string, attorneyId: string, attorneyName: string) => {
-    setClients(clients.map(client => {
-      if (client.id === clientId) {
+  const transferClient = (client: Client, attorneyId: string, attorneyName: string) => {
+    setClients(clients.map(c => {
+      if (c.id === client.id) {
         return {
-          ...client,
+          ...c,
           assignedAttorney: attorneyName,
           assignedAttorneyId: attorneyId
         };
       }
-      return client;
+      return c;
     }));
     
     // Update selected client if it's being transferred
-    if (selectedClient && selectedClient.id === clientId) {
+    if (selectedClient && selectedClient.id === client.id) {
       setSelectedClient({
         ...selectedClient,
         assignedAttorney: attorneyName,
@@ -198,21 +198,21 @@ export const ClientProvider: React.FC<ClientProviderProps> = ({ children }) => {
   };
   
   // New function to drop a client
-  const dropClient = (clientId: string, reason: string) => {
+  const dropClient = (client: Client, reason: string) => {
     // Update client status to dropped
-    setClients(clients.map(client => {
-      if (client.id === clientId) {
+    setClients(clients.map(c => {
+      if (c.id === client.id) {
         return {
-          ...client,
+          ...c,
           status: 'dropped',
           dropReason: reason
         };
       }
-      return client;
+      return c;
     }));
     
     // If selected client is being dropped, update it
-    if (selectedClient && selectedClient.id === clientId) {
+    if (selectedClient && selectedClient.id === client.id) {
       setSelectedClient({
         ...selectedClient,
         status: 'dropped',

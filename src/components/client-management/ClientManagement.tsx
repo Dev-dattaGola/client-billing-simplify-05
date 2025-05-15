@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -75,7 +74,7 @@ const ClientManagement = () => {
     }, 2000);
   };
   
-  // Handle client transfer function
+  // Handle client transfer function - fix type error by passing the client object instead of just ID
   const handleTransferClient = () => {
     if (!selectedClient || !selectedAttorneyForTransfer) return;
     
@@ -91,8 +90,8 @@ const ClientManagement = () => {
     
     const attorneyName = getAttorneyName(selectedAttorneyForTransfer);
     
-    // Pass client ID and attorney ID for transfer
-    transferClient(selectedClient.id, selectedAttorneyForTransfer, attorneyName);
+    // Pass the entire client object instead of just the ID
+    transferClient(selectedClient, selectedAttorneyForTransfer, attorneyName);
     setIsTransferModalOpen(false);
     setSelectedAttorneyForTransfer("");
     
@@ -102,12 +101,12 @@ const ClientManagement = () => {
     });
   };
   
-  // Handle drop client function
+  // Handle drop client function - fix type error by passing the client object instead of just ID
   const handleDropClient = () => {
     if (!selectedClient || !dropReason) return;
     
-    // Pass client ID and reason for dropping
-    dropClient(selectedClient.id, dropReason);
+    // Pass the entire client object instead of just the ID
+    dropClient(selectedClient, dropReason);
     setIsDropClientModalOpen(false);
     setDropReason("");
     setActiveTab("view");
