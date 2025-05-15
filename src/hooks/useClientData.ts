@@ -55,29 +55,29 @@ export const useClientData = ({ userId }: UseClientDataProps): ClientDataResult 
 
         // Get client cases
         const { data: casesData, error: casesError } = await supabase
-          .rpc('get_cases_by_client_id', { client_id: clientData.id });
+          .rpc('get_cases_by_client_id', { client_id: clientData.id } as ClientIdParam);
 
         if (casesError) {
           console.error("Error fetching cases:", casesError);
           setClientCases([]);
         } else {
-          setClientCases(casesData as ClientCase[] || []);
+          setClientCases((casesData as ClientCase[]) || []);
         }
 
         // Get upcoming court dates
         const { data: datesData, error: datesError } = await supabase
-          .rpc('get_court_dates_by_client_id', { client_id: clientData.id });
+          .rpc('get_court_dates_by_client_id', { client_id: clientData.id } as ClientIdParam);
 
         if (datesError) {
           console.error("Error fetching court dates:", datesError);
           setCourtDates([]);
         } else {
-          setCourtDates(datesData as CourtDate[] || []);
+          setCourtDates((datesData as CourtDate[]) || []);
         }
 
         // Get billing information
         const { data: billingData, error: billingError } = await supabase
-          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id });
+          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id } as ClientIdParam);
 
         if (billingError) {
           console.error("Error fetching billing info:", billingError);
@@ -89,7 +89,7 @@ export const useClientData = ({ userId }: UseClientDataProps): ClientDataResult 
           });
         } else {
           if (billingData && Array.isArray(billingData) && billingData.length > 0) {
-            setBillingInfo(billingData[0] as BillingInfo);
+            setBillingInfo((billingData[0] as BillingInfo));
           } else {
             setBillingInfo({
               totalHours: 0,
