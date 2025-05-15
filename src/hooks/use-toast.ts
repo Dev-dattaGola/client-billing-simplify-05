@@ -3,11 +3,18 @@ import * as React from "react";
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
 import { ToastContext } from "@/contexts/ToastContext";
 
+export interface ToastOptions {
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  action?: ToastActionElement;
+  variant?: "default" | "destructive";
+}
+
 export type ToastContextType = {
-  toast: (props: ToastProps) => void;
+  toast: (props: ToastOptions) => void;
   dismiss: (toastId?: string) => void;
-  update: (props: ToastProps & { id: string }) => void;
-  toasts: ToastProps[];
+  update: (props: ToastOptions & { id: string }) => void;
+  toasts: Toast[];
 };
 
 export function useToast(): ToastContextType {
