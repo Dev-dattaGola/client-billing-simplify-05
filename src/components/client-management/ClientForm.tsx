@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,12 +135,32 @@ const ClientForm = ({ initialData, onSubmit, onCancel, onDropClient }: ClientFor
   };
   
   const handleSubmit = async (data: ClientFormData) => {
-    await onSubmit({
-      ...data,
+    // Fix: Ensure that required fields are present
+    const clientData: Client = {
       id: initialData?.id || "",
+      fullName: data.fullName, // This is now guaranteed by the form validation
+      email: data.email, // This is now guaranteed by the form validation
+      phone: data.phone || "",
+      companyName: data.companyName,
+      address: data.address,
+      accountNumber: data.accountNumber,
+      dateOfBirth: data.dateOfBirth,
+      caseStatus: data.caseStatus,
+      assignedAttorneyId: data.assignedAttorneyId,
+      accidentDate: data.accidentDate,
+      accidentLocation: data.accidentLocation,
+      injuryType: data.injuryType,
+      caseDescription: data.caseDescription,
+      insuranceCompany: data.insuranceCompany,
+      insurancePolicyNumber: data.insurancePolicyNumber,
+      insuranceAdjusterName: data.insuranceAdjusterName,
+      notes: data.notes,
+      tags: data.tags || [],
       createdAt: initialData?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    });
+    };
+    
+    await onSubmit(clientData);
   };
 
   const handleDropClient = async () => {
