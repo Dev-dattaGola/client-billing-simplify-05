@@ -12,7 +12,7 @@ import {
   SheetTitle 
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Search, Download, FileText, AlertTriangle } from 'lucide-react';
+import { Search, Download, FileText, AlertTriangle, RefreshCw } from 'lucide-react';
 import ClientMedicalRecords from "./ClientMedicalRecords";
 import ClientDocuments from "./ClientDocuments";
 import ClientAppointments from "./ClientAppointments";
@@ -21,10 +21,13 @@ import ClientCaseReport from "./ClientCaseReport";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import RoleBasedLayout from "../layout/RoleBasedLayout";
+import DroppedClientsList from "./DroppedClientsList";
+import { Separator } from "@/components/ui/separator";
 
 const ClientManagement = () => {
   const { 
     clients,
+    droppedClients,
     selectedClient, 
     clientToEdit,
     loading,
@@ -35,9 +38,11 @@ const ClientManagement = () => {
     handleAddClient,
     handleEditClient,
     handleDeleteClient,
+    handleDropClient,
     handleViewClient,
     startEditClient,
-    clearClientToEdit
+    clearClientToEdit,
+    refreshClients
   } = useClient();
   
   const { hasPermission, currentUser } = useAuth();
@@ -62,6 +67,14 @@ const ClientManagement = () => {
         description: "Complete case summary has been downloaded successfully.",
       });
     }, 2000);
+  };
+
+  const handleRefreshClients = async () => {
+    await refreshClients();
+    toast({
+      title: "Refreshed",
+      description: "Client data has been refreshed."
+    });
   };
 
   const renderDetailsContent = () => {
@@ -187,14 +200,39 @@ const ClientManagement = () => {
           </TabsList>
         </div>
         
-        <TabsContent value="view" className="p-6 space-y-4">
+        <TabsContent value="view" className="p-6 space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold">Active Clients</h2>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-1"
+              onClick={handleRefreshClients}
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
+          
           <ClientList 
             clients={clients} 
             onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
             onViewClient={handleViewClient}
-            onDeleteClient={(client) => hasPermission('edit:clients') ? handleDeleteClient(client) : null}
+            onDropClient={(clientId, reason) => hasPermission('edit:clients') ? handleDropClient(clientId, reason) : undefined}
             loading={loading}
           />
+          
+          {droppedClients.length > 0 && (
+            <>
+              <Separator className="my-8" />
+              <DroppedClientsList
+                clients={droppedClients}
+                onViewClient={handleViewClient}
+                onDeleteClient={(clientId) => hasPermission('delete:clients') ? handleDeleteClient(clientId) : null}
+                loading={loading}
+              />
+            </>
+          )}
         </TabsContent>
         
         <RoleBasedLayout 
@@ -248,7 +286,7 @@ const ClientManagement = () => {
                 handleViewClient(client);
                 setIsSearchOpen(false);
               }}
-              onDeleteClient={(client) => hasPermission('edit:clients') ? handleDeleteClient(client) : null}
+              onDropClient={(clientId, reason) => hasPermission('edit:clients') ? handleDropClient(clientId, reason) : undefined}
               loading={loading}
             />
           </div>

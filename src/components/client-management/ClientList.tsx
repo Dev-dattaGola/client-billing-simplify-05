@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Search, Filter, Trash2, Edit, FileText, Tags, Loader2, Eye } from "lucide-react";
+import { Search, Filter, UserMinus, Edit, Tags, Loader2, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Client, ClientFilterParams } from "@/types/client";
@@ -26,6 +26,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
   Popover,
@@ -36,23 +37,32 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { format, isAfter, isBefore, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface ClientListProps {
   clients: Client[];
   onEditClient: (client: Client) => void;
   onViewClient: (client: Client) => void;
-  onDeleteClient: (clientId: string) => void;
+  onDropClient?: (clientId: string, reason: string) => void;
   loading?: boolean;
 }
 
-const ClientList = ({ clients, onEditClient, onViewClient, onDeleteClient, loading = false }: ClientListProps) => {
+const ClientList = ({ 
+  clients, 
+  onEditClient, 
+  onViewClient, 
+  onDropClient, 
+  loading = false 
+}: ClientListProps) => {
   const [filterParams, setFilterParams] = useState<ClientFilterParams>({
     search: "",
     tag: undefined,
     dateRange: undefined
   });
   const [showFilters, setShowFilters] = useState(false);
-  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
+  const [clientToDrop, setClientToDrop] = useState<Client | null>(null);
+  const [dropReason, setDropReason] = useState<string>("");
   
   const uniqueTags = [...new Set(clients.flatMap(client => client.tags || []))];
   
@@ -82,6 +92,14 @@ const ClientList = ({ clients, onEditClient, onViewClient, onDeleteClient, loadi
     
     return searchMatch && tagMatch && dateMatch;
   });
+
+  const handleConfirmDrop = () => {
+    if (clientToDrop && onDropClient) {
+      onDropClient(clientToDrop.id, dropReason);
+      setClientToDrop(null);
+      setDropReason("");
+    }
+  };
 
   return (
     <>
@@ -292,10 +310,13 @@ const ClientList = ({ clients, onEditClient, onViewClient, onDeleteClient, loadi
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={() => setClientToDelete(client)}
+                          onClick={() => {
+                            setClientToDrop(client);
+                            setDropReason("");
+                          }}
                         >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
+                          <UserMinus className="h-4 w-4" />
+                          <span className="sr-only">Drop Client</span>
                         </Button>
                       </div>
                     </TableCell>
@@ -308,34 +329,42 @@ const ClientList = ({ clients, onEditClient, onViewClient, onDeleteClient, loadi
       </div>
       
       <Dialog 
-        open={!!clientToDelete} 
-        onOpenChange={(isOpen) => !isOpen && setClientToDelete(null)}
+        open={!!clientToDrop} 
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setClientToDrop(null);
+            setDropReason("");
+          }
+        }}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Are you sure you want to delete this client?</DialogTitle>
+            <DialogTitle>Drop this client?</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. This will permanently delete the client
-              and remove their data from our servers.
+              This will move the client to the dropped clients list. They will no longer appear in your active clients.
             </DialogDescription>
           </DialogHeader>
+          
+          <div className="py-4">
+            <Label htmlFor="drop-reason" className="mb-2 block">Reason for dropping</Label>
+            <Textarea
+              id="drop-reason"
+              placeholder="Please provide a reason for dropping this client..."
+              value={dropReason}
+              onChange={(e) => setDropReason(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          
           <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
             <Button
-              variant="outline"
-              onClick={() => setClientToDelete(null)}
+              variant="default"
+              onClick={handleConfirmDrop}
             >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                if (clientToDelete) {
-                  onDeleteClient(clientToDelete.id);
-                  setClientToDelete(null);
-                }
-              }}
-            >
-              Delete
+              Drop Client
             </Button>
           </DialogFooter>
         </DialogContent>

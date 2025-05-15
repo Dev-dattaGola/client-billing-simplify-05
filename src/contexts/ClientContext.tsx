@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ClientContextType {
   clients: Client[];
+  droppedClients: Client[];
   selectedClient: Client | null;
   clientToEdit: Client | null;
   loading: boolean;
@@ -16,6 +17,7 @@ interface ClientContextType {
   handleAddClient: (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   handleEditClient: (clientData: Client) => Promise<void>;
   handleDeleteClient: (clientId: string) => Promise<void>;
+  handleDropClient: (clientId: string, reason: string) => Promise<void>;
   handleViewClient: (client: Client) => void;
   startEditClient: (client: Client) => void;
   clearClientToEdit: () => void;
@@ -26,6 +28,7 @@ export const ClientContext = createContext<ClientContextType | undefined>(undefi
 
 export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [clients, setClients] = useState<Client[]>([]);
+  const [droppedClients, setDroppedClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,7 +40,13 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     try {
       setLoading(true);
       const fetchedClients = await clientsApi.getClients();
-      setClients(fetchedClients);
+      
+      // Separate active and dropped clients
+      const active = fetchedClients.filter(client => !client.isDropped);
+      const dropped = fetchedClients.filter(client => client.isDropped);
+      
+      setClients(active);
+      setDroppedClients(dropped);
     } catch (error) {
       console.error("Failed to fetch clients:", error);
       toast({
@@ -83,11 +92,15 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       const updatedClient = await clientsApi.updateClient(clientData.id, clientData);
       
       if (updatedClient) {
-        const updatedClients = clients.map(client => 
-          client.id === clientData.id ? updatedClient : client
-        );
-        
-        setClients(updatedClients);
+        // Update the appropriate list based on dropped status
+        if (updatedClient.isDropped) {
+          setClients(clients.filter(client => client.id !== clientData.id));
+          setDroppedClients([...droppedClients.filter(client => client.id !== clientData.id), updatedClient]);
+        } else {
+          setClients(clients.map(client => 
+            client.id === clientData.id ? updatedClient : client
+          ));
+        }
         
         // If we're editing from the details view, update the selected client too
         if (selectedClient && selectedClient.id === updatedClient.id) {
@@ -115,13 +128,58 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   };
 
+  const handleDropClient = async (clientId: string, reason: string) => {
+    try {
+      const clientToDrop = clients.find(c => c.id === clientId);
+      if (!clientToDrop) {
+        throw new Error("Client not found");
+      }
+      
+      const droppedData = {
+        isDropped: true,
+        droppedDate: new Date().toISOString(),
+        droppedReason: reason,
+      };
+      
+      const updatedClient = await clientsApi.updateClient(clientId, droppedData);
+      
+      if (updatedClient) {
+        // Move client from active to dropped list
+        setClients(clients.filter(client => client.id !== clientId));
+        setDroppedClients([...droppedClients, updatedClient]);
+        
+        // If the dropped client was selected, clear the selection
+        if (selectedClient && selectedClient.id === clientId) {
+          setSelectedClient(null);
+          setActiveTab("view");
+        }
+        
+        toast({
+          title: "Client Dropped",
+          description: `${updatedClient.fullName} has been marked as dropped.`,
+        });
+      } else {
+        throw new Error("Failed to drop client");
+      }
+    } catch (error) {
+      console.error("Error dropping client:", error);
+      toast({
+        title: "Error",
+        description: "Failed to drop client. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDeleteClient = async (clientId: string) => {
     try {
-      const clientName = clients.find(c => c.id === clientId)?.fullName;
+      const clientName = clients.find(c => c.id === clientId)?.fullName || 
+                         droppedClients.find(c => c.id === clientId)?.fullName;
       const success = await clientsApi.deleteClient(clientId);
       
       if (success) {
         setClients(clients.filter(client => client.id !== clientId));
+        setDroppedClients(droppedClients.filter(client => client.id !== clientId));
         
         // If the deleted client was selected, clear the selection
         if (selectedClient && selectedClient.id === clientId) {
@@ -131,7 +189,7 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         
         toast({
           title: "Client Deleted",
-          description: `${clientName} has been removed from your clients.`,
+          description: `${clientName} has been permanently removed.`,
         });
       } else {
         throw new Error("Failed to delete client");
@@ -163,6 +221,7 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const contextValue = {
     clients,
+    droppedClients,
     selectedClient,
     clientToEdit,
     loading,
@@ -173,6 +232,7 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     handleAddClient,
     handleEditClient,
     handleDeleteClient,
+    handleDropClient,
     handleViewClient,
     startEditClient,
     clearClientToEdit,

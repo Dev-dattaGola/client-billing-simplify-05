@@ -8,4 +8,5 @@ export interface User {
   assignedAttorneyId?: string;
   assignedClientIds?: string[];
   permissions: string[];
+  status?: 'active' | 'inactive' | 'dropped';
 }
