@@ -8,10 +8,10 @@ import {
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast"
-import { useToast as useToastHook } from "@radix-ui/react-toast"
+import { useToast } from "@/hooks/use-toast"
 
 export function Toaster() {
-  const { toasts } = useToastHook()
+  const { toasts } = useToast()
 
   return (
     <ToastProvider>
@@ -33,5 +33,3 @@ export function Toaster() {
     </ToastProvider>
   )
 }
-
-export const useToast = useToastHook
