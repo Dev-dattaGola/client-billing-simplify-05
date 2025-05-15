@@ -1,4 +1,13 @@
 
+export interface ClientFilterParams {
+  search?: string;
+  tag?: string;
+  dateRange?: {
+    from?: Date;
+    to?: Date;
+  };
+}
+
 export interface Client {
   id: string;
   name: string;
@@ -15,7 +24,7 @@ export interface Client {
   dropReason?: string;
   
   // Extended information for client management
-  fullName?: string; // Added for compatibility with existing components
+  fullName?: string; // Name or fullName can be used (for backward compatibility)
   accountNumber?: string;
   companyName?: string;
   tags?: string[];
@@ -30,13 +39,4 @@ export interface Client {
   insuranceCompany?: string;
   insurancePolicyNumber?: string;
   insuranceAdjusterName?: string;
-}
-
-export interface ClientFilterParams {
-  search?: string;
-  tag?: string;
-  dateRange?: {
-    from?: Date;
-    to?: Date;
-  };
 }

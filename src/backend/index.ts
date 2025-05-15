@@ -43,7 +43,7 @@ export const patientsApi = {
       
       // Include extended fields as optional properties
       fullName: patientData.fullName,
-      dateRegistered: patientData.dateRegistered,
+      // We don't set dateRegistered here as it's generated from createdAt
       profilePhoto: patientData.profilePhoto,
       assignedAttorneyId: patientData.assignedAttorneyId,
       accidentDate: patientData.accidentDate,

@@ -17,7 +17,7 @@ interface ClientContextType {
   handleViewClient: (client: Client) => void;
   startEditClient: (client: Client) => void;
   clearClientToEdit: () => void;
-  transferClient: (clientId: string, attorneyId: string) => void;
+  transferClient: (clientId: string, attorneyId: string, attorneyName: string) => void;
   dropClient: (clientId: string, reason: string) => void;
 }
 
@@ -170,17 +170,13 @@ export const ClientProvider: React.FC<ClientProviderProps> = ({ children }) => {
   };
   
   // New function to transfer client to another attorney
-  const transferClient = (clientId: string, attorneyId: string) => {
-    // Get attorney name (in real app, would fetch from API)
-    const attorneyName = attorneyId === "attorney1" ? "John Doe" : 
-                         attorneyId === "attorney2" ? "Jane Smith" : 
-                         "Michael Johnson";
-    
+  const transferClient = (clientId: string, attorneyId: string, attorneyName: string) => {
     setClients(clients.map(client => {
       if (client.id === clientId) {
         return {
           ...client,
-          assignedAttorney: attorneyName
+          assignedAttorney: attorneyName,
+          assignedAttorneyId: attorneyId
         };
       }
       return client;
@@ -190,7 +186,8 @@ export const ClientProvider: React.FC<ClientProviderProps> = ({ children }) => {
     if (selectedClient && selectedClient.id === clientId) {
       setSelectedClient({
         ...selectedClient,
-        assignedAttorney: attorneyName
+        assignedAttorney: attorneyName,
+        assignedAttorneyId: attorneyId
       });
     }
     

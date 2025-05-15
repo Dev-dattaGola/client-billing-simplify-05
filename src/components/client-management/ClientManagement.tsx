@@ -1,5 +1,10 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import ClientList from "./ClientList";
 import ClientForm from "./ClientForm";
 import ClientDetails from "./ClientDetails";
@@ -20,23 +25,6 @@ import ClientCaseReport from "./ClientCaseReport";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import RoleBasedLayout from "../layout/RoleBasedLayout";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Client } from "@/types/client";
 
 const ClientManagement = () => {
@@ -91,14 +79,26 @@ const ClientManagement = () => {
   const handleTransferClient = () => {
     if (!selectedClient || !selectedAttorneyForTransfer) return;
     
-    // Convert attorney ID to client ID for transfer
-    transferClient(selectedClient.id, selectedAttorneyForTransfer);
+    // Get attorney name based on ID (in real app, would fetch from API)
+    const getAttorneyName = (id: string) => {
+      switch (id) {
+        case "attorney1": return "John Doe";
+        case "attorney2": return "Jane Smith";
+        case "attorney3": return "Michael Johnson";
+        default: return "Unknown Attorney";
+      }
+    };
+    
+    const attorneyName = getAttorneyName(selectedAttorneyForTransfer);
+    
+    // Pass client ID and attorney ID for transfer
+    transferClient(selectedClient.id, selectedAttorneyForTransfer, attorneyName);
     setIsTransferModalOpen(false);
     setSelectedAttorneyForTransfer("");
     
     toast({
       title: "Client Transferred",
-      description: "The client has been successfully transferred to another attorney.",
+      description: `The client has been successfully transferred to ${attorneyName}.`,
     });
   };
   

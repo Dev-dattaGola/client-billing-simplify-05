@@ -1,4 +1,3 @@
-
 import { Client } from '@/types/client';
 import { Case, CaseTimelineEvent } from '@/types/case';
 import { MedicalRecord, Provider } from '@/types/medical';
@@ -18,6 +17,7 @@ const getSavedClients = (): Client[] => {
   return [
     {
       id: '1',
+      name: 'John Doe',
       fullName: 'John Doe',
       email: 'john.doe@example.com',
       phone: '(555) 123-4567',
@@ -27,9 +27,14 @@ const getSavedClients = (): Client[] => {
       notes: 'Returning client',
       createdAt: '2024-01-15T10:30:00Z',
       updatedAt: '2024-03-20T15:45:00Z',
+      status: 'active',
+      assignedAttorney: 'Jane Doe',
+      caseType: 'Personal Injury',
+      caseStatus: 'Active',
     },
     {
       id: '2',
+      name: 'Jane Smith',
       fullName: 'Jane Smith',
       email: 'jane.smith@example.com',
       phone: '(555) 987-6543',
@@ -37,9 +42,14 @@ const getSavedClients = (): Client[] => {
       tags: ['corporate', 'new'],
       createdAt: '2024-02-22T09:15:00Z',
       updatedAt: '2024-02-22T09:15:00Z',
+      status: 'active',
+      assignedAttorney: 'Bob Johnson',
+      caseType: 'Corporate Law',
+      caseStatus: 'Initial Consultation',
     },
     {
       id: '3',
+      name: 'Robert Johnson',
       fullName: 'Robert Johnson',
       email: 'robert.johnson@example.com',
       phone: '(555) 456-7890',
@@ -47,6 +57,10 @@ const getSavedClients = (): Client[] => {
       notes: 'Referred by Jane Smith',
       createdAt: '2024-03-10T14:20:00Z',
       updatedAt: '2024-04-05T11:30:00Z',
+      status: 'active',
+      assignedAttorney: 'Jane Doe',
+      caseType: 'Personal Injury',
+      caseStatus: 'Pending',
     },
   ];
 };

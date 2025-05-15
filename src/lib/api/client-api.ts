@@ -47,8 +47,7 @@ export interface Communication {
 const mockClients: Client[] = [
   {
     id: 'client1',
-    accountNumber: 'A001',
-    fullName: 'John Doe',
+    name: 'John Doe',
     email: 'john@example.com',
     phone: '555-0123',
     address: '123 Main St, Anytown, CA 12345',
@@ -59,8 +58,12 @@ const mockClients: Client[] = [
     updatedAt: '2025-04-20T15:30:00Z',
     dateOfBirth: '1985-05-15',
     profilePhoto: 'https://i.pravatar.cc/150?img=1',
+    fullName: 'John Doe',
     caseStatus: 'Active Treatment',
+    status: 'active',
+    assignedAttorney: 'Jane Doelawyer',
     assignedAttorneyId: 'attorney1',
+    caseType: 'Personal Injury',
     accidentDate: '2025-03-25',
     accidentLocation: 'Intersection of 5th Ave and Main St',
     injuryType: 'Back and Neck Injury',
@@ -68,12 +71,12 @@ const mockClients: Client[] = [
     insuranceCompany: 'ABC Insurance',
     insurancePolicyNumber: 'ABC123456',
     insuranceAdjusterName: 'Michael Thompson',
-    dateRegistered: '2025-04-01'
+    dateRegistered: '2025-04-01',
+    accountNumber: 'A001'
   },
   {
     id: 'client2',
-    accountNumber: 'A002',
-    fullName: 'Jane Smith',
+    name: 'Jane Smith',
     email: 'jane@example.com',
     phone: '555-0124',
     address: '456 Oak St, Sometown, CA 12346',
@@ -84,14 +87,18 @@ const mockClients: Client[] = [
     updatedAt: '2025-04-18T11:45:00Z',
     dateOfBirth: '1970-08-22',
     profilePhoto: 'https://i.pravatar.cc/150?img=2',
+    fullName: 'Jane Smith',
     caseStatus: 'Initial Consultation',
+    status: 'active',
+    assignedAttorney: 'Robert Williams',
     assignedAttorneyId: 'attorney2',
-    dateRegistered: '2025-04-05'
+    caseType: 'Medical Malpractice',
+    dateRegistered: '2025-04-05',
+    accountNumber: 'A002'
   },
   {
     id: 'client3',
-    accountNumber: 'A003',
-    fullName: 'Robert Johnson',
+    name: 'Robert Johnson',
     email: 'robert@example.com',
     phone: '555-0125',
     address: '789 Pine St, Othertown, CA 12347',
@@ -102,14 +109,19 @@ const mockClients: Client[] = [
     updatedAt: '2025-04-22T10:10:00Z',
     dateOfBirth: '1992-03-17',
     profilePhoto: 'https://i.pravatar.cc/150?img=3',
+    fullName: 'Robert Johnson',
     caseStatus: 'Settlement Negotiation',
+    status: 'active',
+    assignedAttorney: 'Jane Doe',
     assignedAttorneyId: 'attorney1',
+    caseType: 'Slip and Fall',
     accidentDate: '2025-04-02',
     accidentLocation: 'Fresh Foods Grocery Store',
     injuryType: 'Broken Wrist, Hip Injury',
     insuranceCompany: 'XYZ Insurance',
     insurancePolicyNumber: 'XYZ789012',
-    dateRegistered: '2025-04-10'
+    dateRegistered: '2025-04-10',
+    accountNumber: 'A003'
   }
 ];
 

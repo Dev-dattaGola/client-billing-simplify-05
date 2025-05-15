@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -5,19 +6,25 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Calendar, Bell, AlertCircle, FileText, Clock } from 'lucide-react';
 import PatientDashboardHeader from './PatientDashboardHeader';
 import PatientAttorneyChat from './PatientAttorneyChat';
+import { Client } from '@/types/client';
 
 const PatientsDashboard: React.FC = () => {
   const [isChatVisible, setIsChatVisible] = useState(false);
   
   // Mock client data
-  const mockClient = {
+  const mockClient: Client = {
     id: "P123",
+    name: "John Doe",
     accountNumber: "A042",
     fullName: "John Doe",
     email: "john@example.com",
     phone: "555-0123",
     createdAt: "2025-04-01",
-    updatedAt: "2025-04-20"
+    updatedAt: "2025-04-20",
+    status: "active",
+    assignedAttorney: "Jane Doelawyer",
+    caseType: "Personal Injury",
+    caseStatus: "Active Treatment"
   };
 
   const handleChatInitiated = () => {
