@@ -53,31 +53,31 @@ export const useClientData = ({ userId }: UseClientDataProps): ClientDataResult 
 
         if (clientError) throw clientError;
 
-        // Get client cases - Fix the RPC function typing with both input and output types
+        // Get client cases
         const { data: casesData, error: casesError } = await supabase
-          .rpc<ClientCase[], ClientIdParam>('get_cases_by_client_id', { client_id: clientData.id });
+          .rpc('get_cases_by_client_id', { client_id: clientData.id });
 
         if (casesError) {
           console.error("Error fetching cases:", casesError);
           setClientCases([]);
         } else {
-          setClientCases(casesData || []);
+          setClientCases(casesData as ClientCase[] || []);
         }
 
-        // Get upcoming court dates - Fix the RPC function typing with both input and output types
+        // Get upcoming court dates
         const { data: datesData, error: datesError } = await supabase
-          .rpc<CourtDate[], ClientIdParam>('get_court_dates_by_client_id', { client_id: clientData.id });
+          .rpc('get_court_dates_by_client_id', { client_id: clientData.id });
 
         if (datesError) {
           console.error("Error fetching court dates:", datesError);
           setCourtDates([]);
         } else {
-          setCourtDates(datesData || []);
+          setCourtDates(datesData as CourtDate[] || []);
         }
 
-        // Get billing information - Fix the RPC function typing with both input and output types
+        // Get billing information
         const { data: billingData, error: billingError } = await supabase
-          .rpc<BillingInfo[], ClientIdParam>('get_billing_summary_by_client_id', { client_id: clientData.id });
+          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id });
 
         if (billingError) {
           console.error("Error fetching billing info:", billingError);
@@ -88,8 +88,8 @@ export const useClientData = ({ userId }: UseClientDataProps): ClientDataResult 
             pendingAmount: 0
           });
         } else {
-          if (billingData && billingData.length > 0) {
-            setBillingInfo(billingData[0]);
+          if (billingData && Array.isArray(billingData) && billingData.length > 0) {
+            setBillingInfo(billingData[0] as BillingInfo);
           } else {
             setBillingInfo({
               totalHours: 0,
