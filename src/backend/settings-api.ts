@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 
 // Settings types
@@ -56,7 +57,7 @@ const mockUserSettings = [
   {
     id: 'settings1',
     userId: 'user1',
-    theme: 'light',
+    theme: 'light' as const,
     notifications: {
       email: true,
       browser: true,
@@ -70,7 +71,7 @@ const mockUserSettings = [
   {
     id: 'settings2',
     userId: 'user2',
-    theme: 'dark',
+    theme: 'dark' as const,
     notifications: {
       email: true,
       browser: false,
@@ -84,7 +85,7 @@ const mockUserSettings = [
   {
     id: 'settings3',
     userId: 'user3',
-    theme: 'system',
+    theme: 'system' as const,
     notifications: {
       email: false,
       browser: true,
@@ -98,7 +99,7 @@ const mockUserSettings = [
   {
     id: 'settings4',
     userId: 'user4',
-    theme: 'light',
+    theme: 'light' as const,
     notifications: {
       email: true,
       browser: true,
@@ -242,7 +243,7 @@ export const settingsApi = {
       id: uuidv4(),
       updatedAt: new Date().toISOString()
     };
-    mockUserSettings.push(newSettings);
+    mockUserSettings.push(newSettings as any);
     return newSettings;
   },
 
