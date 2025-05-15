@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Search, Filter, UserMinus, Edit, Tags, Loader2, Eye } from "lucide-react";
+import { Search, Filter, UserMinus, Edit, Tags, Loader2, Eye, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Client, ClientFilterParams } from "@/types/client";
