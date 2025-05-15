@@ -52,7 +52,7 @@ export interface PrivacyPolicyDetails {
 }
 
 // Mock data for user settings
-const mockUserSettings: UserSettings[] = [
+const mockUserSettings = [
   {
     id: 'settings1',
     userId: 'user1',
@@ -129,38 +129,38 @@ const mockUserProfiles: UserProfile[] = [
   {
     id: 'profile2',
     userId: 'user2',
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
+    name: 'Jack Peters',
+    email: 'attorney@lyzlawfirm.com',
     avatar: 'https://i.pravatar.cc/150?u=user2',
     phone: '(555) 234-5678',
     address: '456 Oak St, City, ST 12345',
-    bio: 'Attorney specializing in personal injury and medical malpractice cases.',
-    title: 'Associate Attorney',
-    barNumber: 'BAR23456',
+    bio: 'Attorney specializing in personal injury and medical malpractice cases with over 10 years of experience.',
+    title: 'Attorney',
+    barNumber: 'BAR789012',
     updatedAt: new Date(Date.now() - 45 * 24 * 3600000).toISOString()
   },
   {
     id: 'profile3',
     userId: 'user3',
-    name: 'Michael Johnson',
-    email: 'michael.johnson@example.com',
+    name: 'Andrew Johnson',
+    email: 'client@example.com',
     avatar: 'https://i.pravatar.cc/150?u=user3',
     phone: '(555) 345-6789',
     address: '789 Pine St, City, ST 12345',
-    bio: 'Paralegal with expertise in research and case preparation.',
-    title: 'Senior Paralegal',
+    bio: 'Client with ongoing personal injury case.',
+    title: 'Client',
     updatedAt: new Date(Date.now() - 30 * 24 * 3600000).toISOString()
   },
   {
     id: 'profile4',
     userId: 'user4',
-    name: 'Sarah Williams',
-    email: 'sarah.williams@example.com',
+    name: 'Smith Hook',
+    email: 'admin@lyzlawfirm.com',
     avatar: 'https://i.pravatar.cc/150?u=user4',
     phone: '(555) 456-7890',
     address: '101 Elm St, City, ST 12345',
-    bio: 'Administrative assistant responsible for client communications and scheduling.',
-    title: 'Administrative Assistant',
+    bio: 'System administrator responsible for managing firm operations and technical infrastructure.',
+    title: 'System Administrator',
     updatedAt: new Date(Date.now() - 15 * 24 * 3600000).toISOString()
   }
 ];
