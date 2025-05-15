@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,34 +69,34 @@ const ClientDashboard = () => {
 
         if (clientError) throw clientError;
 
-        // Get client cases using RPC function
-        // Fix the type issues by using the correct approach for Supabase RPC calls
+        // Get client cases using RPC function with proper typing
         const { data: casesData, error: casesError } = await supabase
-          .rpc('get_cases_by_client_id', { client_id: clientData.id });
+          .rpc('get_cases_by_client_id', { client_id: clientData.id })
+          .returns<ClientCase[]>();
 
         if (casesError) {
           console.error("Error fetching cases:", casesError);
           setClientCases([]);
         } else {
-          // Type assertion to ensure the data is treated as ClientCase[]
-          setClientCases((casesData as ClientCase[]) || []);
+          setClientCases(casesData || []);
         }
 
-        // Get upcoming court dates using RPC function
+        // Get upcoming court dates using RPC function with proper typing
         const { data: datesData, error: datesError } = await supabase
-          .rpc('get_court_dates_by_client_id', { client_id: clientData.id });
+          .rpc('get_court_dates_by_client_id', { client_id: clientData.id })
+          .returns<CourtDate[]>();
 
         if (datesError) {
           console.error("Error fetching court dates:", datesError);
           setCourtDates([]);
         } else {
-          // Type assertion for court dates
-          setCourtDates((datesData as CourtDate[]) || []);
+          setCourtDates(datesData || []);
         }
 
-        // Get billing information using RPC function
+        // Get billing information using RPC function with proper typing
         const { data: billingData, error: billingError } = await supabase
-          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id });
+          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id })
+          .returns<BillingInfo[]>();
 
         if (billingError) {
           console.error("Error fetching billing info:", billingError);
@@ -105,9 +106,8 @@ const ClientDashboard = () => {
             lastBilledDate: new Date().toISOString(),
             pendingAmount: 0
           });
-        } else if (billingData && Array.isArray(billingData) && billingData.length > 0) {
-          // Type assertion for billing info
-          setBillingInfo(billingData[0] as BillingInfo);
+        } else if (billingData && billingData.length > 0) {
+          setBillingInfo(billingData[0]);
         } else {
           setBillingInfo({
             totalHours: 0,
