@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertCircle, Building, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -28,11 +28,14 @@ const Login = () => {
   // Check authentication status on component mount
   useEffect(() => {
     if (isAuthenticated) {
+      console.log("User is authenticated, redirecting to:", from);
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, from]);
 
+  // Prevent rendering login form if already authenticated
   if (isAuthenticated) {
+    console.log("Rendering redirect to:", from);
     return <Navigate to={from} replace />;
   }
 
@@ -60,16 +63,11 @@ const Login = () => {
         return;
       }
       
-      toast({
-        title: "Login Successful",
-        description: `Welcome back, ${user.name}!`,
-      });
-      
-      // Navigation will happen automatically via the useEffect
+      // Success will be handled by the effect hook that watches isAuthenticated
+      console.log("Login successful, user:", user.name);
     } catch (error) {
       console.error("Login error:", error);
       setError(typeof error === 'string' ? error : "Authentication failed. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };

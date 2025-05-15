@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,15 @@ interface MainContentProps {
 }
 
 const MainContent: React.FC<MainContentProps> = ({ children, isSidebarOpen, isMobile }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, updateAuthState } = useAuth();
   const navigate = useNavigate();
-
-  // Debug for authentication issues
+  
+  // Force auth state refresh on mount
+  useEffect(() => {
+    updateAuthState();
+  }, [updateAuthState]);
+  
+  // Debug logging
   console.log("MainContent: Auth state =", isAuthenticated);
 
   if (!isAuthenticated) {

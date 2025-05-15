@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { User } from '@/types/auth';
 import { useAuthActions } from '@/hooks/useAuthActions';
 import { restoreAuthState } from '@/lib/utils/auth-utils';
+import { toast } from '@/hooks/use-toast';
 
 // Define the shape of our auth context
 interface AuthContextProps {
@@ -33,8 +34,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('Updating auth state...');
     try {
       const { user, isAuthenticated: authStatus } = restoreAuthState();
+      
+      // Update state in a single batch to avoid race conditions
       setCurrentUser(user);
       setIsAuthenticated(authStatus);
+      
       console.log('Auth state updated:', { 
         isAuthenticated: authStatus, 
         userExists: !!user,
@@ -55,6 +59,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(false);
   }, []);
 
+  // Custom login function that handles state updates
+  const handleLogin = async (credentials: { email: string; password: string; remember?: boolean }) => {
+    try {
+      const user = await login(credentials);
+      if (user) {
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+      }
+      return user;
+    } catch (error) {
+      console.error("Login error in AuthContext:", error);
+      throw error;
+    }
+  };
+
   // Custom logout function that handles navigation after logout
   const logout = () => {
     logoutAction();
@@ -64,13 +83,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     navigate('/login', { replace: true });
   };
 
+  // Provide the auth context to children components
   return (
     <AuthContext.Provider value={{
       currentUser,
       setCurrentUser,
       isAuthenticated,
       isLoading: isLoading || actionLoading,
-      login,
+      login: handleLogin,
       logout,
       updateAuthState,
       hasPermission
