@@ -1,15 +1,24 @@
 
+import React from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import DepositionManagement from "@/components/deposition-management/DepositionManagement";
 import DepositionForm from "@/components/deposition-management/DepositionForm";
 import DepositionDetail from "@/components/deposition-management/DepositionDetail";
+import AdminDepositionList from "@/components/admin/deposition/AdminDepositionList";
+import { useAuth } from '@/contexts/AuthContext';
 
 const Depositions = () => {
   const location = useLocation();
+  const { currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
   
   // Determine page title based on route
   const getPageTitle = () => {
+    if (isAdmin) {
+      return "Deposition Management";
+    }
+    
     if (location.pathname.includes("/create")) {
       return "Create Deposition";
     } else if (location.pathname.includes("/edit")) {
@@ -23,6 +32,10 @@ const Depositions = () => {
 
   // Determine page description based on route
   const getPageDescription = () => {
+    if (isAdmin) {
+      return "Review all depositions scheduled by attorneys";
+    }
+    
     if (location.pathname.includes("/create")) {
       return "Create a new deposition record";
     } else if (location.pathname.includes("/edit")) {
@@ -45,12 +58,16 @@ const Depositions = () => {
         </div>
         
         <div className="max-w-7xl mx-auto">
-          <Routes>
-            <Route path="/" element={<DepositionManagement />} />
-            <Route path="/create" element={<DepositionForm />} />
-            <Route path="/edit/:id" element={<DepositionForm />} />
-            <Route path="/:id" element={<DepositionDetail />} />
-          </Routes>
+          {isAdmin ? (
+            <AdminDepositionList />
+          ) : (
+            <Routes>
+              <Route path="/" element={<DepositionManagement />} />
+              <Route path="/create" element={<DepositionForm />} />
+              <Route path="/edit/:id" element={<DepositionForm />} />
+              <Route path="/:id" element={<DepositionDetail />} />
+            </Routes>
+          )}
         </div>
       </div>
       

@@ -1,58 +1,106 @@
 
-import React, { createContext, useContext, useState } from 'react';
-import { ToastActionElement, ToastProps } from '@/components/ui/toast';
+import React, { createContext, useContext, useState } from "react";
+import type { ToastProps } from "@/components/ui/toast";
 
-type ToasterToast = ToastProps & {
+export interface Toast {
   id: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
-  action?: ToastActionElement;
+  action?: React.ReactNode;
+  variant?: "default" | "destructive" | "success";
+  duration?: number;
+}
+
+export type ToastActionElement = React.ReactElement<typeof ToastAction>;
+
+export type ToastContextType = {
+  toasts: Toast[];
+  addToast: (toast: Omit<Toast, "id">) => void;
+  updateToast: (id: string, toast: Partial<Omit<Toast, "id">>) => void;
+  dismissToast: (id: string) => void;
+  dismissAll: () => void;
 };
 
-interface ToastContextType {
-  toasts: ToasterToast[];
-  toast: (props: Omit<ToasterToast, "id">) => void;
-  dismiss: (toastId?: string) => void;
-}
+export const ToastContext = createContext<ToastContextType | null>(null);
 
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
+export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
-export function useToast() {
-  const context = useContext(ToastContext);
-  
-  if (context === undefined) {
-    throw new Error("useToast must be used within a ToastProvider");
-  }
-  
-  return context;
-}
+  const addToast = (toast: Omit<Toast, "id">) => {
+    const id = crypto.randomUUID();
+    setToasts((current) => [...current, { ...toast, id }]);
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ 
-  children 
-}) => {
-  const [toasts, setToasts] = useState<ToasterToast[]>([]);
-  
-  const toast = (props: Omit<ToasterToast, "id">) => {
-    const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, ...props }]);
-    
-    // Automatically dismiss toast after 5 seconds
-    setTimeout(() => {
-      dismiss(id);
-    }, 5000);
+    if (toast.duration !== Infinity) {
+      setTimeout(() => {
+        dismissToast(id);
+      }, toast.duration || 5000);
+    }
+
+    return id;
   };
-  
-  const dismiss = (toastId?: string) => {
-    setToasts((prev) => 
-      toastId 
-        ? prev.filter((toast) => toast.id !== toastId)
-        : []
+
+  const updateToast = (id: string, toast: Partial<Omit<Toast, "id">>) => {
+    setToasts((current) =>
+      current.map((t) => (t.id === id ? { ...t, ...toast } : t))
     );
   };
-  
+
+  const dismissToast = (id: string) => {
+    setToasts((current) => current.filter((t) => t.id !== id));
+  };
+
+  const dismissAll = () => {
+    setToasts([]);
+  };
+
   return (
-    <ToastContext.Provider value={{ toasts, toast, dismiss }}>
+    <ToastContext.Provider
+      value={{
+        toasts,
+        addToast,
+        updateToast,
+        dismissToast,
+        dismissAll,
+      }}
+    >
       {children}
     </ToastContext.Provider>
+  );
+}
+
+// Use the ToastContext to consume the values with a custom hook
+export function useToast() {
+  const context = useContext(ToastContext);
+
+  if (!context) {
+    throw new Error("useToast must be used within a ToastProvider");
+  }
+
+  return {
+    toast: (props: ToastProps) => {
+      context.addToast(props);
+    },
+    dismiss: (id: string) => {
+      context.dismissToast(id);
+    },
+    dismissAll: () => {
+      context.dismissAll();
+    },
+  };
+}
+
+export interface ToastActionProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  altText?: string;
+}
+
+export const ToastAction = ({ altText, ...props }: ToastActionProps) => {
+  return (
+    <button
+      className="inline-flex shrink-0 items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none bg-transparent hover:bg-secondary border border-border h-8 py-2 px-4 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
+      {...props}
+    >
+      {altText}
+    </button>
   );
 };

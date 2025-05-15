@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -83,7 +82,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Calculator', 
       path: '/calculator', 
       icon: <Calculator className="h-5 w-5" />,
-      roles: ['admin', 'attorney'] 
+      roles: ['attorney'] 
     },
     { 
       title: 'Reports', 
@@ -101,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Messages', 
       path: '/messages', 
       icon: <MessageSquare className="h-5 w-5" />,
-      roles: ['admin', 'attorney', 'client'] 
+      roles: ['attorney', 'client'] 
     },
     { 
       title: 'Depositions', 

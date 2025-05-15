@@ -3,16 +3,42 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import PageLayout from '@/components/layout/PageLayout';
 import BillingDashboard from '@/components/billing/BillingDashboard';
+import AdminBillingView from '@/components/admin/billing/AdminBillingView';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Billing: React.FC = () => {
+  const { currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
+
   return (
     <PageLayout>
       <Helmet>
         <title>Billing & Settlements - Law EMR</title>
       </Helmet>
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 min-h-screen">
-        <BillingDashboard />
+      
+      <div className="container mx-auto px-4 py-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">Billing & Settlements</h1>
+          <p className="text-muted-foreground mt-1">
+            {isAdmin 
+              ? "Review billing information for all attorneys and their clients" 
+              : "Manage client billing, invoices, and settlement information"}
+          </p>
+        </div>
+        
+        <div className="max-w-7xl mx-auto">
+          {isAdmin ? <AdminBillingView /> : <BillingDashboard />}
+        </div>
       </div>
+      
+      <footer className="px-4 py-6 border-t text-sm text-muted-foreground">
+        <div className="container mx-auto flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">LYZ Law Firm</span> | Billing & Settlements
+          </div>
+          <div className="text-sm">© 2023-2025 LYZ Law Firm. All rights reserved.</div>
+        </div>
+      </footer>
     </PageLayout>
   );
 };
