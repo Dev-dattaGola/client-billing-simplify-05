@@ -51,7 +51,7 @@ const HeroSection: React.FC = () => {
               <Button 
                 variant="outline"
                 size="lg"
-                className="border-white text-white hover:bg-white/10 text-lg py-6"
+                className="bg-white text-lawfirm-purple hover:bg-white/90 text-lg py-6"
                 onClick={() => navigate('/login')}
               >
                 Log In
