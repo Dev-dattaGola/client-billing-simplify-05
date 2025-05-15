@@ -12,7 +12,7 @@ import {
   SheetTitle 
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Search, Download, FileText, AlertTriangle } from 'lucide-react';
+import { Search, Download, FileText, AlertTriangle, UserPlus, RepeatIcon, UserX } from 'lucide-react';
 import ClientMedicalRecords from "./ClientMedicalRecords";
 import ClientDocuments from "./ClientDocuments";
 import ClientAppointments from "./ClientAppointments";
@@ -37,11 +37,17 @@ const ClientManagement = () => {
     handleDeleteClient,
     handleViewClient,
     startEditClient,
-    clearClientToEdit
+    clearClientToEdit,
+    transferClient, // New function for transferring clients
+    dropClient, // New function for dropping clients
   } = useClient();
   
   const { hasPermission, currentUser } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [isDropClientModalOpen, setIsDropClientModalOpen] = useState(false);
+  const [selectedAttorneyForTransfer, setSelectedAttorneyForTransfer] = useState("");
+  const [dropReason, setDropReason] = useState("");
   const { toast } = useToast();
 
   const handleSearchClick = () => {
@@ -62,6 +68,35 @@ const ClientManagement = () => {
         description: "Complete case summary has been downloaded successfully.",
       });
     }, 2000);
+  };
+  
+  // Handle client transfer function
+  const handleTransferClient = () => {
+    if (!selectedClient || !selectedAttorneyForTransfer) return;
+    
+    transferClient(selectedClient.id, selectedAttorneyForTransfer);
+    setIsTransferModalOpen(false);
+    setSelectedAttorneyForTransfer("");
+    
+    toast({
+      title: "Client Transferred",
+      description: "The client has been successfully transferred to another attorney.",
+    });
+  };
+  
+  // Handle drop client function
+  const handleDropClient = () => {
+    if (!selectedClient || !dropReason) return;
+    
+    dropClient(selectedClient.id, dropReason);
+    setIsDropClientModalOpen(false);
+    setDropReason("");
+    setActiveTab("view");
+    
+    toast({
+      title: "Client Dropped",
+      description: "The client has been successfully dropped from the firm.",
+    });
   };
 
   const renderDetailsContent = () => {
@@ -90,6 +125,29 @@ const ClientManagement = () => {
               <Button onClick={() => startEditClient(selectedClient)} className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 <span>Edit Client</span>
+              </Button>
+            </RoleBasedLayout>
+            
+            {/* New Admin-only buttons for client management */}
+            <RoleBasedLayout requiredRoles={['admin']}>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsTransferModalOpen(true)} 
+                className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 border-blue-200"
+              >
+                <RepeatIcon className="h-4 w-4" />
+                <span>Transfer Client</span>
+              </Button>
+            </RoleBasedLayout>
+            
+            <RoleBasedLayout requiredRoles={['admin']}>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsDropClientModalOpen(true)} 
+                className="flex items-center gap-2 bg-red-50 hover:bg-red-100 border-red-200 text-red-600"
+              >
+                <UserX className="h-4 w-4" />
+                <span>Drop Client</span>
               </Button>
             </RoleBasedLayout>
           </div>
@@ -235,6 +293,7 @@ const ClientManagement = () => {
         </TabsContent>
       </Tabs>
 
+      {/* Client Search Sheet */}
       <Sheet open={isSearchOpen} onOpenChange={setIsSearchOpen}>
         <SheetContent side="right" className="w-full sm:w-[640px] sm:max-w-full">
           <SheetHeader>
@@ -254,6 +313,81 @@ const ClientManagement = () => {
           </div>
         </SheetContent>
       </Sheet>
+      
+      {/* Transfer Client Modal */}
+      <Dialog open={isTransferModalOpen} onOpenChange={setIsTransferModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Transfer Client</DialogTitle>
+            <DialogDescription>
+              Select an attorney to transfer this client to.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <Label htmlFor="attorney">Select Attorney</Label>
+            <Select
+              value={selectedAttorneyForTransfer}
+              onValueChange={setSelectedAttorneyForTransfer}
+            >
+              <SelectTrigger id="attorney">
+                <SelectValue placeholder="Select an attorney" />
+              </SelectTrigger>
+              <SelectContent>
+                {/* This would be dynamically populated with attorneys from your system */}
+                <SelectItem value="attorney1">John Doe</SelectItem>
+                <SelectItem value="attorney2">Jane Smith</SelectItem>
+                <SelectItem value="attorney3">Michael Johnson</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsTransferModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleTransferClient} disabled={!selectedAttorneyForTransfer}>
+              Transfer Client
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Drop Client Modal */}
+      <Dialog open={isDropClientModalOpen} onOpenChange={setIsDropClientModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Drop Client</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for dropping this client. This will be recorded for future reference.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <Label htmlFor="dropReason">Reason for Dropping</Label>
+            <Textarea
+              id="dropReason"
+              value={dropReason}
+              onChange={(e) => setDropReason(e.target.value)}
+              placeholder="Please provide a detailed reason..."
+              className="h-32"
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDropClientModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleDropClient} 
+              disabled={!dropReason}
+              variant="destructive"
+            >
+              Drop Client
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

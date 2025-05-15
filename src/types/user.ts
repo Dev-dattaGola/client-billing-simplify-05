@@ -9,4 +9,7 @@ export interface User {
   assignedClientIds?: string[];
   permissions: string[];
   metadata?: Record<string, any>;
+  // Added fields for firm management
+  managedFirmId?: string;
+  isActive?: boolean;
 }
