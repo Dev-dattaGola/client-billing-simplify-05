@@ -1,159 +1,188 @@
+import { useState, useEffect } from "react";
+import { useNavigate, Navigate, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { AlertCircle, Building, Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Info } from 'lucide-react';
-
-const Login: React.FC = () => {
-  const { login, isAuthenticated, isLoading } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [remember, setRemember] = useState(false);
+  
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { login, isAuthenticated, isLoading: authLoading, updateAuthState } = useAuth();
 
-  // Redirect if already authenticated
+  // Get the intended destination from location state or use dashboard as default
+  const from = location.state?.from?.pathname || "/dashboard";
+
+  // Check authentication status on component mount and when auth state changes
   useEffect(() => {
     if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/dashboard';
+      console.log("User is authenticated, redirecting to:", from);
       navigate(from, { replace: true });
-      toast({
-        title: "Welcome back!",
-        description: "You've been successfully logged in.",
-      });
     }
-  }, [isAuthenticated, navigate, location.state, toast]);
+  }, [isAuthenticated, navigate, from]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Extra debugging for authentication status
+  useEffect(() => {
+    console.log("Login component: Auth status =", isAuthenticated);
+    console.log("Login component: Redirect destination =", from);
+  }, [isAuthenticated, from]);
+
+  if (isAuthenticated && !isLoading) {
+    console.log("Redirecting to destination from render:", from);
+    return <Navigate to={from} />;
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     setError(null);
-    
+
     if (!email || !password) {
-      setError('Email and password are required');
+      setError("Please enter both email and password");
+      setIsLoading(false);
       return;
     }
 
     try {
-      const user = await login({
-        email,
-        password,
-        remember: rememberMe
+      console.log("Attempting login with:", { email, remember });
+      const user = await login({ 
+        email: email.toLowerCase().trim(),
+        password, 
+        remember 
       });
       
       if (!user) {
-        setError('Invalid email or password');
+        setError("Login failed. Please check your credentials.");
+        setIsLoading(false);
+        return;
       }
+      
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${user.name}!`,
+      });
+      
+      console.log("Login successful, updating auth state");
+      
+      // Explicitly update auth state after successful login
+      updateAuthState();
+      
+      console.log("Navigating to:", from);
+      navigate(from, { replace: true });
     } catch (error) {
-      console.error('Login error:', error);
-      setError('Authentication failed. Please try again.');
+      console.error("Login error:", error);
+      setError(typeof error === 'string' ? error : "Authentication failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        <Card className="shadow-lg">
-          <CardHeader className="space-y-1">
-            <div className="text-center mb-4">
-              <h2 className="text-3xl font-extrabold text-gray-900">LYZ Law Firm</h2>
-              <p className="text-sm text-gray-600">Legal EMR Management System</p>
-            </div>
-            <CardTitle className="text-2xl text-center">Sign in to your account</CardTitle>
-            <CardDescription className="text-center">
-              Enter your email and password to access your dashboard
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-purple-50 px-4">
+      <Card className="w-full max-w-md bg-violet-600">
+        <CardHeader className="space-y-1">
+          <div className="flex items-center justify-center mb-4">
+            <img 
+                src="/lovable-uploads/1d5c7458-1307-40b3-93c7-a63e609301c6.png" 
+                alt="LAWerp500 Logo" 
+                className="h-44"
+              />
+          </div>
+          {/* <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle> */}
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-4">
             {error && (
               <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
-              <div className="flex gap-2">
-                <Info className="h-5 w-5 text-blue-500" />
-                <div>
-                  <h4 className="text-sm font-medium text-blue-800">Demo Accounts:</h4>
-                  <ul className="mt-1 text-sm text-blue-700">
-                    <li><strong>Admin:</strong> admin@lyzlawfirm.com / admin123</li>
-                    <li><strong>Attorney:</strong> attorney@lyzlawfirm.com / attorney123</li>
-                    <li><strong>Client:</strong> client@example.com / client123</li>
-                  </ul>
-                </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-white">Email</Label>
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                disabled={isLoading || authLoading}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-white" >Password</Label>
               </div>
+              <Input 
+                id="password" 
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                disabled={isLoading || authLoading}
+                required
+              />
             </div>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  autoComplete="email"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <a href="/forgot-password" className="text-sm text-primary hover:underline">
-                    Forgot password?
-                  </a>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  required
-                />
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="remember" 
-                  checked={rememberMe}
-                  onCheckedChange={(checked) => setRememberMe(checked === true)}
-                />
-                <Label htmlFor="remember" className="text-sm">Remember me</Label>
-              </div>
-              
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : "Sign in"}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4 border-t pt-4">
-            <div className="text-sm text-center">
-              Don't have an account?{" "}
-              <a href="/register" className="text-primary hover:underline">
-                Create one
-              </a>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="remember"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-lawfirm-light-blue focus:ring-lawfirm-light-blue"
+                disabled={isLoading || authLoading}
+              />
+              <Label htmlFor="remember" className="text-sm text-white">
+                Remember me
+              </Label>
             </div>
-          </CardFooter>
-        </Card>
-      </div>
+
+            <div className="bg-blue-50 p-3 rounded-md mt-4">
+              <h3 className="text-sm font-medium text-blue-800 flex items-center">
+                <Building className="w-4 h-4 mr-2" />
+                Available test accounts:
+              </h3>
+              <div className="mt-2 space-y-1 text-xs text-blue-700">
+                <p><strong>Admin:</strong> admin@lyzlawfirm.com / admin123</p>
+                <p><strong>Attorney:</strong> attorney@lyzlawfirm.com / attorney123</p>
+                <p><strong>Client:</strong> client@example.com / client123</p>
+              </div>
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full bg-lawfirm-light-blue hover:bg-lawfirm-light-blue/90"
+              disabled={isLoading || authLoading}
+            >
+              {isLoading || authLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : "Sign In"}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="text-center text-sm text-muted-foreground">
+          <div className="text-white">© 2025 LAWerp500. All rights reserved.</div>
+        </CardFooter>
+      </Card>
     </div>
   );
 };

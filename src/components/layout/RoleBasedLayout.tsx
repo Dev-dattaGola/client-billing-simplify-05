@@ -17,27 +17,18 @@ const RoleBasedLayout: React.FC<RoleBasedLayoutProps> = ({
 }) => {
   const { hasPermission, currentUser } = useAuth();
   
-  // Superadmin always has access to everything
-  if (currentUser?.role === 'superadmin') {
+  // Admin always has access to everything
+  if (currentUser?.role === 'admin') {
     return <>{children}</>;
   }
   
-  // Admin has access to everything except superadmin features
-  if (currentUser?.role === 'admin') {
-    const isSuperAdminOnly = requiredRoles.includes('superadmin');
-    
-    if (!isSuperAdminOnly) {
-      return <>{children}</>;
-    }
-    
-    return <>{fallback}</>;
-  }
-  
-  // Attorney has access to attorney and client features
+  // Attorney has access to everything except admin features
   if (currentUser?.role === 'attorney') {
     const isAdminFeature = requiredRoles.includes('admin') || 
-                           requiredRoles.includes('superadmin') ||
-                           requiredPermissions.some(p => p.includes('admin:'));
+                           requiredPermissions.some(p => p.includes('admin:') || 
+                                                       p.includes('create:users') ||
+                                                       p.includes('edit:users') ||
+                                                       p.includes('delete:users'));
     
     if (!isAdminFeature) {
       return <>{children}</>;
@@ -49,9 +40,12 @@ const RoleBasedLayout: React.FC<RoleBasedLayoutProps> = ({
   // Client has restricted access
   if (currentUser?.role === 'client') {
     const clientPermissions = [
-      'view:documents', 'upload:documents', 'download:documents',
-      'view:calendar', 'view:appointments',
-      'view:messages', 'send:messages'
+      'view:documents',
+      'upload:documents',
+      'view:calendar', 
+      'view:appointments',
+      'view:messages',
+      'send:messages'
     ];
     
     const hasAccess = requiredPermissions.some(perm => clientPermissions.includes(perm)) || 
@@ -69,7 +63,7 @@ const RoleBasedLayout: React.FC<RoleBasedLayoutProps> = ({
     requiredPermissions.some(permission => hasPermission(permission));
     
   const hasRoleAccess = requiredRoles.length === 0 ||
-    (currentUser?.role && requiredRoles.includes(currentUser.role));
+    (currentUser && requiredRoles.includes(currentUser.role));
   
   if (hasPermissionAccess || hasRoleAccess) {
     return <>{children}</>;

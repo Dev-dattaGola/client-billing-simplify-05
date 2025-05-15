@@ -10,13 +10,13 @@ import {
   Folder,
   Building2,
   Calendar,
+  MessageSquare,
   Settings,
   BarChart,
+  Calculator,
   FileSearch,
   Gavel,
-  Shield,
-  ChevronRight,
-  ChevronLeft
+  Shield
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,7 +25,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
-  const { currentUser } = useAuth();
+  const { hasPermission, currentUser } = useAuth();
   
   // Define which roles can access which items
   const roleBasedNavItems = [
@@ -33,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Dashboard', 
       path: '/dashboard', 
       icon: <Home size={20} />,
-      roles: ['admin', 'attorney', 'client', 'superadmin'] 
+      roles: ['admin', 'attorney', 'client'] // All users
     },
     { 
       title: 'Clients', 
@@ -51,7 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Documents', 
       path: '/documents', 
       icon: <FileText size={20} />,
-      roles: ['admin', 'attorney', 'client'] 
+      roles: ['admin', 'attorney', 'client'] // All users
     },
     { 
       title: 'Files', 
@@ -72,6 +72,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       roles: ['admin', 'attorney'] 
     },
     { 
+      title: 'Calculator', 
+      path: '/calculator', 
+      icon: <Calculator size={20} />,
+      roles: ['admin', 'attorney'] 
+    },
+    { 
       title: 'Reports', 
       path: '/reports', 
       icon: <FileSearch size={20} />,
@@ -81,13 +87,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Calendar', 
       path: '/calendar', 
       icon: <Calendar size={20} />,
-      roles: ['admin', 'attorney', 'client'] 
+      roles: ['admin', 'attorney', 'client'] // All users - clients can see appointments
+    },
+    { 
+      title: 'Messages', 
+      path: '/messages', 
+      icon: <MessageSquare size={20} />,
+      roles: ['admin', 'attorney', 'client'] // All users - clients can message attorneys
     },
     { 
       title: 'Admin', 
       path: '/admin', 
       icon: <Shield size={20} />,
-      roles: ['admin'] 
+      roles: ['admin'] // Admin only
     },
     { 
       title: 'Depositions', 
@@ -96,16 +108,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       roles: ['admin', 'attorney'] 
     },
     { 
-      title: 'Firm Management', 
-      path: '/firm-management', 
-      icon: <Building2 size={20} />,
-      roles: ['admin'] 
+      title: 'Attorneys', 
+      path: '/attorneys', 
+      icon: <Users size={20} />,
+      roles: ['admin'] // Admin only
     },
     { 
       title: 'Settings', 
       path: '/settings', 
       icon: <Settings size={20} />,
-      roles: ['admin', 'attorney', 'client', 'superadmin'] 
+      roles: ['admin', 'attorney', 'client'] // All users
     }
   ];
 
@@ -116,6 +128,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         isCollapsed ? "w-16" : "w-60"
       )}
     >
+      {/* <div className="p-3 flex items-center gap-2 border-b">
+        <div className="bg-lawfirm-light-blue text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg">
+          LYZ
+        </div>
+        {!isCollapsed && <div className="font-semibold">LYZ Law Firm</div>}
+      </div> */}
+
       <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
         {roleBasedNavItems
           .filter(item => !currentUser || item.roles.includes(currentUser.role))
@@ -129,7 +148,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
                 isCollapsed && "justify-center px-0"
               )}
-              end
             >
               {item.icon}
               {!isCollapsed && <span>{item.title}</span>}
@@ -151,7 +169,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="w-full flex items-center justify-center h-10 border rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
         >
-          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          {isCollapsed ? "→" : "←"}
         </button>
       </div>
     </div>

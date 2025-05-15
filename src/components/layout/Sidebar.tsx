@@ -1,24 +1,23 @@
+
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Home,
+  Users,
   FileText,
+  Folder,
+  Building2,
   Calendar,
   MessageSquare,
-  Users,
-  FolderOpen,
   Settings,
-  Shield,
-  ChevronRight,
-  ChevronLeft,
-  Building2,
   BarChart,
   Calculator,
   FileSearch,
-  Gavel
+  Gavel,
+  Shield
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -26,219 +25,154 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
-  const { currentUser } = useAuth();
-  const location = useLocation();
+  const { hasPermission, currentUser } = useAuth();
   
-  const isAdmin = currentUser?.role === 'admin';
-  const isSuperAdmin = currentUser?.role === 'superadmin';
-  const isAttorney = currentUser?.role === 'attorney';
-  const isClient = currentUser?.role === 'client';
-
-  // Define navigation items with role-based access
-  const navItems = [
+  // Define which roles can access which items
+  const roleBasedNavItems = [
     { 
       title: 'Dashboard', 
       path: '/dashboard', 
-      icon: <Home className="h-5 w-5" />,
-      roles: ['admin', 'attorney', 'client', 'superadmin'] 
+      icon: <Home size={20} />,
+      roles: ['admin', 'attorney', 'client'] // All users
     },
     { 
       title: 'Clients', 
       path: '/clients', 
-      icon: <Users className="h-5 w-5" />,
+      icon: <Users size={20} />,
       roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Cases', 
       path: '/cases', 
-      icon: <FolderOpen className="h-5 w-5" />,
+      icon: <Folder size={20} />,
       roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Documents', 
       path: '/documents', 
-      icon: <FileText className="h-5 w-5" />,
-      roles: ['admin', 'attorney', 'client'] 
+      icon: <FileText size={20} />,
+      roles: ['admin', 'attorney', 'client'] // All users
     },
     { 
       title: 'Files', 
       path: '/files', 
-      icon: <FileSearch className="h-5 w-5" />,
+      icon: <FileSearch size={20} />,
       roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Medical', 
       path: '/medical', 
-      icon: <Building2 className="h-5 w-5" />,
+      icon: <Building2 size={20} />,
       roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Billing', 
       path: '/billing', 
-      icon: <BarChart className="h-5 w-5" />,
+      icon: <BarChart size={20} />,
       roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Calculator', 
       path: '/calculator', 
-      icon: <Calculator className="h-5 w-5" />,
-      roles: ['attorney'] 
+      icon: <Calculator size={20} />,
+      roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Reports', 
       path: '/reports', 
-      icon: <FileSearch className="h-5 w-5" />,
+      icon: <FileSearch size={20} />,
       roles: ['admin', 'attorney'] 
     },
     { 
       title: 'Calendar', 
       path: '/calendar', 
-      icon: <Calendar className="h-5 w-5" />,
-      roles: ['admin', 'attorney', 'client'] 
+      icon: <Calendar size={20} />,
+      roles: ['admin', 'attorney', 'client'] // All users - clients can see appointments
     },
     { 
       title: 'Messages', 
       path: '/messages', 
-      icon: <MessageSquare className="h-5 w-5" />,
-      roles: ['attorney', 'client'] 
-    },
-    { 
-      title: 'Depositions', 
-      path: '/depositions', 
-      icon: <Gavel className="h-5 w-5" />,
-      roles: ['admin', 'attorney'] 
-    }
-  ];
-
-  // Admin-only items
-  const adminItems = [
-    { 
-      title: 'Firm Management', 
-      path: '/firm-management', 
-      icon: <Building2 className="h-5 w-5" />,
-      roles: ['admin'] 
+      icon: <MessageSquare size={20} />,
+      roles: ['admin', 'attorney', 'client'] // All users - clients can message attorneys
     },
     { 
       title: 'Admin', 
       path: '/admin', 
-      icon: <Shield className="h-5 w-5" />,
-      roles: ['admin'] 
-    }
-  ];
-
-  // Super Admin-only items
-  const superAdminItems = [
+      icon: <Shield size={20} />,
+      roles: ['admin'] // Admin only
+    },
     { 
-      title: 'Super Admin', 
-      path: '/super-admin', 
-      icon: <Shield className="h-5 w-5" />,
-      roles: ['superadmin'] 
+      title: 'Depositions', 
+      path: '/depositions', 
+      icon: <Gavel size={20} />,
+      roles: ['admin', 'attorney'] 
+    },
+    { 
+      title: 'Attorneys', 
+      path: '/attorneys', 
+      icon: <Users size={20} />,
+      roles: ['admin'] // Admin only
+    },
+    { 
+      title: 'Settings', 
+      path: '/settings', 
+      icon: <Settings size={20} />,
+      roles: ['admin', 'attorney', 'client'] // All users
     }
   ];
-
-  // Settings is available to all users
-  const settingsItem = { 
-    title: 'Settings', 
-    path: '/settings', 
-    icon: <Settings className="h-5 w-5" />,
-    roles: ['admin', 'attorney', 'client', 'superadmin'] 
-  };
-  
-  // Filter navigation items based on user role
-  const filteredNavItems = navItems.filter(item => 
-    currentUser && item.roles.includes(currentUser.role)
-  );
-  
-  const filteredAdminItems = adminItems.filter(item => 
-    currentUser && item.roles.includes(currentUser.role)
-  );
-  
-  const filteredSuperAdminItems = superAdminItems.filter(item => 
-    currentUser && item.roles.includes(currentUser.role)
-  );
-  
-  const renderNavItem = (item: { title: string, path: string, icon: JSX.Element }) => {
-    return (
-      <li key={item.path}>
-        <NavLink
-          to={item.path}
-          className={({ isActive }) => cn(
-            "flex items-center gap-2 px-3 py-2 rounded-md transition-colors",
-            isActive
-              ? "bg-primary/10 text-primary font-medium"
-              : "hover:bg-muted"
-          )}
-          end
-        >
-          {item.icon}
-          {!isCollapsed && <span>{item.title}</span>}
-        </NavLink>
-      </li>
-    );
-  };
 
   return (
-    <aside
+    <div 
       className={cn(
-        "fixed left-0 top-16 bottom-0 z-30 flex flex-col border-r bg-white transition-all duration-300",
-        isCollapsed ? "w-14" : "w-56"
+        "border-r border-border h-screen transition-all duration-300 flex flex-col bg-background",
+        isCollapsed ? "w-16" : "w-60"
       )}
     >
-      <div className="flex flex-col flex-1 p-2 overflow-y-auto">
-        <ul className="space-y-1">
-          {filteredNavItems.map(renderNavItem)}
-        </ul>
-        
-        {/* Admin section */}
-        {filteredAdminItems.length > 0 && (
-          <>
-            <div className={cn("mt-6 mb-2 px-3", 
-              isCollapsed ? "text-xs" : "text-xs font-semibold"
-            )}>
-              {!isCollapsed && "Administration"}
-            </div>
-            <ul className="space-y-1">
-              {filteredAdminItems.map(renderNavItem)}
-            </ul>
-          </>
-        )}
-        
-        {/* Super Admin section */}
-        {filteredSuperAdminItems.length > 0 && (
-          <>
-            <div className={cn("mt-6 mb-2 px-3", 
-              isCollapsed ? "text-xs" : "text-xs font-semibold"
-            )}>
-              {!isCollapsed && "Super Admin"}
-            </div>
-            <ul className="space-y-1">
-              {filteredSuperAdminItems.map(renderNavItem)}
-            </ul>
-          </>
-        )}
-
-        {/* Settings - always shown */}
-        <div className="mt-auto pt-4">
-          <ul className="space-y-1">
-            {renderNavItem(settingsItem)}
-          </ul>
+      {/* <div className="p-3 flex items-center gap-2 border-b">
+        <div className="bg-lawfirm-light-blue text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg">
+          LYZ
         </div>
+        {!isCollapsed && <div className="font-semibold">LYZ Law Firm</div>}
+      </div> */}
+
+      <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
+        {roleBasedNavItems
+          .filter(item => !currentUser || item.roles.includes(currentUser.role))
+          .map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) => cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                "hover:bg-accent hover:text-accent-foreground",
+                isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
+                isCollapsed && "justify-center px-0"
+              )}
+            >
+              {item.icon}
+              {!isCollapsed && <span>{item.title}</span>}
+            </NavLink>
+          ))}
       </div>
 
-      {/* Collapse toggle */}
-      <div className="p-2 border-t">
+      <div className="p-3 border-t mt-auto">
+        {!isCollapsed && currentUser && (
+          <div className="text-xs text-muted-foreground mb-2">
+            <div className="font-medium">{currentUser.name}</div>
+            <div>{currentUser.email}</div>
+            <div className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs inline-block mt-1">
+              {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
+            </div>
+          </div>
+        )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="flex w-full items-center justify-center p-2 rounded-md hover:bg-gray-100"
+          className="w-full flex items-center justify-center h-10 border rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
         >
-          {isCollapsed ? (
-            <ChevronRight className="h-5 w-5" />
-          ) : (
-            <ChevronLeft className="h-5 w-5" />
-          )}
+          {isCollapsed ? "→" : "←"}
         </button>
       </div>
-    </aside>
+    </div>
   );
 };
 

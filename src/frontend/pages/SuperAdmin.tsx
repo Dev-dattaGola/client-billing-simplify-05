@@ -16,7 +16,7 @@ const SuperAdminDashboard: React.FC = () => {
   return (
     <PageLayout>
       <Helmet>
-        <title>Super Admin - Lawerp500</title>
+        <title>Super Admin - LAW ERP 500</title>
       </Helmet>
       
       <div className="container mx-auto px-4 py-6 space-y-6">
@@ -123,7 +123,7 @@ const SuperAdminDashboard: React.FC = () => {
       <footer className="px-4 py-6 border-t text-sm text-muted-foreground mt-8">
         <div className="container mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-medium">Lawerp500</span> | Super Admin Panel
+            <span className="font-medium">LAW ERP 500</span> | Super Admin Panel
           </div>
           <div className="text-sm">© 2023-2025 All rights reserved.</div>
         </div>

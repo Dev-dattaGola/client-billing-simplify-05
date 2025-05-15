@@ -1,19 +1,91 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '@/types/user';
-import { LoginCredentials } from '@/types/auth';
-import { saveAuthData, clearAuthData, checkPermission, getMockUser } from '@/lib/utils/auth-utils';
-
-interface AuthContextType {
-  currentUser: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  login: (credentials: LoginCredentials) => Promise<User | null>;
-  logout: () => void;
-  hasPermission: (permission: string) => boolean;
-}
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User, AuthContextType, LoginCredentials } from '@/types/auth';
+import { useAuthActions } from '@/hooks/useAuthActions';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { login, logout, hasPermission, isLoading: authActionsLoading } = useAuthActions();
+
+  useEffect(() => {
+    const getUserFromStorage = () => {
+      try {
+        const userDataString = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+        
+        if (userDataString) {
+          const userData = JSON.parse(userDataString);
+          
+          // Update user name based on role
+          if (userData.role === 'client') {
+            userData.name = 'Andrew Johnson';
+          } else if (userData.role === 'attorney') {
+            userData.name = 'Jack Peters';
+          } else if (userData.role === 'admin') {
+            userData.name = 'Smith Hook';
+          }
+          
+          setCurrentUser(userData);
+        }
+      } catch (error) {
+        console.error('Error parsing user data from storage:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getUserFromStorage();
+  }, []);
+
+  const handleLogin = async (credentials: LoginCredentials) => {
+    const user = await login(credentials);
+    
+    // Update user name based on role before setting to state
+    if (user) {
+      if (user.role === 'client') {
+        user.name = 'Andrew Johnson';
+      } else if (user.role === 'attorney') {
+        user.name = 'Jack Peters';
+      } else if (user.role === 'admin') {
+        user.name = 'Smith Hook';
+      }
+      setCurrentUser(user);
+    }
+    
+    return user;
+  };
+
+  const handleLogout = () => {
+    logout();
+    setCurrentUser(null);
+  };
+
+  const updateAuthState = () => {
+    const userDataString = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+    if (userDataString) {
+      try {
+        const userData = JSON.parse(userDataString);
+        setCurrentUser(userData);
+      } catch (error) {
+        console.error('Error updating auth state:', error);
+      }
+    }
+  };
+
+  const contextValue: AuthContextType = {
+    currentUser,
+    isAuthenticated: !!currentUser,
+    isLoading: isLoading || authActionsLoading,
+    login: handleLogin,
+    logout: handleLogout,
+    hasPermission,
+    updateAuthState,
+  };
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -21,88 +93,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  
-  // Initialize auth state from localStorage or sessionStorage
-  useEffect(() => {
-    const initAuthState = () => {
-      try {
-        const userDataStr = localStorage.getItem('userData') || sessionStorage.getItem('userData');
-        
-        if (userDataStr) {
-          const userData = JSON.parse(userDataStr);
-          setCurrentUser(userData);
-        }
-      } catch (error) {
-        console.error('Error initializing auth state:', error);
-        // Clear potentially corrupted auth data
-        localStorage.removeItem('userData');
-        sessionStorage.removeItem('userData');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initAuthState();
-  }, []);
-
-  const login = async (credentials: LoginCredentials): Promise<User | null> => {
-    setIsLoading(true);
-    
-    try {
-      // Simulate API call with delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const user = getMockUser(credentials.email, credentials.password);
-      
-      if (!user) {
-        return null;
-      }
-      
-      // Save to storage based on 'remember' flag
-      saveAuthData(user, credentials.remember || false);
-      setCurrentUser(user);
-      
-      return user;
-    } catch (error) {
-      console.error('Login failed:', error);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = () => {
-    clearAuthData();
-    setCurrentUser(null);
-  };
-
-  const hasPermission = (permission: string): boolean => {
-    if (!currentUser) return false;
-    return checkPermission(currentUser, permission);
-  };
-
-  // Memoize the context value to prevent unnecessary re-renders
-  const contextValue = {
-    currentUser,
-    isLoading,
-    isAuthenticated: !!currentUser,
-    login,
-    logout,
-    hasPermission
-  };
-
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
 };

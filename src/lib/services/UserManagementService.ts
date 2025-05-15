@@ -285,7 +285,7 @@ class UserManagementService {
     
     // Create default users
     const adminUser: CreateUserParams = {
-      name: 'Smith Hook',
+      name: 'Admin User',
       email: 'admin@lyzlawfirm.com',
       password: 'admin123',
       role: 'admin',
@@ -294,7 +294,7 @@ class UserManagementService {
     };
     
     const attorneyUser: CreateUserParams = {
-      name: 'Jack Peters',
+      name: 'Attorney User',
       email: 'attorney@lyzlawfirm.com',
       password: 'attorney123',
       role: 'attorney',
@@ -302,7 +302,7 @@ class UserManagementService {
     };
     
     const clientUser: CreateUserParams = {
-      name: 'Andrew Johnson',
+      name: 'Client User',
       email: 'client@example.com',
       password: 'client123',
       role: 'client'

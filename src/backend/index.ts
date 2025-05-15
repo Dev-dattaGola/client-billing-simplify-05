@@ -31,20 +31,14 @@ export const patientsApi = {
   createPatient: async (patientData: Omit<Patient, 'id' | 'accountNumber' | 'dateRegistered'>): Promise<Patient> => {
     // Create a proper client data object with required fields
     const clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'> = {
-      name: patientData.fullName || '',
+      fullName: patientData.fullName,
       email: patientData.email,
       phone: patientData.phone,
+      // Include other fields from patientData
       address: patientData.address,
-      status: 'active',
-      assignedAttorney: patientData.assignedAttorneyId || '',
-      caseType: '',
-      caseStatus: patientData.caseStatus || 'Initial Consultation',
       dateOfBirth: patientData.dateOfBirth,
-      
-      // Include extended fields as optional properties
-      fullName: patientData.fullName,
-      // We don't set dateRegistered here as it's generated from createdAt
       profilePhoto: patientData.profilePhoto,
+      caseStatus: patientData.caseStatus,
       assignedAttorneyId: patientData.assignedAttorneyId,
       accidentDate: patientData.accidentDate,
       accidentLocation: patientData.accidentLocation,
@@ -152,7 +146,7 @@ function convertClientToPatient(client: Client): Patient {
   return {
     id: client.id,
     accountNumber: client.accountNumber || `A${client.id.substring(0, 3)}`,
-    fullName: client.fullName || client.name,
+    fullName: client.fullName,
     dateOfBirth: client.dateOfBirth || "Not provided",
     phone: client.phone,
     email: client.email,
@@ -160,7 +154,7 @@ function convertClientToPatient(client: Client): Patient {
     profilePhoto: client.profilePhoto || "",
     dateRegistered: client.dateRegistered || client.createdAt?.split('T')[0] || "Not provided",
     caseStatus: client.caseStatus || "Initial Consultation",
-    assignedAttorneyId: client.assignedAttorneyId || client.assignedAttorney || "",
+    assignedAttorneyId: client.assignedAttorneyId || "",
     accidentDate: client.accidentDate || "",
     accidentLocation: client.accidentLocation || "",
     injuryType: client.injuryType || "",
@@ -176,7 +170,6 @@ function convertPatientToClient(patient: Partial<Patient>): Partial<Client> {
   const clientData: Partial<Client> = {
     ...patient,
     // Map any fields that need special handling
-    name: patient.fullName
   };
   
   // Remove patient-specific fields that don't exist in Client

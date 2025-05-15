@@ -1,36 +1,20 @@
 
-export interface ClientFilterParams {
-  search?: string;
-  tag?: string;
-  dateRange?: {
-    from?: Date;
-    to?: Date;
-  };
-}
-
 export interface Client {
   id: string;
-  name: string;
+  accountNumber?: string;
+  fullName: string;
   email: string;
   phone: string;
-  address?: string;
-  status: 'active' | 'inactive' | 'dropped';
-  assignedAttorney: string;
-  caseType: string;
-  caseStatus: string;
-  dateOfBirth?: string;
-  createdAt: string;
-  updatedAt?: string;
-  dropReason?: string;
-  
-  // Extended information for client management
-  fullName?: string; // Name or fullName can be used (for backward compatibility)
-  accountNumber?: string;
   companyName?: string;
+  address?: string;
   tags?: string[];
   notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Additional patient fields
+  dateOfBirth?: string;
   profilePhoto?: string;
-  dateRegistered?: string;
+  caseStatus?: 'Active Treatment' | 'Initial Consultation' | 'Case Review' | 'Settlement Negotiation' | 'Closed';
   assignedAttorneyId?: string;
   accidentDate?: string;
   accidentLocation?: string;
@@ -39,4 +23,16 @@ export interface Client {
   insuranceCompany?: string;
   insurancePolicyNumber?: string;
   insuranceAdjusterName?: string;
+  dateRegistered?: string;
+}
+
+export type ClientFormData = Omit<Client, 'id' | 'createdAt' | 'updatedAt'>;
+
+export interface ClientFilterParams {
+  search: string;
+  tag?: string;
+  dateRange?: {
+    from: Date | undefined;
+    to: Date | undefined;
+  };
 }

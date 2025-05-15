@@ -42,7 +42,7 @@ export const useAuthActions = () => {
       // Navigate to dashboard or originally requested page
       const origin = location.state?.from?.pathname || '/dashboard';
       console.log("Navigating to:", origin);
-      navigate(origin, { replace: true }); // Added replace: true to prevent navigation stack issues
+      navigate(origin);
       
       return user;
     } catch (error) {
@@ -57,7 +57,7 @@ export const useAuthActions = () => {
   const logout = () => {
     clearAuthData();
     toast.success('You have been logged out');
-    navigate('/login', { replace: true }); // Added replace: true to prevent navigation stack issues
+    navigate('/login');
   };
 
   const hasPermission = (permission: string): boolean => {

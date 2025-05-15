@@ -1,9 +1,9 @@
 
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { Calendar, Clock, BarChart3, FileText, ChevronDown } from "lucide-react";
 import BillingTable from "../client-billing/BillingTable";
 import LienCalculator from "../calculator/LienCalculator";
 import ClientAnalyticsChart from "./ClientAnalyticsChart";
@@ -11,7 +11,10 @@ import { clientsApi } from "@/lib/api/mongodb-api";
 import { Client } from "@/types/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import ClientDashboard from "./ClientDashboard";
+import ClientCaseInfo from "./client-specific/ClientCaseInfo";
+import UpcomingCourtDates from "./client-specific/UpcomingCourtDates";
+import ClientBillingInfo from "./client-specific/ClientBillingInfo";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const DashboardOverview = () => {
   const [showCalculator, setShowCalculator] = useState(false);
@@ -19,43 +22,57 @@ const DashboardOverview = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { currentUser } = useAuth();
-  
-  // Check if user is a client
-  const isClientUser = currentUser?.role === 'client';
 
   useEffect(() => {
-    // Only fetch clients data if not a client user
-    if (!isClientUser) {
-      const fetchClients = async () => {
-        try {
-          setLoading(true);
-          const fetchedClients = await clientsApi.getClients();
-          setClients(fetchedClients);
-        } catch (error) {
-          console.error("Failed to fetch clients:", error);
-          toast({
-            title: "Error",
-            description: "Failed to load client data. Please try again later.",
-            variant: "destructive",
-          });
-        } finally {
-          setLoading(false);
-        }
-      };
+    const fetchClients = async () => {
+      try {
+        setLoading(true);
+        const fetchedClients = await clientsApi.getClients();
+        setClients(fetchedClients);
+      } catch (error) {
+        console.error("Failed to fetch clients:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load client data. Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      fetchClients();
-    } else {
-      // For client users, we don't need to load the general clients list
-      setLoading(false);
-    }
-  }, [toast, isClientUser]);
+    fetchClients();
+  }, [toast]);
 
-  // If user is a client, show client-specific dashboard
-  if (isClientUser) {
-    return <ClientDashboard />;
+  // If user is a client, show specific client dashboard
+  if (currentUser?.role === 'client') {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2 pt-2">
+          <h1 className="text-2xl font-bold tracking-tight">Welcome, {currentUser.name}</h1>
+          <p className="text-muted-foreground">
+            Here's the latest information about your case.
+          </p>
+        </div>
+        
+        {loading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-[200px] w-full" />
+            <Skeleton className="h-[200px] w-full" />
+            <Skeleton className="h-[200px] w-full" />
+          </div>
+        ) : (
+          <>
+            <ClientCaseInfo clientId={currentUser.id} />
+            <UpcomingCourtDates clientId={currentUser.id} />
+            <ClientBillingInfo clientId={currentUser.id} />
+          </>
+        )}
+      </div>
+    );
   }
 
-  // For attorneys, admins, and other roles, show the regular dashboard
+  // For other roles (admin, attorney), show the original dashboard
   return (
     <div className="space-y-8">
       <div className="space-y-3 pt-2">

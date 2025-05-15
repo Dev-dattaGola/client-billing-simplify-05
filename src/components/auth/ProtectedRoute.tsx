@@ -1,49 +1,52 @@
 
-import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import LoadingScreen from '@/components/common/LoadingScreen';
-import { toast } from 'sonner';
+import { ReactNode } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
+  requiredPermissions?: string[];
   roles?: string[];
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles = [] }) => {
-  const { isAuthenticated, isLoading, currentUser } = useAuth();
-  const navigate = useNavigate();
+const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: ProtectedRouteProps) => {
+  const { isAuthenticated, currentUser, hasPermission } = useAuth();
+  const { toast } = useToast();
   const location = useLocation();
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      // User is not authenticated
-      toast.error("Please log in to access this page.", {
-        id: "auth-required",
-        description: "Authentication Required"
-      });
-      navigate('/login', { state: { from: location } });
-      return;
-    }
-
-    if (!isLoading && isAuthenticated && currentUser && roles.length > 0) {
-      // Check if the user has the required role
-      if (!roles.includes(currentUser.role)) {
-        toast.error("You don't have permission to access this page.", {
-          id: "permission-denied",
-          description: "Permission Denied"
-        });
-        navigate('/dashboard');
-      }
-    }
-  }, [isLoading, isAuthenticated, currentUser, roles, navigate, location]);
-
-  if (isLoading) {
-    return <LoadingScreen />;
+  
+  if (!isAuthenticated) {
+    toast({
+      title: "Authentication Required",
+      description: "Please log in to access this page.",
+      variant: "destructive",
+    });
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
-
-  // If authentication check is complete and user is authenticated
-  return isAuthenticated ? <>{children}</> : null;
+  
+  // Admin has access to everything
+  if (currentUser?.role === 'admin') {
+    return <>{children}</>;
+  }
+  
+  // Check permissions for other users
+  const hasPermissionAccess = requiredPermissions.length === 0 || 
+    requiredPermissions.some(perm => hasPermission(perm));
+  
+  const hasRoleAccess = roles.length === 0 ||
+    (currentUser && roles.includes(currentUser.role || ''));
+  
+  // Grant access if either permission or role checks pass
+  if (!hasPermissionAccess && !hasRoleAccess) {
+    toast({
+      title: "Access Denied",
+      description: "You don't have permission to access this page.",
+      variant: "destructive",
+    });
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

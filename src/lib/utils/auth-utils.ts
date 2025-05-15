@@ -1,97 +1,146 @@
 
-import { User } from '@/types/user';
+import { User } from '@/types/auth';
 
+// Save authentication data to localStorage or sessionStorage
 export const saveAuthData = (user: User, remember: boolean): void => {
-  const storage = remember ? localStorage : sessionStorage;
-  
-  // Remove from the other storage to avoid conflicts
-  if (remember) {
-    sessionStorage.removeItem('userData');
-  } else {
-    localStorage.removeItem('userData');
-  }
-  
   try {
-    storage.setItem('userData', JSON.stringify(user));
+    const userData = JSON.stringify(user);
+    const authToken = generateAuthToken(user);
+    
+    if (remember) {
+      localStorage.setItem('userData', userData);
+      localStorage.setItem('authToken', authToken);
+      // Clean up any session storage to avoid conflicts
+      sessionStorage.removeItem('userData');
+      sessionStorage.removeItem('authToken');
+    } else {
+      sessionStorage.setItem('userData', userData);
+      sessionStorage.setItem('authToken', authToken);
+      // Clean up any local storage to avoid conflicts
+      localStorage.removeItem('userData');
+      localStorage.removeItem('authToken');
+    }
+    
+    console.log(`Auth data saved for ${user.name} in ${remember ? 'localStorage' : 'sessionStorage'}`);
   } catch (error) {
     console.error('Error saving auth data:', error);
+    throw new Error('Failed to save authentication data');
   }
 };
 
+// Clear authentication data from both storages
 export const clearAuthData = (): void => {
-  localStorage.removeItem('userData');
-  sessionStorage.removeItem('userData');
-};
-
-export const getAuthData = (): User | null => {
   try {
-    const userDataStr = localStorage.getItem('userData') || sessionStorage.getItem('userData');
-    if (userDataStr) {
-      return JSON.parse(userDataStr);
-    }
+    localStorage.removeItem('userData');
+    localStorage.removeItem('authToken');
+    sessionStorage.removeItem('userData');
+    sessionStorage.removeItem('authToken');
+    console.log('Auth data cleared');
   } catch (error) {
-    console.error('Error getting auth data:', error);
+    console.error('Error clearing auth data:', error);
   }
-  return null;
 };
 
+// Restore authentication state from localStorage or sessionStorage
+export const restoreAuthState = (): { user: User | null; isAuthenticated: boolean } => {
+  try {
+    // Check if token exists in either storage
+    const tokenExists = !!localStorage.getItem('authToken') || !!sessionStorage.getItem('authToken');
+    console.log(`Restoring auth state, token exists: ${tokenExists} user data exists: ${!!localStorage.getItem('userData') || !!sessionStorage.getItem('userData')}`);
+    
+    // Prioritize session storage for user data
+    const userDataStr = sessionStorage.getItem('userData') || localStorage.getItem('userData');
+    
+    if (!userDataStr) {
+      return { user: null, isAuthenticated: false };
+    }
+    
+    const userData: User = JSON.parse(userDataStr);
+    
+    if (!userData || !userData.id || !userData.role) {
+      console.warn('Invalid user data found in storage');
+      clearAuthData(); // Clear invalid data
+      return { user: null, isAuthenticated: false };
+    }
+    
+    return { user: userData, isAuthenticated: true };
+  } catch (error) {
+    console.error('Error restoring auth state:', error);
+    clearAuthData(); // Clear potentially corrupted data
+    return { user: null, isAuthenticated: false };
+  }
+};
+
+// Generate a mock auth token (in a real app, this would come from the backend)
+const generateAuthToken = (user: User): string => {
+  const payload = {
+    id: user.id,
+    role: user.role,
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hour expiration
+  };
+  
+  return btoa(JSON.stringify(payload));
+};
+
+// Check if a user has a specific permission
 export const checkPermission = (user: User, permission: string): boolean => {
-  if (!user || !user.permissions) return false;
-  
-  // Super admin has all permissions
-  if (user.role === 'superadmin') return true;
-  
-  // Check if the user has the specific permission
-  return user.permissions.includes(permission);
-};
-
-// Mock users for testing (in a real app, this would come from your API)
-const mockUsers = [
-  {
-    id: 'admin-1',
-    name: 'Admin User',
-    email: 'admin@lyzlawfirm.com',
-    role: 'admin' as const,
-    permissions: ['view_dashboard', 'manage_users', 'manage_settings'],
-    isActive: true
-  },
-  {
-    id: 'attorney-1',
-    name: 'Attorney User',
-    email: 'attorney@lyzlawfirm.com',
-    role: 'attorney' as const,
-    permissions: ['view_dashboard', 'manage_clients', 'view_cases'],
-    isActive: true
-  },
-  {
-    id: 'client-1',
-    name: 'Client User',
-    email: 'client@example.com',
-    role: 'client' as const,
-    permissions: ['view_dashboard', 'view_documents'],
-    assignedAttorneyId: 'attorney-1',
-    isActive: true
-  },
-  {
-    id: 'superadmin-1',
-    name: 'Super Admin',
-    email: 'superadmin@example.com',
-    role: 'superadmin' as const,
-    permissions: ['*'],
-    isActive: true
+  // Admin always has all permissions
+  if (user.role === 'admin' || user.role === 'superadmin') {
+    return true;
   }
-];
-
-export const getMockUser = (email: string, password: string): User | null => {
-  // In this mock function, we're simply checking the email and ignoring the password
-  // In a real app, you would validate both email and password
-  const user = mockUsers.find(u => 
-    u.email.toLowerCase() === email.toLowerCase() && u.isActive
-  );
   
-  return user ? { ...user } : null;
+  // For other roles, check the permissions array
+  if (user.permissions) {
+    return user.permissions.includes(permission) || user.permissions.includes('all');
+  }
+  
+  return false;
 };
 
-export const isMockUser = (email: string): boolean => {
-  return mockUsers.some(u => u.email.toLowerCase() === email.toLowerCase());
+// Mock users for demonstration
+export const getMockUser = (email: string, password: string): User | null => {
+  // Normalize email for comparison to avoid case sensitivity issues
+  const normalizedEmail = email.toLowerCase().trim();
+  
+  const users = [
+    {
+      id: 'admin1',
+      name: 'Admin User',
+      email: 'admin@lyzlawfirm.com',
+      role: 'admin' as const,
+      firmId: 'firm1',
+      permissions: ['all'],
+      password: 'admin123'
+    },
+    {
+      id: 'attorney1',
+      name: 'Attorney User',
+      email: 'attorney@lyzlawfirm.com',
+      role: 'attorney' as const,
+      firmId: 'firm1',
+      permissions: ['view:clients', 'edit:clients', 'view:cases', 'edit:cases'],
+      password: 'attorney123'
+    },
+    {
+      id: 'client1',
+      name: 'Client User',
+      email: 'client@example.com',
+      role: 'client' as const,
+      assignedAttorneyId: 'attorney1',
+      permissions: ['view:documents', 'upload:documents'],
+      password: 'client123'
+    },
+    // Add more mock users as needed
+  ];
+
+  const user = users.find(u => u.email.toLowerCase() === normalizedEmail && u.password === password);
+  
+  if (user) {
+    // Don't return the password
+    const { password: _, ...userWithoutPassword } = user;
+    return userWithoutPassword as User;
+  }
+  
+  return null;
 };
