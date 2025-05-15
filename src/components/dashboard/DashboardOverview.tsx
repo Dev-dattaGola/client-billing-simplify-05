@@ -10,34 +10,52 @@ import ClientAnalyticsChart from "./ClientAnalyticsChart";
 import { clientsApi } from "@/lib/api/mongodb-api";
 import { Client } from "@/types/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import ClientDashboard from "./ClientDashboard";
 
 const DashboardOverview = () => {
   const [showCalculator, setShowCalculator] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { currentUser } = useAuth();
+  
+  // Check if user is a client
+  const isClientUser = currentUser?.role === 'client';
 
   useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        setLoading(true);
-        const fetchedClients = await clientsApi.getClients();
-        setClients(fetchedClients);
-      } catch (error) {
-        console.error("Failed to fetch clients:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load client data. Please try again later.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Only fetch clients data if not a client user
+    if (!isClientUser) {
+      const fetchClients = async () => {
+        try {
+          setLoading(true);
+          const fetchedClients = await clientsApi.getClients();
+          setClients(fetchedClients);
+        } catch (error) {
+          console.error("Failed to fetch clients:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load client data. Please try again later.",
+            variant: "destructive",
+          });
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchClients();
-  }, [toast]);
+      fetchClients();
+    } else {
+      // For client users, we don't need to load the general clients list
+      setLoading(false);
+    }
+  }, [toast, isClientUser]);
 
+  // If user is a client, show client-specific dashboard
+  if (isClientUser) {
+    return <ClientDashboard />;
+  }
+
+  // For attorneys, admins, and other roles, show the regular dashboard
   return (
     <div className="space-y-8">
       <div className="space-y-3 pt-2">

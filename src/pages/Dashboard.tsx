@@ -45,7 +45,7 @@ const Dashboard: React.FC = () => {
       <Helmet>
         <title>Dashboard - LAW ERP 500</title>
       </Helmet>
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         <DashboardOverview />
       </div>
     </PageLayout>
