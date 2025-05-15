@@ -11,14 +11,20 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-    react(),
-    mode === 'development' &&
-    componentTagger(),
+    react({
+      // Improve module compatibility
+      jsxImportSource: 'react',
+      babel: {
+        plugins: []
+      }
+    }),
+    mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    dedupe: ['react', 'react-dom', 'react-router-dom'] // Deduplicate packages
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', 'sonner', '@radix-ui/react-toast'],
@@ -36,7 +42,13 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-components': ['@radix-ui/react-toast', 'sonner']
+          'ui-components': ['@radix-ui/react-toast', 'sonner'],
+          'radix-ui': [
+            '@radix-ui/react-aspect-ratio',
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-label',
+            '@radix-ui/react-slot'
+          ]
         }
       }
     }

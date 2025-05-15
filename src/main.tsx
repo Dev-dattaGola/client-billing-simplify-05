@@ -6,8 +6,8 @@ import App from './App.tsx';
 import './index.css';
 import { ToastProvider } from '@/contexts/ToastContext';
 
-// Wait for document to be fully loaded before mounting React
-document.addEventListener('DOMContentLoaded', () => {
+// Function to initialize the application
+function initializeApp() {
   const rootElement = document.getElementById('root');
   
   if (!rootElement) {
@@ -26,4 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
       </BrowserRouter>
     </React.StrictMode>
   );
-});
+}
+
+// Check if the document is already loaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  // Document already loaded, initialize immediately
+  initializeApp();
+}

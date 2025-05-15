@@ -1,9 +1,15 @@
 
 import React, { createContext, useCallback, useState } from 'react';
-import { Toast, ToastContextType, ToastOptions } from '@/hooks/use-toast';
+import type { Toast, ToastContextType, ToastOptions } from '@/hooks/use-toast';
 import { Toaster as Sonner } from 'sonner';
 
-export const ToastContext = createContext<ToastContextType | undefined>(undefined);
+// Create context with default values
+export const ToastContext = createContext<ToastContextType>({
+  toast: () => "",
+  dismiss: () => {},
+  update: () => {},
+  toasts: []
+});
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);

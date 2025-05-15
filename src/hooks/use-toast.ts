@@ -10,8 +10,12 @@ export interface ToastOptions {
   duration?: number;
 }
 
+export interface Toast extends ToastOptions {
+  id: string;
+}
+
 export type ToastContextType = {
-  toast: (props: ToastOptions) => void;
+  toast: (props: ToastOptions) => string;
   dismiss: (toastId?: string) => void;
   update: (props: ToastOptions & { id: string }) => void;
   toasts: Toast[];
@@ -25,13 +29,4 @@ export function useToast(): ToastContextType {
   }
   
   return context;
-}
-
-export interface Toast {
-  id: string;
-  title?: React.ReactNode;
-  description?: React.ReactNode;
-  action?: React.ReactNode;
-  variant?: "default" | "destructive";
-  duration?: number;
 }
