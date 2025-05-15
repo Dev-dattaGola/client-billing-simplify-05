@@ -6,15 +6,18 @@ import App from './App.tsx';
 import './index.css';
 import { ToastProvider } from '@/contexts/ToastContext';
 
-const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error('Failed to find the root element');
+// Make sure DOM is ready before mounting
+document.addEventListener('DOMContentLoaded', () => {
+  const rootElement = document.getElementById('root');
+  if (!rootElement) throw new Error('Failed to find the root element');
 
-createRoot(rootElement).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <ToastProvider>
-        <App />
-      </ToastProvider>
-    </BrowserRouter>
-  </React.StrictMode>
-);
+  createRoot(rootElement).render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      </BrowserRouter>
+    </React.StrictMode>
+  );
+});
