@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,34 +68,35 @@ const ClientDashboard = () => {
 
         if (clientError) throw clientError;
 
-        // Get client cases using RPC function with proper typing
+        // Get client cases
         const { data: casesData, error: casesError } = await supabase
-          .rpc('get_cases_by_client_id', { client_id: clientData.id })
-          .returns<ClientCase[]>();
+          .rpc('get_cases_by_client_id', { client_id: clientData.id });
 
         if (casesError) {
           console.error("Error fetching cases:", casesError);
           setClientCases([]);
         } else {
-          setClientCases(casesData || []);
+          // Safe type casting
+          const typedCasesData = casesData as ClientCase[];
+          setClientCases(typedCasesData || []);
         }
 
-        // Get upcoming court dates using RPC function with proper typing
+        // Get upcoming court dates
         const { data: datesData, error: datesError } = await supabase
-          .rpc('get_court_dates_by_client_id', { client_id: clientData.id })
-          .returns<CourtDate[]>();
+          .rpc('get_court_dates_by_client_id', { client_id: clientData.id });
 
         if (datesError) {
           console.error("Error fetching court dates:", datesError);
           setCourtDates([]);
         } else {
-          setCourtDates(datesData || []);
+          // Safe type casting
+          const typedDatesData = datesData as CourtDate[];
+          setCourtDates(typedDatesData || []);
         }
 
-        // Get billing information using RPC function with proper typing
+        // Get billing information
         const { data: billingData, error: billingError } = await supabase
-          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id })
-          .returns<BillingInfo[]>();
+          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id });
 
         if (billingError) {
           console.error("Error fetching billing info:", billingError);
@@ -106,15 +106,19 @@ const ClientDashboard = () => {
             lastBilledDate: new Date().toISOString(),
             pendingAmount: 0
           });
-        } else if (billingData && billingData.length > 0) {
-          setBillingInfo(billingData[0]);
         } else {
-          setBillingInfo({
-            totalHours: 0,
-            totalAmount: 0,
-            lastBilledDate: new Date().toISOString(),
-            pendingAmount: 0
-          });
+          // Type safely and check if we have data
+          const typedBillingData = billingData as BillingInfo[];
+          if (typedBillingData && typedBillingData.length > 0) {
+            setBillingInfo(typedBillingData[0]);
+          } else {
+            setBillingInfo({
+              totalHours: 0,
+              totalAmount: 0,
+              lastBilledDate: new Date().toISOString(),
+              pendingAmount: 0
+            });
+          }
         }
 
       } catch (error: any) {
