@@ -22,7 +22,7 @@ const TestimonialsSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 lg:py-24 px-4 bg-white">
+    <section className="py-16 lg:py-24 px-4 bg-gradient-to-br from-lawfirm-purple/30 to-white/90">
       <div className="container mx-auto max-w-7xl">
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-lawfirm-dark-purple mb-4">
@@ -35,7 +35,7 @@ const TestimonialsSection: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="border border-gray-200 shadow-md h-full">
+            <Card key={index} className="border border-lawfirm-purple/20 shadow-md h-full">
               <CardContent className="p-8 flex flex-col h-full">
                 <div className="mb-6 text-lawfirm-purple">
                   <svg width="45" height="36" viewBox="0 0 45 36" fill="none" xmlns="http://www.w3.org/2000/svg">

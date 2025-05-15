@@ -3,7 +3,7 @@ import React from 'react';
 
 const FooterSection: React.FC = () => {
   return (
-    <footer className="bg-lawfirm-dark-purple text-white py-12 px-4 mt-auto">
+    <footer className="bg-gradient-to-br from-lawfirm-purple-dark via-lawfirm-purple to-lawfirm-purple-dark text-white py-12 px-4 mt-auto">
       <div className="container mx-auto max-w-7xl">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -47,10 +47,10 @@ const FooterSection: React.FC = () => {
         <div className="border-t border-white/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm">&copy; {new Date().getFullYear()} LYZ Law Firm. All rights reserved.</p>
           <div className="flex gap-6 mt-4 md:mt-0">
-            <a href="#" className="text-white hover:text-lawfirm-light-blue transition-colors">Twitter</a>
-            <a href="#" className="text-white hover:text-lawfirm-light-blue transition-colors">LinkedIn</a>
-            <a href="#" className="text-white hover:text-lawfirm-light-blue transition-colors">Facebook</a>
-            <a href="#" className="text-white hover:text-lawfirm-light-blue transition-colors">YouTube</a>
+            <a href="#" className="text-white hover:text-white/80 transition-colors">Twitter</a>
+            <a href="#" className="text-white hover:text-white/80 transition-colors">LinkedIn</a>
+            <a href="#" className="text-white hover:text-white/80 transition-colors">Facebook</a>
+            <a href="#" className="text-white hover:text-white/80 transition-colors">YouTube</a>
           </div>
         </div>
       </div>

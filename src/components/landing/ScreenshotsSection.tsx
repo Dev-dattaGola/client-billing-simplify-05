@@ -4,7 +4,7 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 const ScreenshotsSection: React.FC = () => {
   return (
-    <section className="py-16 lg:py-24 px-4 bg-gray-50">
+    <section className="py-16 lg:py-24 px-4 bg-gradient-to-br from-lawfirm-purple-light/50 to-white/90">
       <div className="container mx-auto max-w-7xl">
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-lawfirm-dark-purple mb-4">
@@ -17,7 +17,7 @@ const ScreenshotsSection: React.FC = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="rounded-lg overflow-hidden shadow-lg">
-            <div className="bg-lawfirm-dark-purple text-white p-2 flex items-center">
+            <div className="bg-lawfirm-purple text-white p-2 flex items-center">
               <div className="flex gap-2 ml-2">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                 <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -37,7 +37,7 @@ const ScreenshotsSection: React.FC = () => {
           </div>
           
           <div className="rounded-lg overflow-hidden shadow-lg">
-            <div className="bg-lawfirm-dark-purple text-white p-2 flex items-center">
+            <div className="bg-lawfirm-purple text-white p-2 flex items-center">
               <div className="flex gap-2 ml-2">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                 <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -57,7 +57,7 @@ const ScreenshotsSection: React.FC = () => {
           </div>
           
           <div className="rounded-lg overflow-hidden shadow-lg">
-            <div className="bg-lawfirm-dark-purple text-white p-2 flex items-center">
+            <div className="bg-lawfirm-purple text-white p-2 flex items-center">
               <div className="flex gap-2 ml-2">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                 <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
