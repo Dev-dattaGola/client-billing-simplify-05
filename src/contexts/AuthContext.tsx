@@ -1,16 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '@/types/user';
+import { User, AuthContextType, LoginCredentials } from '@/types/auth';
 import { useAuthActions } from '@/hooks/useAuthActions';
-
-interface AuthContextType {
-  currentUser: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string, remember: boolean) => Promise<User | null>;
-  logout: () => void;
-  hasPermission: (permission: string) => boolean;
-}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -48,8 +39,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getUserFromStorage();
   }, []);
 
-  const handleLogin = async (email: string, password: string, remember: boolean) => {
-    const user = await login(email, password, remember);
+  const handleLogin = async (credentials: LoginCredentials) => {
+    const user = await login(credentials);
     
     // Update user name based on role before setting to state
     if (user) {
@@ -71,13 +62,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUser(null);
   };
 
-  const contextValue = {
+  const updateAuthState = () => {
+    const userDataString = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+    if (userDataString) {
+      try {
+        const userData = JSON.parse(userDataString);
+        setCurrentUser(userData);
+      } catch (error) {
+        console.error('Error updating auth state:', error);
+      }
+    }
+  };
+
+  const contextValue: AuthContextType = {
     currentUser,
     isAuthenticated: !!currentUser,
     isLoading: isLoading || authActionsLoading,
     login: handleLogin,
     logout: handleLogout,
-    hasPermission: hasPermission,
+    hasPermission,
+    updateAuthState,
   };
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

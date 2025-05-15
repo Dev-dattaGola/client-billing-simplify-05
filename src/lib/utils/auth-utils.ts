@@ -108,7 +108,7 @@ export const getMockUser = (email: string, password: string): User | null => {
       id: 'admin1',
       name: 'Admin User',
       email: 'admin@lyzlawfirm.com',
-      role: 'admin',
+      role: 'admin' as const,
       firmId: 'firm1',
       permissions: ['all'],
       password: 'admin123'
@@ -117,7 +117,7 @@ export const getMockUser = (email: string, password: string): User | null => {
       id: 'attorney1',
       name: 'Attorney User',
       email: 'attorney@lyzlawfirm.com',
-      role: 'attorney',
+      role: 'attorney' as const,
       firmId: 'firm1',
       permissions: ['view:clients', 'edit:clients', 'view:cases', 'edit:cases'],
       password: 'attorney123'
@@ -126,7 +126,7 @@ export const getMockUser = (email: string, password: string): User | null => {
       id: 'client1',
       name: 'Client User',
       email: 'client@example.com',
-      role: 'client',
+      role: 'client' as const,
       assignedAttorneyId: 'attorney1',
       permissions: ['view:documents', 'upload:documents'],
       password: 'client123'
