@@ -3,24 +3,24 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 
-const ClientDashboard: React.FC = () => {
+const AttorneyDashboard: React.FC = () => {
   const { currentUser } = useAuth();
   
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle>Welcome, {currentUser?.name || 'Client'}</CardTitle>
+          <CardTitle>Welcome, {currentUser?.name || 'Attorney'}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>View your case information and upcoming appointments.</p>
+          <p>View your case load, client information, and upcoming court dates.</p>
         </CardContent>
       </Card>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle>Your Cases</CardTitle>
+            <CardTitle>Active Cases</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">You have no active cases.</p>
@@ -29,10 +29,19 @@ const ClientDashboard: React.FC = () => {
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle>Upcoming Appointments</CardTitle>
+            <CardTitle>Clients</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">You have no upcoming appointments.</p>
+            <p className="text-muted-foreground">You have no assigned clients.</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Upcoming Court Dates</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">You have no upcoming court dates.</p>
           </CardContent>
         </Card>
       </div>
@@ -40,4 +49,4 @@ const ClientDashboard: React.FC = () => {
   );
 };
 
-export default ClientDashboard;
+export default AttorneyDashboard;

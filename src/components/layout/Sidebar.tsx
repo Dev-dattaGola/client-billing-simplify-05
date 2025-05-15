@@ -1,22 +1,18 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Home,
-  Users,
   FileText,
-  Folder,
-  Building2,
   Calendar,
   MessageSquare,
+  Users,
+  FolderOpen,
   Settings,
-  BarChart,
-  Calculator,
-  FileSearch,
-  Gavel,
-  Shield
+  Shield,
+  ChevronRight,
+  ChevronLeft,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -24,149 +20,135 @@ interface SidebarProps {
   setIsCollapsed: (value: boolean) => void;
 }
 
+interface SidebarLinkProps {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  isCollapsed: boolean;
+}
+
+const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, label, isCollapsed }) => {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+          isActive
+            ? 'bg-primary/10 text-primary font-medium'
+            : 'hover:bg-muted'
+        }`
+      }
+    >
+      <div>{icon}</div>
+      {!isCollapsed && <span>{label}</span>}
+    </NavLink>
+  );
+};
+
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
-  const { hasPermission, currentUser } = useAuth();
-  
-  // Define which roles can access which items
-  const roleBasedNavItems = [
-    { 
-      title: 'Dashboard', 
-      path: '/dashboard', 
-      icon: <Home size={20} />,
-      roles: ['admin', 'attorney', 'client'] // All users
-    },
-    { 
-      title: 'Clients', 
-      path: '/clients', 
-      icon: <Users size={20} />,
-      roles: ['admin', 'attorney'] 
-    },
-    { 
-      title: 'Cases', 
-      path: '/cases', 
-      icon: <Folder size={20} />,
-      roles: ['admin', 'attorney'] 
-    },
-    { 
-      title: 'Documents', 
-      path: '/documents', 
-      icon: <FileText size={20} />,
-      roles: ['admin', 'attorney', 'client'] // All users
-    },
-    { 
-      title: 'Files', 
-      path: '/files', 
-      icon: <FileSearch size={20} />,
-      roles: ['admin', 'attorney'] 
-    },
-    { 
-      title: 'Medical', 
-      path: '/medical', 
-      icon: <Building2 size={20} />,
-      roles: ['admin', 'attorney'] 
-    },
-    { 
-      title: 'Billing', 
-      path: '/billing', 
-      icon: <BarChart size={20} />,
-      roles: ['admin', 'attorney'] 
-    },
-    { 
-      title: 'Calculator', 
-      path: '/calculator', 
-      icon: <Calculator size={20} />,
-      roles: ['admin', 'attorney'] 
-    },
-    { 
-      title: 'Reports', 
-      path: '/reports', 
-      icon: <FileSearch size={20} />,
-      roles: ['admin', 'attorney'] 
-    },
-    { 
-      title: 'Calendar', 
-      path: '/calendar', 
-      icon: <Calendar size={20} />,
-      roles: ['admin', 'attorney', 'client'] // All users - clients can see appointments
-    },
-    { 
-      title: 'Messages', 
-      path: '/messages', 
-      icon: <MessageSquare size={20} />,
-      roles: ['admin', 'attorney', 'client'] // All users - clients can message attorneys
-    },
-    { 
-      title: 'Admin', 
-      path: '/admin', 
-      icon: <Shield size={20} />,
-      roles: ['admin'] // Admin only
-    },
-    { 
-      title: 'Depositions', 
-      path: '/depositions', 
-      icon: <Gavel size={20} />,
-      roles: ['admin', 'attorney'] 
-    },
-    { 
-      title: 'Attorneys', 
-      path: '/attorneys', 
-      icon: <Users size={20} />,
-      roles: ['admin'] // Admin only
-    },
-    { 
-      title: 'Settings', 
-      path: '/settings', 
-      icon: <Settings size={20} />,
-      roles: ['admin', 'attorney', 'client'] // All users
-    }
-  ];
+  const { currentUser } = useAuth();
 
   return (
-    <div 
-      className={cn(
-        "border-r border-border h-screen transition-all duration-300 flex flex-col bg-background",
-        isCollapsed ? "w-16" : "w-60"
-      )}
+    <aside
+      className={`fixed left-0 top-16 bottom-0 z-30 flex flex-col border-r bg-white transition-all duration-300 
+        ${isCollapsed ? 'w-14' : 'w-56'}`}
     >
-      <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
-        {roleBasedNavItems
-          .filter(item => !currentUser || item.roles.includes(currentUser.role))
-          .map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) => cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                "hover:bg-accent hover:text-accent-foreground",
-                isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
-                isCollapsed && "justify-center px-0"
-              )}
-              end
-            >
-              {item.icon}
-              {!isCollapsed && <span>{item.title}</span>}
-            </NavLink>
-          ))}
+      <div className="flex flex-col flex-1 p-2 overflow-y-auto">
+        <SidebarLink
+          to="/dashboard"
+          icon={<Home className="h-5 w-5" />}
+          label="Dashboard"
+          isCollapsed={isCollapsed}
+        />
+
+        {/* Common links for all users */}
+        <SidebarLink
+          to="/documents"
+          icon={<FileText className="h-5 w-5" />}
+          label="Documents"
+          isCollapsed={isCollapsed}
+        />
+
+        <SidebarLink
+          to="/calendar"
+          icon={<Calendar className="h-5 w-5" />}
+          label="Calendar"
+          isCollapsed={isCollapsed}
+        />
+
+        <SidebarLink
+          to="/messages"
+          icon={<MessageSquare className="h-5 w-5" />}
+          label="Messages"
+          isCollapsed={isCollapsed}
+        />
+
+        {/* Attorney and Admin links */}
+        {(currentUser?.role === 'attorney' || 
+          currentUser?.role === 'admin' || 
+          currentUser?.role === 'superadmin') && (
+          <>
+            <div className={`mt-6 mb-2 ${isCollapsed ? 'px-3' : 'px-3 text-xs font-semibold'}`}>
+              {!isCollapsed && 'Management'}
+            </div>
+
+            <SidebarLink
+              to="/clients"
+              icon={<Users className="h-5 w-5" />}
+              label="Clients"
+              isCollapsed={isCollapsed}
+            />
+
+            <SidebarLink
+              to="/cases"
+              icon={<FolderOpen className="h-5 w-5" />}
+              label="Cases"
+              isCollapsed={isCollapsed}
+            />
+          </>
+        )}
+
+        {/* Admin only links */}
+        {(currentUser?.role === 'admin' || currentUser?.role === 'superadmin') && (
+          <>
+            <div className={`mt-6 mb-2 ${isCollapsed ? 'px-3' : 'px-3 text-xs font-semibold'}`}>
+              {!isCollapsed && 'Administration'}
+            </div>
+
+            <SidebarLink
+              to="/admin"
+              icon={<Settings className="h-5 w-5" />}
+              label="Admin Panel"
+              isCollapsed={isCollapsed}
+            />
+          </>
+        )}
+
+        {/* Super Admin only links */}
+        {currentUser?.role === 'superadmin' && (
+          <SidebarLink
+            to="/super-admin"
+            icon={<Shield className="h-5 w-5" />}
+            label="Super Admin"
+            isCollapsed={isCollapsed}
+          />
+        )}
       </div>
 
-      <div className="p-3 border-t mt-auto">
-        {!isCollapsed && currentUser && (
-          <div className="text-xs text-muted-foreground mb-2">
-            <div className="font-medium">{currentUser.name}</div>
-            <div>{currentUser.email}</div>
-            <div className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs inline-block mt-1">
-              {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
-            </div>
-          </div>
-        )}
+      {/* Collapse toggle */}
+      <div className="p-2 border-t">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="w-full flex items-center justify-center h-10 border rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+          className="flex w-full items-center justify-center p-2 rounded-md hover:bg-gray-100"
         >
-          {isCollapsed ? "→" : "←"}
+          {isCollapsed ? (
+            <ChevronRight className="h-5 w-5" />
+          ) : (
+            <ChevronLeft className="h-5 w-5" />
+          )}
         </button>
       </div>
-    </div>
+    </aside>
   );
 };
 

@@ -3,6 +3,7 @@ import { ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import LoadingScreen from "@/components/common/LoadingScreen";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -10,8 +11,12 @@ interface ProtectedRouteProps {
   roles?: string[];
 }
 
-const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: ProtectedRouteProps) => {
-  const { isAuthenticated, currentUser, hasPermission, updateAuthState } = useAuth();
+const ProtectedRoute = ({ 
+  children, 
+  requiredPermissions = [], 
+  roles = [] 
+}: ProtectedRouteProps) => {
+  const { isAuthenticated, currentUser, hasPermission, updateAuthState, isLoading } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
   
@@ -20,11 +25,13 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
     updateAuthState();
   }, [updateAuthState]);
   
-  // Debug logging
-  console.log("ProtectedRoute: Auth state =", isAuthenticated, "User =", currentUser?.role);
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
   
   if (!isAuthenticated) {
-    // This toast will be displayed only once, not from within render
+    // Only show toast once, not on every render
     useEffect(() => {
       toast({
         title: "Authentication Required",
@@ -36,7 +43,7 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
-  // Admin has access to everything
+  // Admin and superadmin have access to everything
   if (currentUser?.role === 'admin' || currentUser?.role === 'superadmin') {
     return <>{children}</>;
   }
@@ -46,7 +53,7 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
     requiredPermissions.some(perm => hasPermission(perm));
   
   const hasRoleAccess = roles.length === 0 ||
-    (currentUser && roles.includes(currentUser.role || ''));
+    (currentUser?.role && roles.includes(currentUser.role));
   
   // Grant access if either permission or role checks pass
   if (!hasPermissionAccess && !hasRoleAccess) {

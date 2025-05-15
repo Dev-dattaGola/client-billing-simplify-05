@@ -1,110 +1,202 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
-import { User } from '@/types/auth';
-import { useAuthActions } from '@/hooks/useAuthActions';
-import { restoreAuthState } from '@/lib/utils/auth-utils';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { AuthContextType, LoginCredentials } from '@/types/auth';
 
-// Define the shape of our auth context
-interface AuthContextProps {
-  currentUser: User | null;
-  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (credentials: { email: string; password: string; remember?: boolean }) => Promise<User | null>;
-  logout: () => void;
-  updateAuthState: () => void;
-  hasPermission: (permission: string) => boolean;
-}
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Create the context with a default value
-export const AuthContext = createContext<AuthContextProps | undefined>(undefined);
-
-// Create a provider component
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { login, logout: logoutAction, hasPermission, isLoading: actionLoading } = useAuthActions();
+  const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // Function to update auth state based on stored tokens
-  const updateAuthState = () => {
-    console.log('Updating auth state...');
-    try {
-      const { user, isAuthenticated: authStatus } = restoreAuthState();
-      
-      // Update state in a single batch to avoid race conditions
-      setCurrentUser(user);
-      setIsAuthenticated(authStatus);
-      
-      console.log('Auth state updated:', { 
-        isAuthenticated: authStatus, 
-        userExists: !!user,
-        userName: user?.name,
-        userRole: user?.role
-      });
-    } catch (error) {
-      console.error('Error updating auth state:', error);
-      setCurrentUser(null);
-      setIsAuthenticated(false);
-    }
-  };
-
-  // Initialize auth state on component mount
+  // Initialize auth state
   useEffect(() => {
-    console.log('AuthProvider initialized');
-    updateAuthState();
-    setIsLoading(false);
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, newSession) => {
+        setSession(newSession);
+        setCurrentUser(newSession?.user ?? null);
+        
+        // If session changed, fetch user role
+        if (newSession?.user) {
+          setTimeout(() => {
+            fetchUserRole(newSession.user.id);
+          }, 0);
+        } else {
+          setUserRole(null);
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      setSession(initialSession);
+      setCurrentUser(initialSession?.user ?? null);
+      
+      if (initialSession?.user) {
+        fetchUserRole(initialSession.user.id);
+      }
+      
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Custom login function that handles state updates
-  const handleLogin = async (credentials: { email: string; password: string; remember?: boolean }) => {
+  // Fetch user role from profiles table
+  async function fetchUserRole(userId: string) {
     try {
-      const user = await login(credentials);
-      if (user) {
-        setCurrentUser(user);
-        setIsAuthenticated(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return;
       }
-      return user;
+
+      if (data) {
+        setUserRole(data.role);
+      }
     } catch (error) {
-      console.error("Login error in AuthContext:", error);
-      throw error;
+      console.error('Error in fetchUserRole:', error);
     }
+  }
+
+  // Login function
+  async function login({ email, password, remember = false }: LoginCredentials) {
+    try {
+      setIsLoading(true);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        return null;
+      }
+
+      if (data.user) {
+        toast({
+          title: "Login successful",
+          description: `Welcome back, ${data.user.email}!`
+        });
+        
+        // Navigate to dashboard
+        navigate('/dashboard');
+        return data.user;
+      }
+      
+      return null;
+    } catch (error: any) {
+      toast({
+        title: "Login error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive"
+      });
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Logout function
+  async function logout() {
+    try {
+      setIsLoading(true);
+      await supabase.auth.signOut();
+      navigate('/login');
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out."
+      });
+    } catch (error: any) {
+      toast({
+        title: "Logout error",
+        description: error.message || "An error occurred during logout",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Check if user has a specific permission
+  function hasPermission(permission: string) {
+    // Superadmin and admin roles have all permissions
+    if (userRole === 'superadmin' || userRole === 'admin') {
+      return true;
+    }
+
+    // Attorney permissions
+    if (userRole === 'attorney') {
+      const attorneyPermissions = [
+        'view:clients', 'edit:clients',
+        'view:cases', 'create:cases', 'edit:cases',
+        'view:documents', 'upload:documents', 'download:documents',
+        'view:calendar', 'create:events', 'edit:events',
+        'view:reports'
+      ];
+      
+      return attorneyPermissions.includes(permission);
+    }
+
+    // Client permissions
+    if (userRole === 'client') {
+      const clientPermissions = [
+        'view:documents', 'upload:documents', 'download:documents',
+        'view:calendar', 'view:appointments',
+        'view:messages', 'send:messages'
+      ];
+      
+      return clientPermissions.includes(permission);
+    }
+
+    return false;
+  }
+
+  // Function to manually refresh auth state (useful after profile updates)
+  function updateAuthState() {
+    if (currentUser?.id) {
+      fetchUserRole(currentUser.id);
+    }
+  }
+
+  const value: AuthContextType = {
+    isLoading,
+    isAuthenticated: !!currentUser,
+    currentUser,
+    login,
+    logout,
+    hasPermission,
+    updateAuthState
   };
 
-  // Custom logout function that handles navigation after logout
-  const logout = () => {
-    logoutAction();
-    setCurrentUser(null);
-    setIsAuthenticated(false);
-    // Force navigation to login page
-    navigate('/login', { replace: true });
-  };
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
-  // Provide the auth context to children components
-  return (
-    <AuthContext.Provider value={{
-      currentUser,
-      setCurrentUser,
-      isAuthenticated,
-      isLoading: isLoading || actionLoading,
-      login: handleLogin,
-      logout,
-      updateAuthState,
-      hasPermission
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-// Create a custom hook for using the auth context
-export const useAuth = () => {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
+  
   return context;
-};
+}
