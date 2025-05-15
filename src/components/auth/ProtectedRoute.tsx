@@ -34,7 +34,7 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
     requiredPermissions.some(perm => hasPermission(perm));
   
   const hasRoleAccess = roles.length === 0 ||
-    (currentUser && roles.includes(currentUser.role || ''));
+    (currentUser && roles.includes(currentUser.role));
   
   // Grant access if either permission or role checks pass
   if (!hasPermissionAccess && !hasRoleAccess) {
