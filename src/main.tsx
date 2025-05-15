@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './index.css';
-import { ToastProvider } from '@/components/ui/toaster';
+import { ToastProvider } from '@/contexts/ToastContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 // Function to initialize the application

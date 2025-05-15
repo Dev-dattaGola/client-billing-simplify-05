@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { ToastActionElement, ToastProps } from '@/components/ui/toast';
 
 type ToasterToast = ToastProps & {
@@ -10,6 +10,7 @@ type ToasterToast = ToastProps & {
 };
 
 interface ToastContextType {
+  toasts: ToasterToast[];
   toast: (props: Omit<ToasterToast, "id">) => void;
   dismiss: (toastId?: string) => void;
 }
@@ -29,21 +30,28 @@ export function useToast() {
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ 
   children 
 }) => {
-  // This is a simplified implementation just to fix the context error
-  // In a real implementation, this would manage the toast state
+  const [toasts, setToasts] = useState<ToasterToast[]>([]);
   
   const toast = (props: Omit<ToasterToast, "id">) => {
-    // This function would normally add a toast to state
-    console.log('Toast triggered:', props);
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts((prev) => [...prev, { id, ...props }]);
+    
+    // Automatically dismiss toast after 5 seconds
+    setTimeout(() => {
+      dismiss(id);
+    }, 5000);
   };
   
   const dismiss = (toastId?: string) => {
-    // This function would normally remove a toast from state
-    console.log('Toast dismissed:', toastId);
+    setToasts((prev) => 
+      toastId 
+        ? prev.filter((toast) => toast.id !== toastId)
+        : []
+    );
   };
   
   return (
-    <ToastContext.Provider value={{ toast, dismiss }}>
+    <ToastContext.Provider value={{ toasts, toast, dismiss }}>
       {children}
     </ToastContext.Provider>
   );

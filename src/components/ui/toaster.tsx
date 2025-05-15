@@ -4,7 +4,7 @@ import {
   Toast,
   ToastClose,
   ToastDescription,
-  ToastProvider,
+  ToastProvider as RadixToastProvider,
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast";
@@ -14,7 +14,7 @@ export function Toaster() {
   const { toasts } = useToast();
 
   return (
-    <ToastProvider>
+    <RadixToastProvider>
       {toasts.map(function ({ id, title, description, action, variant }) {
         return (
           <Toast key={id} variant={variant}>
@@ -30,6 +30,6 @@ export function Toaster() {
         )
       })}
       <ToastViewport />
-    </ToastProvider>
+    </RadixToastProvider>
   )
 }
