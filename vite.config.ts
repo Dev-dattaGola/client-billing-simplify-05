@@ -13,10 +13,8 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react({
       // Improve module compatibility
-      jsxImportSource: 'react',
-      babel: {
-        plugins: []
-      }
+      jsxImportSource: 'react'
+      // Removed the babel property as it's not supported in the Options type
     }),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
