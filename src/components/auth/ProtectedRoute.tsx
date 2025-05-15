@@ -15,7 +15,11 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
   const { toast } = useToast();
   const location = useLocation();
   
+  // Add debug
+  console.log("ProtectedRoute: Auth state =", isAuthenticated, "User =", currentUser?.role);
+  
   if (!isAuthenticated) {
+    // Use toast notification instead of alert
     toast({
       title: "Authentication Required",
       description: "Please log in to access this page.",
