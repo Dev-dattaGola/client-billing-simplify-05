@@ -80,7 +80,7 @@ const PatientDashboardHeader: React.FC<PatientDashboardHeaderProps> = ({
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
           <div className="flex items-center mb-4 sm:mb-0">
             <Avatar className="h-14 w-14 mr-4">
-              <AvatarImage src={client?.id ? `https://i.pravatar.cc/100?u=${client.id}` : undefined} />
+              <AvatarImage src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop" />
               <AvatarFallback>{client?.fullName?.substring(0, 2) || 'CL'}</AvatarFallback>
             </Avatar>
             <div>
