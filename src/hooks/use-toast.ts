@@ -27,9 +27,10 @@ export function useToast(): ToastContextType {
   return context;
 }
 
-export interface Toast extends ToastProps {
+export interface Toast {
   id: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
   action?: ToastActionElement;
+  variant?: "default" | "destructive";
 }

@@ -1,8 +1,6 @@
 
 import * as React from "react";
-import { useId } from "react";
-import type { ToastProps } from "@/components/ui/toast";
-import type { ToastContextType, Toast, ToastOptions } from "@/hooks/use-toast";
+import type { Toast, ToastContextType, ToastOptions } from "@/hooks/use-toast";
 
 export const ToastContext = React.createContext<ToastContextType>({
   toast: () => {},
@@ -15,7 +13,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = React.useState<Toast[]>([]);
 
   const toast = React.useCallback(({ ...props }: ToastOptions) => {
-    const id = useId() || String(Date.now());
+    const id = String(Date.now());
     
     setToasts((prevToasts) => [
       ...prevToasts,
