@@ -69,9 +69,12 @@ const ClientDashboard = () => {
 
         if (clientError) throw clientError;
 
-        // Get client cases using RPC function
+        // Get client cases using RPC function with type assertion
         const { data: cases, error: casesError } = await supabase
-          .rpc('get_cases_by_client_id', { client_id: clientData.id });
+          .rpc('get_cases_by_client_id', { client_id: clientData.id }) as {
+            data: ClientCase[] | null;
+            error: any;
+          };
 
         if (casesError) {
           console.error("Error fetching cases:", casesError);
@@ -80,9 +83,12 @@ const ClientDashboard = () => {
           setClientCases(cases || []);
         }
 
-        // Get upcoming court dates using RPC function
+        // Get upcoming court dates using RPC function with type assertion
         const { data: dates, error: datesError } = await supabase
-          .rpc('get_court_dates_by_client_id', { client_id: clientData.id });
+          .rpc('get_court_dates_by_client_id', { client_id: clientData.id }) as {
+            data: CourtDate[] | null;
+            error: any;
+          };
 
         if (datesError) {
           console.error("Error fetching court dates:", datesError);
@@ -91,9 +97,12 @@ const ClientDashboard = () => {
           setCourtDates(dates || []);
         }
 
-        // Get billing information using RPC function
+        // Get billing information using RPC function with type assertion
         const { data: billing, error: billingError } = await supabase
-          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id });
+          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id }) as {
+            data: BillingInfo[] | null;
+            error: any;
+          };
 
         if (billingError) {
           console.error("Error fetching billing info:", billingError);
