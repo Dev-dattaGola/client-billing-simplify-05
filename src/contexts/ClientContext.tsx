@@ -1,255 +1,79 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Client } from '@/types/client';
-import { useToast } from '@/hooks/use-toast';
 
 interface ClientContextType {
   clients: Client[];
+  setClients: React.Dispatch<React.SetStateAction<Client[]>>;
   selectedClient: Client | null;
-  clientToEdit: Client | null;
-  loading: boolean;
-  activeTab: string;
-  activeDetailTab: string;
-  setActiveTab: (tab: string) => void;
-  setActiveDetailTab: (tab: string) => void;
-  handleAddClient: (client: Omit<Client, "id">) => void;
-  handleEditClient: (client: Client) => void;
-  handleDeleteClient: (client: Client) => void;
-  handleViewClient: (client: Client) => void;
-  startEditClient: (client: Client) => void;
-  clearClientToEdit: () => void;
-  transferClient: (client: Client, attorneyId: string, attorneyName: string) => void;
-  dropClient: (client: Client, reason: string) => void;
+  setSelectedClient: React.Dispatch<React.SetStateAction<Client | null>>;
+  addClient: (client: Client) => void;
+  updateClient: (client: Client) => void;
+  deleteClient: (clientId: string) => void;
+  transferClient: (client: Client, attorneyId: string) => void;
+  dropClient: (client: Client) => void;
 }
 
-const ClientContext = createContext<ClientContextType>({
-  clients: [],
-  selectedClient: null,
-  clientToEdit: null,
-  loading: true,
-  activeTab: 'view',
-  activeDetailTab: 'overview',
-  setActiveTab: () => {},
-  setActiveDetailTab: () => {},
-  handleAddClient: () => {},
-  handleEditClient: () => {},
-  handleDeleteClient: () => {},
-  handleViewClient: () => {},
-  startEditClient: () => {},
-  clearClientToEdit: () => {},
-  transferClient: () => {},
-  dropClient: () => {},
-});
+const ClientContext = createContext<ClientContextType | undefined>(undefined);
 
-// Export the hook with the correct name to match imports
-export const useClientContext = () => useContext(ClientContext);
-
-// Keep the old name for backward compatibility
-export const useClient = useClientContext;
+export const useClientContext = () => {
+  const context = useContext(ClientContext);
+  if (context === undefined) {
+    throw new Error('useClientContext must be used within a ClientProvider');
+  }
+  return context;
+};
 
 interface ClientProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-// Mock client data
-const initialClients: Client[] = [
-  {
-    id: '1',
-    name: 'John Smith',
-    email: 'john@example.com',
-    phone: '(555) 123-4567',
-    address: '123 Main St, New York, NY 10001',
-    status: 'active',
-    assignedAttorney: 'Jane Doe',
-    caseType: 'Personal Injury',
-    caseStatus: 'Active',
-    dateOfBirth: '1985-05-15',
-    createdAt: new Date('2023-01-15').toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Mary Johnson',
-    email: 'mary@example.com',
-    phone: '(555) 987-6543',
-    address: '456 Park Ave, New York, NY 10022',
-    status: 'active',
-    assignedAttorney: 'Robert Williams',
-    caseType: 'Family Law',
-    caseStatus: 'Active',
-    dateOfBirth: '1990-08-22',
-    createdAt: new Date('2023-02-10').toISOString(),
-  },
-  {
-    id: '3',
-    name: 'Michael Brown',
-    email: 'michael@example.com',
-    phone: '(555) 456-7890',
-    address: '789 Broadway, New York, NY 10012',
-    status: 'inactive',
-    assignedAttorney: 'Jane Doe',
-    caseType: 'Estate Planning',
-    caseStatus: 'Closed',
-    dateOfBirth: '1975-11-30',
-    createdAt: new Date('2022-11-05').toISOString(),
-  },
-];
-
 export const ClientProvider: React.FC<ClientProviderProps> = ({ children }) => {
-  const [clients, setClients] = useState<Client[]>(initialClients);
+  const [clients, setClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<string>('view');
-  const [activeDetailTab, setActiveDetailTab] = useState<string>('overview');
-  const { toast } = useToast();
 
-  useEffect(() => {
-    // Here you would normally fetch clients from an API
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  }, []);
-
-  const handleAddClient = (client: Omit<Client, "id">) => {
-    const newClient = {
-      ...client,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    };
-    
-    setClients([...clients, newClient]);
-    setActiveTab('view');
-    toast({
-      title: "Client added",
-      description: `${newClient.name} has been added successfully.`,
-    });
+  const addClient = (client: Client) => {
+    setClients(prevClients => [...prevClients, client]);
   };
 
-  const handleEditClient = (client: Client) => {
-    setClients(clients.map(c => c.id === client.id ? client : c));
-    setClientToEdit(null);
-    setActiveTab('view');
+  const updateClient = (client: Client) => {
+    setClients(prevClients =>
+      prevClients.map(c => (c.id === client.id ? client : c))
+    );
     
-    // Update selected client if it's the one being edited
     if (selectedClient && selectedClient.id === client.id) {
       setSelectedClient(client);
     }
-    
-    toast({
-      title: "Client updated",
-      description: `${client.name}'s information has been updated.`,
-    });
   };
 
-  const handleDeleteClient = (client: Client) => {
-    setClients(clients.filter(c => c.id !== client.id));
+  const deleteClient = (clientId: string) => {
+    setClients(prevClients => prevClients.filter(c => c.id !== clientId));
     
-    // Clear selected client if it's the one being deleted
-    if (selectedClient && selectedClient.id === client.id) {
+    if (selectedClient && selectedClient.id === clientId) {
       setSelectedClient(null);
-      setActiveTab('view');
     }
-    
-    toast({
-      title: "Client deleted",
-      description: `${client.name} has been removed from clients.`,
-      variant: "destructive",
-    });
   };
 
-  const handleViewClient = (client: Client) => {
-    setSelectedClient(client);
-    setActiveTab('details');
-    setActiveDetailTab('overview');
+  const transferClient = (client: Client, attorneyId: string) => {
+    const updatedClient = { ...client, assignedAttorneyId: attorneyId };
+    updateClient(updatedClient);
   };
 
-  const startEditClient = (client: Client) => {
-    setClientToEdit(client);
-    setActiveTab('add');
-  };
-
-  const clearClientToEdit = () => {
-    setClientToEdit(null);
-  };
-  
-  // New function to transfer client to another attorney
-  const transferClient = (client: Client, attorneyId: string, attorneyName: string) => {
-    setClients(clients.map(c => {
-      if (c.id === client.id) {
-        return {
-          ...c,
-          assignedAttorney: attorneyName,
-          assignedAttorneyId: attorneyId
-        };
-      }
-      return c;
-    }));
-    
-    // Update selected client if it's being transferred
-    if (selectedClient && selectedClient.id === client.id) {
-      setSelectedClient({
-        ...selectedClient,
-        assignedAttorney: attorneyName,
-        assignedAttorneyId: attorneyId
-      });
-    }
-    
-    toast({
-      title: "Client transferred",
-      description: `Client has been transferred to ${attorneyName}.`,
-    });
-  };
-  
-  // New function to drop a client
-  const dropClient = (client: Client, reason: string) => {
-    // Update client status to dropped
-    setClients(clients.map(c => {
-      if (c.id === client.id) {
-        return {
-          ...c,
-          status: 'dropped',
-          dropReason: reason
-        };
-      }
-      return c;
-    }));
-    
-    // If selected client is being dropped, update it
-    if (selectedClient && selectedClient.id === client.id) {
-      setSelectedClient({
-        ...selectedClient,
-        status: 'dropped',
-        dropReason: reason
-      });
-      
-      // Move back to client list view
-      setActiveTab('view');
-    }
-    
-    toast({
-      title: "Client dropped",
-      description: "Client has been dropped from the firm.",
-    });
+  const dropClient = (client: Client) => {
+    const updatedClient = { ...client, assignedAttorneyId: undefined };
+    updateClient(updatedClient);
   };
 
   return (
     <ClientContext.Provider
       value={{
         clients,
+        setClients,
         selectedClient,
-        clientToEdit,
-        loading,
-        activeTab,
-        activeDetailTab,
-        setActiveTab,
-        setActiveDetailTab,
-        handleAddClient,
-        handleEditClient,
-        handleDeleteClient,
-        handleViewClient,
-        startEditClient,
-        clearClientToEdit,
+        setSelectedClient,
+        addClient,
+        updateClient,
+        deleteClient,
         transferClient,
         dropClient
       }}
