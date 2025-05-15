@@ -1,7 +1,6 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Client } from '@/types/client';
-import { clientsApi } from '@/lib/api/client-api';
 import { useToast } from '@/hooks/use-toast';
 
 interface ClientContextType {
@@ -13,275 +12,250 @@ interface ClientContextType {
   activeDetailTab: string;
   setActiveTab: (tab: string) => void;
   setActiveDetailTab: (tab: string) => void;
-  handleAddClient: (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  handleEditClient: (clientData: Client) => Promise<void>;
-  handleDeleteClient: (clientId: string) => Promise<void>;
+  handleAddClient: (client: Omit<Client, "id">) => void;
+  handleEditClient: (client: Client) => void;
+  handleDeleteClient: (client: Client) => void;
   handleViewClient: (client: Client) => void;
   startEditClient: (client: Client) => void;
   clearClientToEdit: () => void;
-  refreshClients: () => Promise<void>;
-  // New functions for transferring and dropping clients
-  transferClient: (clientId: string, newAttorneyId: string) => Promise<void>;
-  dropClient: (clientId: string, reason: string) => Promise<void>;
+  transferClient: (clientId: string, attorneyId: string) => void;
+  dropClient: (clientId: string, reason: string) => void;
 }
 
-export const ClientContext = createContext<ClientContextType | undefined>(undefined);
+const ClientContext = createContext<ClientContextType>({
+  clients: [],
+  selectedClient: null,
+  clientToEdit: null,
+  loading: true,
+  activeTab: 'view',
+  activeDetailTab: 'overview',
+  setActiveTab: () => {},
+  setActiveDetailTab: () => {},
+  handleAddClient: () => {},
+  handleEditClient: () => {},
+  handleDeleteClient: () => {},
+  handleViewClient: () => {},
+  startEditClient: () => {},
+  clearClientToEdit: () => {},
+  transferClient: () => {},
+  dropClient: () => {},
+});
 
-export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [clients, setClients] = useState<Client[]>([]);
+export const useClient = () => useContext(ClientContext);
+
+interface ClientProviderProps {
+  children: React.ReactNode;
+}
+
+// Mock client data
+const initialClients: Client[] = [
+  {
+    id: '1',
+    name: 'John Smith',
+    email: 'john@example.com',
+    phone: '(555) 123-4567',
+    address: '123 Main St, New York, NY 10001',
+    status: 'active',
+    assignedAttorney: 'Jane Doe',
+    caseType: 'Personal Injury',
+    caseStatus: 'Active',
+    dateOfBirth: '1985-05-15',
+    createdAt: new Date('2023-01-15').toISOString(),
+  },
+  {
+    id: '2',
+    name: 'Mary Johnson',
+    email: 'mary@example.com',
+    phone: '(555) 987-6543',
+    address: '456 Park Ave, New York, NY 10022',
+    status: 'active',
+    assignedAttorney: 'Robert Williams',
+    caseType: 'Family Law',
+    caseStatus: 'Active',
+    dateOfBirth: '1990-08-22',
+    createdAt: new Date('2023-02-10').toISOString(),
+  },
+  {
+    id: '3',
+    name: 'Michael Brown',
+    email: 'michael@example.com',
+    phone: '(555) 456-7890',
+    address: '789 Broadway, New York, NY 10012',
+    status: 'inactive',
+    assignedAttorney: 'Jane Doe',
+    caseType: 'Estate Planning',
+    caseStatus: 'Closed',
+    dateOfBirth: '1975-11-30',
+    createdAt: new Date('2022-11-05').toISOString(),
+  },
+];
+
+export const ClientProvider: React.FC<ClientProviderProps> = ({ children }) => {
+  const [clients, setClients] = useState<Client[]>(initialClients);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("view");
-  const [activeDetailTab, setActiveDetailTab] = useState("overview");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>('view');
+  const [activeDetailTab, setActiveDetailTab] = useState<string>('overview');
   const { toast } = useToast();
 
-  const refreshClients = async () => {
-    try {
-      setLoading(true);
-      const fetchedClients = await clientsApi.getClients();
-      setClients(fetchedClients);
-    } catch (error) {
-      console.error("Failed to fetch clients:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load client data. Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    refreshClients();
+    // Here you would normally fetch clients from an API
+    setLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false);
+    }, 500);
   }, []);
 
-  const handleAddClient = async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      const newClient = await clientsApi.createClient(clientData);
-      
-      if (newClient) {
-        setClients([...clients, newClient]);
-        setActiveTab("view");
-        toast({
-          title: "Client Added",
-          description: `${newClient.fullName} has been added to your clients.`,
-        });
-      } else {
-        throw new Error("Failed to create client");
-      }
-    } catch (error) {
-      console.error("Error adding client:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add client. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleAddClient = (client: Omit<Client, "id">) => {
+    const newClient = {
+      ...client,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+    };
+    
+    setClients([...clients, newClient]);
+    setActiveTab('view');
+    toast({
+      title: "Client added",
+      description: `${newClient.name} has been added successfully.`,
+    });
   };
 
-  const handleEditClient = async (clientData: Client) => {
-    try {
-      const updatedClient = await clientsApi.updateClient(clientData.id, clientData);
-      
-      if (updatedClient) {
-        const updatedClients = clients.map(client => 
-          client.id === clientData.id ? updatedClient : client
-        );
-        
-        setClients(updatedClients);
-        
-        // If we're editing from the details view, update the selected client too
-        if (selectedClient && selectedClient.id === updatedClient.id) {
-          setSelectedClient(updatedClient);
-          setActiveTab("details");
-        } else {
-          setActiveTab("view");
-        }
-        
-        setClientToEdit(null);
-        toast({
-          title: "Client Updated",
-          description: `${updatedClient.fullName}'s information has been updated.`,
-        });
-      } else {
-        throw new Error("Failed to update client");
-      }
-    } catch (error) {
-      console.error("Error updating client:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update client. Please try again.",
-        variant: "destructive",
-      });
+  const handleEditClient = (client: Client) => {
+    setClients(clients.map(c => c.id === client.id ? client : c));
+    setClientToEdit(null);
+    setActiveTab('view');
+    
+    // Update selected client if it's the one being edited
+    if (selectedClient && selectedClient.id === client.id) {
+      setSelectedClient(client);
     }
+    
+    toast({
+      title: "Client updated",
+      description: `${client.name}'s information has been updated.`,
+    });
   };
 
-  const handleDeleteClient = async (clientId: string) => {
-    try {
-      const clientName = clients.find(c => c.id === clientId)?.fullName;
-      const success = await clientsApi.deleteClient(clientId);
-      
-      if (success) {
-        setClients(clients.filter(client => client.id !== clientId));
-        
-        // If the deleted client was selected, clear the selection
-        if (selectedClient && selectedClient.id === clientId) {
-          setSelectedClient(null);
-          setActiveTab("view");
-        }
-        
-        toast({
-          title: "Client Deleted",
-          description: `${clientName} has been removed from your clients.`,
-        });
-      } else {
-        throw new Error("Failed to delete client");
-      }
-    } catch (error) {
-      console.error("Error deleting client:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete client. Please try again.",
-        variant: "destructive",
-      });
+  const handleDeleteClient = (client: Client) => {
+    setClients(clients.filter(c => c.id !== client.id));
+    
+    // Clear selected client if it's the one being deleted
+    if (selectedClient && selectedClient.id === client.id) {
+      setSelectedClient(null);
+      setActiveTab('view');
     }
+    
+    toast({
+      title: "Client deleted",
+      description: `${client.name} has been removed from clients.`,
+      variant: "destructive",
+    });
   };
 
   const handleViewClient = (client: Client) => {
     setSelectedClient(client);
-    setActiveTab("details");
-    setActiveDetailTab("overview");
+    setActiveTab('details');
+    setActiveDetailTab('overview');
   };
 
   const startEditClient = (client: Client) => {
     setClientToEdit(client);
-    setActiveTab("add");
+    setActiveTab('add');
   };
 
   const clearClientToEdit = () => {
     setClientToEdit(null);
   };
-
-  // New function to transfer a client to another attorney
-  const transferClient = async (clientId: string, newAttorneyId: string) => {
-    try {
-      const client = clients.find(c => c.id === clientId);
-      if (!client) {
-        throw new Error("Client not found");
+  
+  // New function to transfer client to another attorney
+  const transferClient = (clientId: string, attorneyId: string) => {
+    // Get attorney name (in real app, would fetch from API)
+    const attorneyName = attorneyId === "attorney1" ? "John Doe" : 
+                         attorneyId === "attorney2" ? "Jane Smith" : 
+                         "Michael Johnson";
+    
+    setClients(clients.map(client => {
+      if (client.id === clientId) {
+        return {
+          ...client,
+          assignedAttorney: attorneyName
+        };
       }
-      
-      const updatedClient = { 
-        ...client, 
-        assignedAttorneyId: newAttorneyId 
-      };
-      
-      const result = await clientsApi.updateClient(clientId, updatedClient);
-      
-      if (result) {
-        const updatedClients = clients.map(c => 
-          c.id === clientId ? { ...c, assignedAttorneyId: newAttorneyId } : c
-        );
-        
-        setClients(updatedClients);
-        
-        // Update selected client if it's the one being transferred
-        if (selectedClient && selectedClient.id === clientId) {
-          setSelectedClient({ ...selectedClient, assignedAttorneyId: newAttorneyId });
-        }
-        
-        toast({
-          title: "Client Transferred",
-          description: `${client.fullName} has been transferred to a new attorney.`,
-        });
-      } else {
-        throw new Error("Failed to transfer client");
-      }
-    } catch (error) {
-      console.error("Error transferring client:", error);
-      toast({
-        title: "Error",
-        description: "Failed to transfer client. Please try again.",
-        variant: "destructive",
+      return client;
+    }));
+    
+    // Update selected client if it's being transferred
+    if (selectedClient && selectedClient.id === clientId) {
+      setSelectedClient({
+        ...selectedClient,
+        assignedAttorney: attorneyName
       });
     }
+    
+    toast({
+      title: "Client transferred",
+      description: `Client has been transferred to ${attorneyName}.`,
+    });
   };
-
-  // New function to drop a client from the firm with a reason
-  const dropClient = async (clientId: string, reason: string) => {
-    try {
-      const client = clients.find(c => c.id === clientId);
-      if (!client) {
-        throw new Error("Client not found");
+  
+  // New function to drop a client
+  const dropClient = (clientId: string, reason: string) => {
+    // Update client status to dropped
+    setClients(clients.map(client => {
+      if (client.id === clientId) {
+        return {
+          ...client,
+          status: 'dropped',
+          dropReason: reason
+        };
       }
-      
-      // In a real application, you would update the client status in the database
-      // For now, we'll just remove them from the list as if they were deleted
-      const success = await clientsApi.deleteClient(clientId);
-      
-      if (success) {
-        // Remove client from the list
-        setClients(clients.filter(c => c.id !== clientId));
-        
-        // If the dropped client was selected, clear the selection
-        if (selectedClient && selectedClient.id === clientId) {
-          setSelectedClient(null);
-          setActiveTab("view");
-        }
-        
-        toast({
-          title: "Client Dropped",
-          description: `${client.fullName} has been dropped from the firm.`,
-          variant: "destructive",
-        });
-        
-        // In a real application, you might log this action with the reason
-        console.log(`Client ${clientId} dropped. Reason: ${reason}`);
-      } else {
-        throw new Error("Failed to drop client");
-      }
-    } catch (error) {
-      console.error("Error dropping client:", error);
-      toast({
-        title: "Error",
-        description: "Failed to drop client. Please try again.",
-        variant: "destructive",
+      return client;
+    }));
+    
+    // If selected client is being dropped, update it
+    if (selectedClient && selectedClient.id === clientId) {
+      setSelectedClient({
+        ...selectedClient,
+        status: 'dropped',
+        dropReason: reason
       });
+      
+      // Move back to client list view
+      setActiveTab('view');
     }
-  };
-
-  const contextValue = {
-    clients,
-    selectedClient,
-    clientToEdit,
-    loading,
-    activeTab,
-    activeDetailTab,
-    setActiveTab,
-    setActiveDetailTab,
-    handleAddClient,
-    handleEditClient,
-    handleDeleteClient,
-    handleViewClient,
-    startEditClient,
-    clearClientToEdit,
-    refreshClients,
-    transferClient,
-    dropClient
+    
+    toast({
+      title: "Client dropped",
+      description: "Client has been dropped from the firm.",
+      variant: "destructive",
+    });
   };
 
   return (
-    <ClientContext.Provider value={contextValue}>
+    <ClientContext.Provider
+      value={{
+        clients,
+        selectedClient,
+        clientToEdit,
+        loading,
+        activeTab,
+        activeDetailTab,
+        setActiveTab,
+        setActiveDetailTab,
+        handleAddClient,
+        handleEditClient,
+        handleDeleteClient,
+        handleViewClient,
+        startEditClient,
+        clearClientToEdit,
+        transferClient,
+        dropClient
+      }}
+    >
       {children}
     </ClientContext.Provider>
   );
-};
-
-export const useClient = () => {
-  const context = useContext(ClientContext);
-  if (context === undefined) {
-    throw new Error('useClient must be used within a ClientProvider');
-  }
-  return context;
 };

@@ -14,13 +14,17 @@ const Admin = React.lazy(() => import('@/pages/Admin'));
 const SuperAdmin = React.lazy(() => import('@/pages/SuperAdmin'));
 const Index = React.lazy(() => import('@/pages/Index'));
 const LandingPage = React.lazy(() => import('@/pages/LandingPage'));
+const Clients = React.lazy(() => import('@/pages/Clients'));
+const Cases = React.lazy(() => import('@/pages/Cases'));
+const Documents = React.lazy(() => import('@/pages/Documents'));
+const FirmManagement = React.lazy(() => import('@/pages/FirmManagement'));
 
 function App() {
   return (
     <HelmetProvider>
       <Helmet 
-        titleTemplate="%s | LYZ Law Firm" 
-        defaultTitle="LYZ Law Firm"
+        titleTemplate="%s | Lawerp500" 
+        defaultTitle="Lawerp500"
       />
       <AuthProvider>
         <Suspense fallback={<LoadingScreen />}>
@@ -46,6 +50,31 @@ function App() {
             <Route path="/super-admin" element={
               <ProtectedRoute roles={['superadmin']}>
                 <SuperAdmin />
+              </ProtectedRoute>
+            } />
+            
+            {/* New routes for sidebar items */}
+            <Route path="/clients" element={
+              <ProtectedRoute>
+                <Clients />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/cases" element={
+              <ProtectedRoute>
+                <Cases />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/documents" element={
+              <ProtectedRoute>
+                <Documents />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/firm-management" element={
+              <ProtectedRoute roles={['admin']}>
+                <FirmManagement />
               </ProtectedRoute>
             } />
             

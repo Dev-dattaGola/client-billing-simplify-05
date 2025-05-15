@@ -13,6 +13,7 @@ import {
   Shield,
   ChevronRight,
   ChevronLeft,
+  Building2
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -47,6 +48,10 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, label, isCollapsed 
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const { currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
+  const isSuperAdmin = currentUser?.role === 'superadmin';
+  const isAttorney = currentUser?.role === 'attorney';
+  const isClient = currentUser?.role === 'client';
 
   return (
     <aside
@@ -61,37 +66,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           isCollapsed={isCollapsed}
         />
 
-        {/* Common links for all users */}
-        <SidebarLink
-          to="/documents"
-          icon={<FileText className="h-5 w-5" />}
-          label="Documents"
-          isCollapsed={isCollapsed}
-        />
-
-        <SidebarLink
-          to="/calendar"
-          icon={<Calendar className="h-5 w-5" />}
-          label="Calendar"
-          isCollapsed={isCollapsed}
-        />
-
-        <SidebarLink
-          to="/messages"
-          icon={<MessageSquare className="h-5 w-5" />}
-          label="Messages"
-          isCollapsed={isCollapsed}
-        />
-
-        {/* Attorney and Admin links */}
-        {(currentUser?.role === 'attorney' || 
-          currentUser?.role === 'admin' || 
-          currentUser?.role === 'superadmin') && (
+        {/* Common links for attorneys and admins */}
+        {(isAdmin || isAttorney) && (
           <>
-            <div className={`mt-6 mb-2 ${isCollapsed ? 'px-3' : 'px-3 text-xs font-semibold'}`}>
-              {!isCollapsed && 'Management'}
-            </div>
-
             <SidebarLink
               to="/clients"
               icon={<Users className="h-5 w-5" />}
@@ -108,12 +85,47 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           </>
         )}
 
-        {/* Admin only links */}
-        {(currentUser?.role === 'admin' || currentUser?.role === 'superadmin') && (
+        {/* Documents link for all users */}
+        <SidebarLink
+          to="/documents"
+          icon={<FileText className="h-5 w-5" />}
+          label="Documents"
+          isCollapsed={isCollapsed}
+        />
+
+        {/* Calendar only for attorneys and clients */}
+        {(isAttorney || isClient) && (
+          <SidebarLink
+            to="/calendar"
+            icon={<Calendar className="h-5 w-5" />}
+            label="Calendar"
+            isCollapsed={isCollapsed}
+          />
+        )}
+
+        {/* Messages only for attorneys and clients */}
+        {(isAttorney || isClient) && (
+          <SidebarLink
+            to="/messages"
+            icon={<MessageSquare className="h-5 w-5" />}
+            label="Messages"
+            isCollapsed={isCollapsed}
+          />
+        )}
+
+        {/* Admin specific links */}
+        {isAdmin && (
           <>
             <div className={`mt-6 mb-2 ${isCollapsed ? 'px-3' : 'px-3 text-xs font-semibold'}`}>
               {!isCollapsed && 'Administration'}
             </div>
+
+            <SidebarLink
+              to="/firm-management"
+              icon={<Building2 className="h-5 w-5" />}
+              label="Firm Management"
+              isCollapsed={isCollapsed}
+            />
 
             <SidebarLink
               to="/admin"
@@ -125,7 +137,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         )}
 
         {/* Super Admin only links */}
-        {currentUser?.role === 'superadmin' && (
+        {isSuperAdmin && (
           <SidebarLink
             to="/super-admin"
             icon={<Shield className="h-5 w-5" />}
