@@ -1,6 +1,6 @@
 
 import React, { Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
@@ -20,42 +20,40 @@ function App() {
         titleTemplate="%s | LYZ Law Firm" 
         defaultTitle="LYZ Law Firm"
       />
-      <BrowserRouter>
-        <AuthProvider>
-          <Suspense fallback={<LoadingScreen />}>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/login" element={<Login />} />
-              
-              {/* Protected routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/admin" element={
-                <ProtectedRoute roles={['admin']}>
-                  <Admin />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/super-admin" element={
-                <ProtectedRoute roles={['superadmin']}>
-                  <SuperAdmin />
-                </ProtectedRoute>
-              } />
-              
-              {/* Redirect home to dashboard */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              
-              {/* Fallback for unknown routes */}
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </Suspense>
-          <Toaster />
-        </AuthProvider>
-      </BrowserRouter>
+      <AuthProvider>
+        <Suspense fallback={<LoadingScreen />}>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            
+            {/* Protected routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin" element={
+              <ProtectedRoute roles={['admin']}>
+                <Admin />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/super-admin" element={
+              <ProtectedRoute roles={['superadmin']}>
+                <SuperAdmin />
+              </ProtectedRoute>
+            } />
+            
+            {/* Redirect home to dashboard */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            
+            {/* Fallback for unknown routes */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </Suspense>
+        <Toaster />
+      </AuthProvider>
     </HelmetProvider>
   );
 }

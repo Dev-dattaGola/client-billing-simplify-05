@@ -1,6 +1,6 @@
 
 import { Toast, ToastActionElement, ToastProps } from "@/components/ui/toast";
-import { useToast as useToastPrimitive } from "@/components/ui/use-toast";
+import { useToast as useToastPrimitive } from "@/components/ui/toaster";
 
 export type ToastType = ToastProps & {
   action?: ToastActionElement;
