@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState } from 'react';
-import { toast as shadcnToast, ToastActionElement } from '@/components/ui/toast';
+import { ToastActionElement } from '@/components/ui/toast';
 
 export type ToastProps = {
   title?: string;
@@ -42,9 +42,6 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const id = Math.random().toString(36).substring(2, 9);
     const newToast = { id, ...props };
     setToasts((prev) => [...prev, newToast]);
-    
-    // Use the shadcn toast implementation
-    shadcnToast(props);
     
     // Auto-dismiss after duration
     if (props.duration !== Infinity) {
