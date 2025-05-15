@@ -4,7 +4,8 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './index.css';
-import { ToastProvider } from '@/contexts/ToastContext';
+import { ToastProvider } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 // Function to initialize the application
 function initializeApp() {
@@ -20,9 +21,11 @@ function initializeApp() {
   root.render(
     <React.StrictMode>
       <BrowserRouter>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </AuthProvider>
       </BrowserRouter>
     </React.StrictMode>
   );

@@ -50,7 +50,7 @@ const mockUsers = [
   {
     id: 'admin-1',
     name: 'Admin User',
-    email: 'admin@example.com',
+    email: 'admin@lyzlawfirm.com',
     role: 'admin' as const,
     permissions: ['view_dashboard', 'manage_users', 'manage_settings'],
     isActive: true
@@ -58,7 +58,7 @@ const mockUsers = [
   {
     id: 'attorney-1',
     name: 'Attorney User',
-    email: 'attorney@example.com',
+    email: 'attorney@lyzlawfirm.com',
     role: 'attorney' as const,
     permissions: ['view_dashboard', 'manage_clients', 'view_cases'],
     isActive: true

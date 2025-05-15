@@ -2,7 +2,6 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { ClientProvider } from '@/contexts/ClientContext';
 import { Toaster } from '@/components/ui/toaster';
 import LoadingScreen from '@/components/common/LoadingScreen';
@@ -27,66 +26,64 @@ function App() {
         titleTemplate="%s | Lawerp500" 
         defaultTitle="Lawerp500"
       />
-      <AuthProvider>
-        <ClientProvider>
-          <Suspense fallback={<LoadingScreen />}>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Index />} />
-              <Route path="/landing" element={<LandingPage />} />
-              
-              {/* Protected routes */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/admin" element={
-                <ProtectedRoute roles={['admin']}>
-                  <Admin />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/super-admin" element={
-                <ProtectedRoute roles={['superadmin']}>
-                  <SuperAdmin />
-                </ProtectedRoute>
-              } />
-              
-              {/* New routes for sidebar items */}
-              <Route path="/clients" element={
-                <ProtectedRoute>
-                  <Clients />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/cases" element={
-                <ProtectedRoute>
-                  <Cases />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/documents" element={
-                <ProtectedRoute>
-                  <Documents />
-                </ProtectedRoute>
-              } />
-              
-              <Route path="/firm-management" element={
-                <ProtectedRoute roles={['admin']}>
-                  <FirmManagement />
-                </ProtectedRoute>
-              } />
-              
-              {/* Fallback for unknown routes */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-          <Toaster />
-        </ClientProvider>
-      </AuthProvider>
+      <ClientProvider>
+        <Suspense fallback={<LoadingScreen />}>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/landing" element={<LandingPage />} />
+            
+            {/* Protected routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin" element={
+              <ProtectedRoute roles={['admin']}>
+                <Admin />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/super-admin" element={
+              <ProtectedRoute roles={['superadmin']}>
+                <SuperAdmin />
+              </ProtectedRoute>
+            } />
+            
+            {/* New routes for sidebar items */}
+            <Route path="/clients" element={
+              <ProtectedRoute>
+                <Clients />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/cases" element={
+              <ProtectedRoute>
+                <Cases />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/documents" element={
+              <ProtectedRoute>
+                <Documents />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/firm-management" element={
+              <ProtectedRoute roles={['admin']}>
+                <FirmManagement />
+              </ProtectedRoute>
+            } />
+            
+            {/* Fallback for unknown routes */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+        <Toaster />
+      </ClientProvider>
     </HelmetProvider>
   );
 }

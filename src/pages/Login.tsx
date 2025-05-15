@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -43,14 +43,13 @@ const Login: React.FC = () => {
     }
 
     try {
-      // Fix: Pass login credentials as a single object parameter
-      const success = await login({
+      const user = await login({
         email,
         password,
         remember: rememberMe
       });
       
-      if (!success) {
+      if (!user) {
         setError('Invalid email or password');
       }
     } catch (error) {
