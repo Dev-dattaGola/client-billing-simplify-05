@@ -45,13 +45,13 @@ const FooterSection: React.FC = () => {
           </div>
         </div>
         <div className="border-t border-white/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm">&copy; {new Date().getFullYear()} LYZ Law Firm. All rights reserved.</p>
-          <div className="flex gap-6 mt-4 md:mt-0">
+          <p className="text-sm">&copy; {new Date().getFullYear()} LAWerp500. All rights reserved.</p>
+          {/* <div className="flex gap-6 mt-4 md:mt-0">
             <a href="#" className="text-white hover:text-white/80 transition-colors">Twitter</a>
             <a href="#" className="text-white hover:text-white/80 transition-colors">LinkedIn</a>
             <a href="#" className="text-white hover:text-white/80 transition-colors">Facebook</a>
             <a href="#" className="text-white hover:text-white/80 transition-colors">YouTube</a>
-          </div>
+          </div> */}
         </div>
       </div>
     </footer>
