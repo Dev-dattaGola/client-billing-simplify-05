@@ -51,7 +51,7 @@ const mockUsers = [
     id: 'admin-1',
     name: 'Admin User',
     email: 'admin@example.com',
-    role: 'admin',
+    role: 'admin' as const,
     permissions: ['view_dashboard', 'manage_users', 'manage_settings'],
     isActive: true
   },
@@ -59,7 +59,7 @@ const mockUsers = [
     id: 'attorney-1',
     name: 'Attorney User',
     email: 'attorney@example.com',
-    role: 'attorney',
+    role: 'attorney' as const,
     permissions: ['view_dashboard', 'manage_clients', 'view_cases'],
     isActive: true
   },
@@ -67,7 +67,7 @@ const mockUsers = [
     id: 'client-1',
     name: 'Client User',
     email: 'client@example.com',
-    role: 'client',
+    role: 'client' as const,
     permissions: ['view_dashboard', 'view_documents'],
     assignedAttorneyId: 'attorney-1',
     isActive: true
@@ -76,7 +76,7 @@ const mockUsers = [
     id: 'superadmin-1',
     name: 'Super Admin',
     email: 'superadmin@example.com',
-    role: 'superadmin',
+    role: 'superadmin' as const,
     permissions: ['*'],
     isActive: true
   }

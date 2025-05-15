@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -110,7 +109,7 @@ const ClientManagement = () => {
     });
   };
   
-  // Handle client transfer function - using the client object
+  // Handle client transfer function
   const handleTransferClient = () => {
     if (!selectedClient || !selectedAttorneyForTransfer) return;
     
@@ -123,24 +122,21 @@ const ClientManagement = () => {
       return;
     }
     
-    const attorneyName = getAttorneyName(selectedAttorneyForTransfer);
-    
-    // Pass the entire client object 
-    transferClient(selectedClient, selectedAttorneyForTransfer, attorneyName);
+    transferClient(selectedClient, selectedAttorneyForTransfer);
     setIsTransferModalOpen(false);
     setSelectedAttorneyForTransfer("");
     
+    const attorneyName = getAttorneyName(selectedAttorneyForTransfer);
     toast.success(`Client transferred to ${attorneyName}`, {
       position: "bottom-right",
       duration: 3000
     });
   };
   
-  // Handle drop client function - using the client object
+  // Handle drop client function
   const handleDropClient = () => {
     if (!selectedClient || !dropReason) return;
     
-    // Pass the entire client object
     dropClient(selectedClient, dropReason);
     setIsDropClientModalOpen(false);
     setDropReason("");
