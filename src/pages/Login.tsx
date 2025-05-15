@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, Navigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -19,28 +20,20 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { login, isAuthenticated, isLoading: authLoading, updateAuthState } = useAuth();
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
 
   // Get the intended destination from location state or use dashboard as default
   const from = location.state?.from?.pathname || "/dashboard";
 
-  // Check authentication status on component mount and when auth state changes
+  // Check authentication status on component mount
   useEffect(() => {
     if (isAuthenticated) {
-      console.log("User is authenticated, redirecting to:", from);
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, from]);
 
-  // Extra debugging for authentication status
-  useEffect(() => {
-    console.log("Login component: Auth status =", isAuthenticated);
-    console.log("Login component: Redirect destination =", from);
-  }, [isAuthenticated, from]);
-
-  if (isAuthenticated && !isLoading) {
-    console.log("Redirecting to destination from render:", from);
-    return <Navigate to={from} />;
+  if (isAuthenticated) {
+    return <Navigate to={from} replace />;
   }
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -55,7 +48,6 @@ const Login = () => {
     }
 
     try {
-      console.log("Attempting login with:", { email, remember });
       const user = await login({ 
         email: email.toLowerCase().trim(),
         password, 
@@ -73,13 +65,7 @@ const Login = () => {
         description: `Welcome back, ${user.name}!`,
       });
       
-      console.log("Login successful, updating auth state");
-      
-      // Explicitly update auth state after successful login
-      updateAuthState();
-      
-      console.log("Navigating to:", from);
-      navigate(from, { replace: true });
+      // Navigation will happen automatically via the useEffect
     } catch (error) {
       console.error("Login error:", error);
       setError(typeof error === 'string' ? error : "Authentication failed. Please try again.");
@@ -94,12 +80,11 @@ const Login = () => {
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
             <img 
-                src="/lovable-uploads/1d5c7458-1307-40b3-93c7-a63e609301c6.png" 
-                alt="LAWerp500 Logo" 
-                className="h-44"
-              />
+              src="/lovable-uploads/1d5c7458-1307-40b3-93c7-a63e609301c6.png" 
+              alt="LAWerp500 Logo" 
+              className="h-44"
+            />
           </div>
-          {/* <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle> */}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -126,7 +111,7 @@ const Login = () => {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-white" >Password</Label>
+                <Label htmlFor="password" className="text-white">Password</Label>
               </div>
               <Input 
                 id="password" 

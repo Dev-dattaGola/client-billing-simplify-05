@@ -62,7 +62,7 @@ function App() {
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
-                {/* Adding missing routes */}
+                {/* Additional routes */}
                 <Route path="/files" element={<ProtectedRoute><Files /></ProtectedRoute>} />
                 <Route path="/medical" element={<ProtectedRoute><Medical /></ProtectedRoute>} />
                 <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />

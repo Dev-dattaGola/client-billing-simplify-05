@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/toaster';
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 
+// Wrap the entire app with BrowserRouter
 createRoot(rootElement).render(
   <React.StrictMode>
     <BrowserRouter>
