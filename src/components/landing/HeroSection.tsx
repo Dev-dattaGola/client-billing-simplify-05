@@ -49,7 +49,7 @@ const HeroSection: React.FC = () => {
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
               <Button 
-                variant="outline"
+                
                 size="lg"
                 className="bg-white text-lawfirm-purple hover:bg-white/90 text-lg py-6"
                 onClick={() => navigate('/login')}
