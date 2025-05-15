@@ -46,24 +46,46 @@ export const restoreAuthState = (): { user: User | null; isAuthenticated: boolea
   try {
     // Check if token exists in either storage
     const tokenExists = !!localStorage.getItem('authToken') || !!sessionStorage.getItem('authToken');
-    console.log(`Restoring auth state, token exists: ${tokenExists} user data exists: ${!!localStorage.getItem('userData') || !!sessionStorage.getItem('userData')}`);
     
     // Prioritize session storage for user data
     const userDataStr = sessionStorage.getItem('userData') || localStorage.getItem('userData');
     
-    if (!userDataStr) {
+    if (!userDataStr || !tokenExists) {
       return { user: null, isAuthenticated: false };
     }
     
-    const userData: User = JSON.parse(userDataStr);
-    
-    if (!userData || !userData.id || !userData.role) {
-      console.warn('Invalid user data found in storage');
-      clearAuthData(); // Clear invalid data
+    try {
+      const userData: User = JSON.parse(userDataStr);
+      
+      if (!userData || !userData.id || !userData.role) {
+        console.warn('Invalid user data found in storage');
+        clearAuthData(); // Clear invalid data
+        return { user: null, isAuthenticated: false };
+      }
+      
+      // Verify token hasn't expired
+      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+      if (token) {
+        try {
+          const tokenData = JSON.parse(atob(token));
+          if (tokenData.exp && tokenData.exp < Math.floor(Date.now() / 1000)) {
+            console.warn('Auth token expired');
+            clearAuthData();
+            return { user: null, isAuthenticated: false };
+          }
+        } catch (e) {
+          console.error('Error parsing auth token:', e);
+          clearAuthData();
+          return { user: null, isAuthenticated: false };
+        }
+      }
+      
+      return { user: userData, isAuthenticated: true };
+    } catch (parseError) {
+      console.error('Error parsing user data:', parseError);
+      clearAuthData();
       return { user: null, isAuthenticated: false };
     }
-    
-    return { user: userData, isAuthenticated: true };
   } catch (error) {
     console.error('Error restoring auth state:', error);
     clearAuthData(); // Clear potentially corrupted data
@@ -90,25 +112,14 @@ export const checkPermission = (user: User, permission: string): boolean => {
     return true;
   }
   
-  // For other roles, use role-based permissions since our User type doesn't have a permissions array
-  if (user.role === 'attorney') {
-    const attorneyPermissions = [
-      'view:clients', 'edit:clients',
-      'view:cases', 'create:cases', 'edit:cases',
-      'view:documents', 'upload:documents', 'download:documents',
-      'view:calendar', 'create:events', 'edit:events',
-      'view:reports'
-    ];
+  // For other roles, check their permission array
+  if (user.permissions && Array.isArray(user.permissions)) {
+    // Allow 'all' permission to grant everything
+    if (user.permissions.includes('all')) {
+      return true;
+    }
     
-    return attorneyPermissions.includes(permission);
-  } else if (user.role === 'client') {
-    const clientPermissions = [
-      'view:documents', 'upload:documents', 'download:documents',
-      'view:calendar', 'view:appointments',
-      'view:messages', 'send:messages'
-    ];
-    
-    return clientPermissions.includes(permission);
+    return user.permissions.includes(permission);
   }
   
   return false;

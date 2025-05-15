@@ -32,6 +32,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAuthenticated(isAuth);
       } catch (error) {
         console.error("Error initializing auth state:", error);
+        // Clear potentially corrupted auth data
+        clearAuthData();
       } finally {
         setIsLoading(false);
       }
@@ -39,6 +41,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     initAuth();
   }, []);
+
+  // Add this effect to prevent unnecessary redirects
+  useEffect(() => {
+    // If we're already at the login page, no need to redirect
+    if (location.pathname === '/login') return;
+
+    // Check authentication state on route change only if not loading
+    if (!isLoading) {
+      const { isAuthenticated: currentAuthState } = restoreAuthState();
+      
+      // If authentication state doesn't match what we have, update it
+      if (currentAuthState !== isAuthenticated) {
+        setIsAuthenticated(currentAuthState);
+        if (!currentAuthState && location.pathname !== '/') {
+          navigate('/login', { state: { from: location }, replace: true });
+        }
+      }
+    }
+  }, [location.pathname, isLoading, isAuthenticated, navigate, location]);
 
   // Login function
   const login = async (credentials: LoginCredentials): Promise<User | null> => {

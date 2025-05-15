@@ -20,12 +20,15 @@ const ProtectedRoute = ({
   const { showAuthRequiredToast, showAccessDeniedToast } = useAuthToast();
   const location = useLocation();
   
-  // Force auth state refresh on mount
+  // Force auth state refresh on mount, but only once
   useEffect(() => {
-    updateAuthState();
-  }, [updateAuthState]);
+    // Only update if we're not already loading
+    if (!isLoading) {
+      updateAuthState();
+    }
+  }, [updateAuthState, isLoading]);
   
-  // Handle authentication notifications
+  // Handle authentication notifications, but only after initial load
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
@@ -48,6 +51,7 @@ const ProtectedRoute = ({
   }
   
   if (!isAuthenticated) {
+    console.log('Not authenticated, redirecting to login from:', location.pathname);
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   

@@ -39,6 +39,7 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, label, isCollapsed 
             : 'hover:bg-muted'
         }`
       }
+      end
     >
       <div>{icon}</div>
       {!isCollapsed && <span>{label}</span>}
