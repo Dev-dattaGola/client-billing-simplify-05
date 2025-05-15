@@ -38,7 +38,7 @@ const ChatbotButton: React.FC = () => {
               >
                 Connect
               </Button>
-            ),
+            )
           }
         });
       }, 3000);
