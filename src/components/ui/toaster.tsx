@@ -15,7 +15,7 @@ export function Toaster() {
 
   return (
     <RadixToastProvider>
-      {toasts.map(function ({ id, title, description, action, variant }) {
+      {toasts && toasts.map(function ({ id, title, description, action, variant }) {
         return (
           <Toast key={id} variant={variant}>
             <div className="grid gap-1">

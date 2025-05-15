@@ -1,3 +1,3 @@
 
 // Re-export from the contexts folder
-export { useToast } from "@/contexts/ToastContext";
+export { useToast, type Toast } from "@/contexts/ToastContext";
