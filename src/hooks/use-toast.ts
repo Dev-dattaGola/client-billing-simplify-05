@@ -116,26 +116,15 @@ const reducer = (state: State, action: Action): State => {
 
 const ToastContext = React.createContext<{
   toasts: ToasterToast[];
-  toast: (props: ToastType) => string;
+  toast: (props: Omit<ToasterToast, "id" | "open">) => string;
   dismiss: (toastId?: string) => void;
-  update: (id: string, toast: ToastType) => void;
+  update: (id: string, props: Omit<ToasterToast, "id">) => void;
 }>({
   toasts: [],
   toast: () => "",
   dismiss: () => {},
   update: () => {},
 });
-
-export function useToast() {
-  const { toast, dismiss, update, toasts } = React.useContext(ToastContext);
-  
-  return {
-    toast,
-    dismiss,
-    update,
-    toasts,
-  };
-}
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = React.useReducer(reducer, {
@@ -159,8 +148,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     });
   }, [state.toasts]);
 
-  const toast = React.useCallback((props: ToastType) => {
-    const id = props.id || genId();
+  const toast = React.useCallback((props: Omit<ToasterToast, "id" | "open">) => {
+    const id = genId();
 
     dispatch({
       type: "ADD_TOAST",
@@ -174,7 +163,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     return id;
   }, []);
 
-  const update = React.useCallback((id: string, props: ToastType) => {
+  const update = React.useCallback((id: string, props: Omit<ToasterToast, "id">) => {
     dispatch({
       type: "UPDATE_TOAST",
       id,
@@ -201,6 +190,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
     </ToastContext.Provider>
   );
+}
+
+export function useToast() {
+  const { toast, dismiss, update, toasts } = React.useContext(ToastContext);
+  
+  return {
+    toast,
+    dismiss,
+    update,
+    toasts,
+  };
 }
 
 export type { ToastType };
