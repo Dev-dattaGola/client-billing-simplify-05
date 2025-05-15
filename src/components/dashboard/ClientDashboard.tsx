@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,40 +68,33 @@ const ClientDashboard = () => {
 
         if (clientError) throw clientError;
 
-        // Get client cases using RPC function with type assertion
-        const { data: cases, error: casesError } = await supabase
-          .rpc('get_cases_by_client_id', { client_id: clientData.id }) as {
-            data: ClientCase[] | null;
-            error: any;
-          };
+        // Get client cases using RPC function
+        // We need to use a type assertion that specifies the function returns exactly what we expect
+        const { data: casesData, error: casesError } = await supabase
+          .rpc<ClientCase[]>('get_cases_by_client_id', { client_id: clientData.id });
 
         if (casesError) {
           console.error("Error fetching cases:", casesError);
           setClientCases([]);
         } else {
-          setClientCases(cases || []);
+          setClientCases(casesData || []);
         }
 
-        // Get upcoming court dates using RPC function with type assertion
-        const { data: dates, error: datesError } = await supabase
-          .rpc('get_court_dates_by_client_id', { client_id: clientData.id }) as {
-            data: CourtDate[] | null;
-            error: any;
-          };
+        // Get upcoming court dates using RPC function
+        // Again, using a proper type assertion
+        const { data: datesData, error: datesError } = await supabase
+          .rpc<CourtDate[]>('get_court_dates_by_client_id', { client_id: clientData.id });
 
         if (datesError) {
           console.error("Error fetching court dates:", datesError);
           setCourtDates([]);
         } else {
-          setCourtDates(dates || []);
+          setCourtDates(datesData || []);
         }
 
-        // Get billing information using RPC function with type assertion
-        const { data: billing, error: billingError } = await supabase
-          .rpc('get_billing_summary_by_client_id', { client_id: clientData.id }) as {
-            data: BillingInfo[] | null;
-            error: any;
-          };
+        // Get billing information using RPC function
+        const { data: billingData, error: billingError } = await supabase
+          .rpc<BillingInfo[]>('get_billing_summary_by_client_id', { client_id: clientData.id });
 
         if (billingError) {
           console.error("Error fetching billing info:", billingError);
@@ -112,8 +104,8 @@ const ClientDashboard = () => {
             lastBilledDate: new Date().toISOString(),
             pendingAmount: 0
           });
-        } else if (billing && billing.length > 0) {
-          setBillingInfo(billing[0]);
+        } else if (billingData && billingData.length > 0) {
+          setBillingInfo(billingData[0]);
         } else {
           setBillingInfo({
             totalHours: 0,
