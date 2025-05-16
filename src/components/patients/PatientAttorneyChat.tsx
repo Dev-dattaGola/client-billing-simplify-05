@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from "@/components/ui/input";
@@ -12,11 +11,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Client } from '@/types/client';
 
 interface PatientAttorneyChatProps {
-  client?: Client;
-  isVisible: boolean;
+  client?: Client | null;
+  isVisible?: boolean;
 }
 
-const PatientAttorneyChat: React.FC<PatientAttorneyChatProps> = ({ client, isVisible }) => {
+const PatientAttorneyChat: React.FC<PatientAttorneyChatProps> = ({ client, isVisible = true }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);

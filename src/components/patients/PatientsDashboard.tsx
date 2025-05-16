@@ -89,26 +89,26 @@ const PatientsDashboard: React.FC<PatientsDashboardProps> = ({
 
               <div className="mt-6">
                 <TabsContent value="appointments" className="space-y-6">
-                  <PatientsAppointments client={client} />
+                  <PatientsAppointments clientId={clientId} />
                 </TabsContent>
 
                 <TabsContent value="medical" className="space-y-6">
-                  <PatientsMedicalRecords client={client} />
+                  <PatientsMedicalRecords clientId={clientId} />
                 </TabsContent>
 
                 <TabsContent value="documents" className="space-y-6">
-                  <PatientsLegalDocuments client={client} />
+                  <PatientsLegalDocuments clientId={clientId} />
                 </TabsContent>
 
                 <TabsContent value="case" className="space-y-6">
-                  <PatientsCaseReport client={client} />
+                  <PatientsCaseReport clientId={clientId} />
                 </TabsContent>
 
                 <TabsContent value="chat" className="space-y-6">
                   <Card>
                     <CardContent className="p-6">
                       {isChatOpen ? (
-                        <PatientAttorneyChat client={client} />
+                        <PatientAttorneyChat client={client} isVisible={true} />
                       ) : (
                         <div className="text-center py-12">
                           <h3 className="text-lg font-medium mb-2">Chat with your attorney</h3>

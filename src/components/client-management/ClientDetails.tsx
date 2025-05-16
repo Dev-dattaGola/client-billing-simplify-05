@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -168,10 +167,14 @@ const ClientDetails = () => {
       {/* Back button and client name */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center">
-          <Button variant="ghost" onClick={goBack} className="mr-2 p-2">
+          <Button 
+            variant="ghost" 
+            onClick={(e) => goBack()} 
+            className="mr-2 p-2"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl font-bold">{client.fullName}</h1>
+          <h1 className="text-2xl font-bold">{client?.fullName}</h1>
         </div>
         
         <div className="flex gap-2">
