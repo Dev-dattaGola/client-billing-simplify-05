@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Download, FileText } from 'lucide-react';
-import { useClient } from "@/contexts/ClientContext";
+import { useClient } from "@/contexts/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import RoleBasedLayout from "../layout/RoleBasedLayout";

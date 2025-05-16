@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useClient } from "@/contexts/ClientContext";
+import { useClient } from "@/contexts/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from "@/components/ui/button";

@@ -1,9 +1,8 @@
 
 import React, { useState, useCallback } from "react";
-import { ClientProvider } from "@/contexts/ClientContext";
+import { ClientProvider } from "@/contexts/client";
 import ClientTabs from "./ClientTabs";
 import ClientSearchSheet from "./ClientSearchSheet";
-import { RefreshCw } from 'lucide-react';
 
 const ClientManagement = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);

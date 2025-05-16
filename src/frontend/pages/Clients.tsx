@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { Routes, Route } from 'react-router-dom';
 import PageLayout from '@/frontend/components/layout/PageLayout';
 import ClientManagement from "@/components/client-management/ClientManagement";
-import { ClientProvider } from '@/contexts/ClientContext';
+import { ClientProvider } from '@/contexts/client';
 
 const Clients = () => {
   return (

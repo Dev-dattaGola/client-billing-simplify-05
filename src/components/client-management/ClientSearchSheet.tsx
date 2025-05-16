@@ -6,7 +6,7 @@ import {
   SheetHeader, 
   SheetTitle 
 } from "@/components/ui/sheet";
-import { useClient } from "@/contexts/ClientContext";
+import { useClient } from "@/contexts/client";
 import { useAuth } from "@/contexts/AuthContext";
 import ClientList from "./ClientList";
 
