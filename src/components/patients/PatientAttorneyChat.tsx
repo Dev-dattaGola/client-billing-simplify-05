@@ -25,4 +25,5 @@ const PatientAttorneyChat: React.FC<PatientAttorneyChatProps> = ({
   );
 };
 
-export default PatientAttorneyChat;
+// Apply memo to prevent unnecessary re-renders
+export default React.memo(PatientAttorneyChat);

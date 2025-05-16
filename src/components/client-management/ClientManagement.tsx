@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClientList from "./ClientList";
 import ClientForm from "./ClientForm";
@@ -23,6 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import RoleBasedLayout from "../layout/RoleBasedLayout";
 import DroppedClientsList from "./DroppedClientsList";
 import { Separator } from "@/components/ui/separator";
+import React from "react";
 
 const ClientManagement = () => {
   const { 
@@ -49,11 +50,12 @@ const ClientManagement = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleSearchClick = () => {
+  // Memoize handlers to prevent re-renders
+  const handleSearchClick = useCallback(() => {
     setIsSearchOpen(true);
-  };
+  }, []);
 
-  const handleDownloadCaseSummary = () => {
+  const handleDownloadCaseSummary = useCallback(() => {
     if (!selectedClient) return;
     
     toast({
@@ -67,17 +69,17 @@ const ClientManagement = () => {
         description: "Complete case summary has been downloaded successfully.",
       });
     }, 2000);
-  };
+  }, [selectedClient, toast]);
 
-  const handleRefreshClients = async () => {
+  const handleRefreshClients = useCallback(async () => {
     await refreshClients();
     toast({
       title: "Refreshed",
       description: "Client data has been refreshed."
     });
-  };
+  }, [refreshClients, toast]);
 
-  const renderDetailsContent = () => {
+  const renderDetailsContent = useCallback(() => {
     if (!selectedClient) return null;
 
     return (
@@ -144,11 +146,13 @@ const ClientManagement = () => {
           
           <RoleBasedLayout requiredRoles={['admin', 'attorney']}>
             <TabsContent value="overview">
-              <ClientDetails 
-                client={selectedClient}
-                onBack={() => setActiveTab("view")}
-                onEdit={() => hasPermission('edit:clients') ? startEditClient(selectedClient) : null}
-              />
+              {selectedClient && (
+                <ClientDetails 
+                  client={selectedClient}
+                  onBack={() => setActiveTab("view")}
+                  onEdit={() => hasPermission('edit:clients') ? startEditClient(selectedClient) : null}
+                />
+              )}
             </TabsContent>
           </RoleBasedLayout>
           
@@ -178,7 +182,7 @@ const ClientManagement = () => {
         </Tabs>
       </div>
     );
-  };
+  }, [selectedClient, activeDetailTab, setActiveDetailTab, setActiveTab, handleSearchClick, handleDownloadCaseSummary, startEditClient, hasPermission]);
 
   // Determine which tabs should be visible based on user role
   const shouldShowAddTab = currentUser && ['admin'].includes(currentUser.role);
@@ -296,4 +300,5 @@ const ClientManagement = () => {
   );
 };
 
-export default ClientManagement;
+// Memoize the component to prevent unnecessary re-renders
+export default React.memo(ClientManagement);

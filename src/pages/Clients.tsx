@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import PageLayout from '@/frontend/components/layout/PageLayout';
 import ClientManagement from "@/components/client-management/ClientManagement";
@@ -14,30 +14,50 @@ import { useNavigationTracking } from '@/hooks/use-navigation-tracking';
 const Clients = () => {
   const navigate = useNavigate();
   const { goBack } = useNavigationTracking();
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleExportClients = async () => {
+  // Memoize handlers to prevent unnecessary re-renders
+  const handleExportClients = useCallback(async () => {
     // Simulate export functionality
     await new Promise(resolve => setTimeout(resolve, 1000));
     toast.success('Client data exported successfully');
-  };
+  }, []);
 
-  const handleAddClient = () => {
+  const handleAddClient = useCallback(() => {
     navigate('/clients/new');
-  };
+  }, [navigate]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       toast.info(`Searching for "${searchQuery}"...`);
     }
-  };
+  }, [searchQuery]);
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     // Simulate refresh functionality
     await new Promise(resolve => setTimeout(resolve, 800));
     toast.success('Client data refreshed');
-  };
+  }, []);
+
+  // Memoize search input change handler
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  }, []);
+
+  // Memoize the search form
+  const searchForm = useMemo(() => (
+    <form onSubmit={handleSearch} className="relative">
+      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Input
+        type="search"
+        placeholder="Search clients..."
+        value={searchQuery}
+        onChange={handleSearchChange}
+        className="w-full pl-8 md:w-[200px] lg:w-[300px]"
+      />
+    </form>
+  ), [searchQuery, handleSearch, handleSearchChange]);
 
   return (
     <PageLayout>
@@ -55,16 +75,7 @@ const Clients = () => {
           </div>
           
           <div className="flex flex-wrap items-center gap-2">
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search clients..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 md:w-[200px] lg:w-[300px]"
-              />
-            </form>
+            {searchForm}
             
             <EnhancedButton 
               variant="outline" 
@@ -115,4 +126,5 @@ const Clients = () => {
   );
 };
 
-export default Clients;
+// Use memo to prevent unnecessary re-renders
+export default React.memo(Clients);

@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { Client } from '@/types/client';
 import { clientsApi } from '@/lib/api/client-api';
 import { useToast } from '@/hooks/use-toast';
@@ -36,7 +36,8 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [activeDetailTab, setActiveDetailTab] = useState("overview");
   const { toast } = useToast();
 
-  const refreshClients = async () => {
+  // Memoize the refreshClients function
+  const refreshClients = useCallback(async () => {
     try {
       setLoading(true);
       const fetchedClients = await clientsApi.getClients();
@@ -57,18 +58,21 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     refreshClients();
+    // We only want to run this once when the component mounts
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAddClient = async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
+  // Memoize handlers to prevent unnecessary re-renders
+  const handleAddClient = useCallback(async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       const newClient = await clientsApi.createClient(clientData);
       
       if (newClient) {
-        setClients([...clients, newClient]);
+        setClients(prevClients => [...prevClients, newClient]);
         setActiveTab("view");
         toast({
           title: "Client Added",
@@ -85,19 +89,19 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
-  const handleEditClient = async (clientData: Client) => {
+  const handleEditClient = useCallback(async (clientData: Client) => {
     try {
       const updatedClient = await clientsApi.updateClient(clientData.id, clientData);
       
       if (updatedClient) {
         // Update the appropriate list based on dropped status
         if (updatedClient.isDropped) {
-          setClients(clients.filter(client => client.id !== clientData.id));
-          setDroppedClients([...droppedClients.filter(client => client.id !== clientData.id), updatedClient]);
+          setClients(prevClients => prevClients.filter(client => client.id !== clientData.id));
+          setDroppedClients(prevDropped => [...prevDropped.filter(client => client.id !== clientData.id), updatedClient]);
         } else {
-          setClients(clients.map(client => 
+          setClients(prevClients => prevClients.map(client => 
             client.id === clientData.id ? updatedClient : client
           ));
         }
@@ -126,9 +130,9 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         variant: "destructive",
       });
     }
-  };
+  }, [selectedClient, toast]);
 
-  const handleDropClient = async (clientId: string, reason: string) => {
+  const handleDropClient = useCallback(async (clientId: string, reason: string) => {
     try {
       const clientToDrop = clients.find(c => c.id === clientId);
       if (!clientToDrop) {
@@ -145,8 +149,8 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       
       if (updatedClient) {
         // Move client from active to dropped list
-        setClients(clients.filter(client => client.id !== clientId));
-        setDroppedClients([...droppedClients, updatedClient]);
+        setClients(prevClients => prevClients.filter(client => client.id !== clientId));
+        setDroppedClients(prevDropped => [...prevDropped, updatedClient]);
         
         // If the dropped client was selected, clear the selection
         if (selectedClient && selectedClient.id === clientId) {
@@ -169,17 +173,17 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         variant: "destructive",
       });
     }
-  };
+  }, [clients, selectedClient, toast]);
 
-  const handleDeleteClient = async (clientId: string) => {
+  const handleDeleteClient = useCallback(async (clientId: string) => {
     try {
       const clientName = clients.find(c => c.id === clientId)?.fullName || 
                          droppedClients.find(c => c.id === clientId)?.fullName;
       const success = await clientsApi.deleteClient(clientId);
       
       if (success) {
-        setClients(clients.filter(client => client.id !== clientId));
-        setDroppedClients(droppedClients.filter(client => client.id !== clientId));
+        setClients(prevClients => prevClients.filter(client => client.id !== clientId));
+        setDroppedClients(prevDropped => prevDropped.filter(client => client.id !== clientId));
         
         // If the deleted client was selected, clear the selection
         if (selectedClient && selectedClient.id === clientId) {
@@ -202,24 +206,25 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         variant: "destructive",
       });
     }
-  };
+  }, [clients, droppedClients, selectedClient, toast]);
 
-  const handleViewClient = (client: Client) => {
+  const handleViewClient = useCallback((client: Client) => {
     setSelectedClient(client);
     setActiveTab("details");
     setActiveDetailTab("overview");
-  };
+  }, []);
 
-  const startEditClient = (client: Client) => {
+  const startEditClient = useCallback((client: Client) => {
     setClientToEdit(client);
     setActiveTab("add");
-  };
+  }, []);
 
-  const clearClientToEdit = () => {
+  const clearClientToEdit = useCallback(() => {
     setClientToEdit(null);
-  };
+  }, []);
 
-  const contextValue = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
     clients,
     droppedClients,
     selectedClient,
@@ -237,7 +242,25 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     startEditClient,
     clearClientToEdit,
     refreshClients
-  };
+  }), [
+    clients,
+    droppedClients,
+    selectedClient,
+    clientToEdit,
+    loading,
+    activeTab,
+    activeDetailTab,
+    setActiveTab,
+    setActiveDetailTab,
+    handleAddClient,
+    handleEditClient,
+    handleDeleteClient,
+    handleDropClient,
+    handleViewClient,
+    startEditClient,
+    clearClientToEdit,
+    refreshClients
+  ]);
 
   return (
     <ClientContext.Provider value={contextValue}>
