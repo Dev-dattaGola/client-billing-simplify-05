@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -18,6 +18,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Client } from "@/types/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ClientFormProps {
   initialData: Client | null;
@@ -38,11 +40,21 @@ const formSchema = z.object({
   companyName: z.string().optional(),
   address: z.string().optional(),
   notes: z.string().optional(),
+  assignedAttorneyId: z.string().optional(),
 });
 
 const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [currentTag, setCurrentTag] = useState("");
+  const { currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
+
+  // Mock attorneys data (in a real app, this would come from an API)
+  const attorneys = [
+    { id: 'attorney1', name: 'Jane Doelawyer' },
+    { id: 'attorney2', name: 'John Smith' },
+    { id: 'attorney3', name: 'Sarah Johnson' },
+  ];
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,6 +65,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
       companyName: initialData?.companyName || "",
       address: initialData?.address || "",
       notes: initialData?.notes || "",
+      assignedAttorneyId: initialData?.assignedAttorneyId || "",
     },
   });
 
@@ -149,11 +162,43 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
             )}
           />
           
+          {isAdmin && (
+            <FormField
+              control={form.control}
+              name="assignedAttorneyId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assigned Attorney</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an attorney" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {attorneys.map(attorney => (
+                        <SelectItem key={attorney.id} value={attorney.id}>
+                          {attorney.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Attorney responsible for this client's cases
+                  </FormDescription>
+                </FormItem>
+              )}
+            />
+          )}
+          
           <FormField
             control={form.control}
             name="address"
             render={({ field }) => (
-              <FormItem className="md:col-span-2">
+              <FormItem className={isAdmin ? "" : "md:col-span-2"}>
                 <FormLabel>Address</FormLabel>
                 <FormControl>
                   <Input placeholder="123 Main St, Anytown, USA" {...field} />

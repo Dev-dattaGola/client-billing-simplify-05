@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -5,9 +6,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Calendar, Bell, AlertCircle, FileText, Clock } from 'lucide-react';
 import PatientDashboardHeader from './PatientDashboardHeader';
 import PatientAttorneyChat from './PatientAttorneyChat';
+import { useAuth } from '@/contexts/AuthContext';
 
 const PatientsDashboard: React.FC = () => {
   const [isChatVisible, setIsChatVisible] = useState(false);
+  const { currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
   
   // Mock client data
   const mockClient = {
@@ -31,6 +35,7 @@ const PatientsDashboard: React.FC = () => {
         caseStatus="Active Treatment"
         lastUpdated="April 20, 2025"
         onChatInitiated={handleChatInitiated}
+        isAdmin={isAdmin}
       />
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
