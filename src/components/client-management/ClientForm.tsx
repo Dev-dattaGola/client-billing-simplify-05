@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -17,12 +17,27 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Client } from "@/types/client";
+import { supabase } from '@/integrations/supabase/client';
 
 interface ClientFormProps {
   initialData: Client | null;
   onSubmit: (data: any) => void;
   onCancel: () => void;
+  isAdmin?: boolean;
+}
+
+interface Attorney {
+  id: string;
+  full_name: string;
+  specialization?: string;
 }
 
 const formSchema = z.object({
@@ -38,11 +53,14 @@ const formSchema = z.object({
   companyName: z.string().optional(),
   address: z.string().optional(),
   notes: z.string().optional(),
+  assignedAttorneyId: z.string().optional(),
 });
 
-const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
+const ClientForm = ({ initialData, onSubmit, onCancel, isAdmin = false }: ClientFormProps) => {
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [currentTag, setCurrentTag] = useState("");
+  const [attorneys, setAttorneys] = useState<Attorney[]>([]);
+  const [isLoadingAttorneys, setIsLoadingAttorneys] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,8 +71,52 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
       companyName: initialData?.companyName || "",
       address: initialData?.address || "",
       notes: initialData?.notes || "",
+      assignedAttorneyId: initialData?.assignedAttorneyId || "",
     },
   });
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchAttorneys();
+    }
+  }, [isAdmin]);
+
+  const fetchAttorneys = async () => {
+    setIsLoadingAttorneys(true);
+    try {
+      // Try to fetch from Supabase first
+      let { data: attorneysData, error } = await supabase
+        .from('attorneys')
+        .select('id, full_name, specialization');
+
+      if (error) {
+        throw error;
+      }
+
+      if (attorneysData && attorneysData.length > 0) {
+        setAttorneys(attorneysData);
+        return;
+      }
+
+      // Fallback to mock data
+      console.warn('No attorneys found in Supabase, using mock data');
+      setAttorneys([
+        { id: 'attorney1', full_name: 'Jane Doe', specialization: 'Personal Injury' },
+        { id: 'attorney2', full_name: 'John Smith', specialization: 'Medical Malpractice' },
+        { id: 'attorney3', full_name: 'Alice Johnson', specialization: 'Slip and Fall' }
+      ]);
+    } catch (error) {
+      console.error('Error fetching attorneys:', error);
+      // Fallback to mock data
+      setAttorneys([
+        { id: 'attorney1', full_name: 'Jane Doe', specialization: 'Personal Injury' },
+        { id: 'attorney2', full_name: 'John Smith', specialization: 'Medical Malpractice' },
+        { id: 'attorney3', full_name: 'Alice Johnson', specialization: 'Slip and Fall' }
+      ]);
+    } finally {
+      setIsLoadingAttorneys(false);
+    }
+  };
 
   const handleAddTag = () => {
     if (currentTag.trim() && !tags.includes(currentTag.trim())) {
@@ -148,12 +210,43 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
               </FormItem>
             )}
           />
+
+          {isAdmin && (
+            <FormField
+              control={form.control}
+              name="assignedAttorneyId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assigned Attorney</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an attorney" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {attorneys.map((attorney) => (
+                        <SelectItem key={attorney.id} value={attorney.id}>
+                          {attorney.full_name} {attorney.specialization ? `(${attorney.specialization})` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>Assign a primary attorney to this client</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           
           <FormField
             control={form.control}
             name="address"
             render={({ field }) => (
-              <FormItem className="md:col-span-2">
+              <FormItem className={isAdmin ? "md:col-span-1" : "md:col-span-2"}>
                 <FormLabel>Address</FormLabel>
                 <FormControl>
                   <Input placeholder="123 Main St, Anytown, USA" {...field} />

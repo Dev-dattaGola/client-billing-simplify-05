@@ -1,156 +1,131 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Calendar, Bell, AlertCircle, FileText, Clock } from 'lucide-react';
+
+import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 import PatientDashboardHeader from './PatientDashboardHeader';
 import PatientAttorneyChat from './PatientAttorneyChat';
+import PatientsAppointments from './PatientsAppointments';
+import PatientsMedicalRecords from './PatientsMedicalRecords';
+import PatientsLegalDocuments from './PatientsLegalDocuments';
+import PatientsCaseReport from './PatientsCaseReport';
+import { clientsApi } from '@/lib/api/client-api';
+import { Client } from '@/types/client';
 
-const PatientsDashboard: React.FC = () => {
-  const [isChatVisible, setIsChatVisible] = useState(false);
-  
-  // Mock client data
-  const mockClient = {
-    id: "P123",
-    accountNumber: "A042",
-    fullName: "John Doe",
-    email: "john@example.com",
-    phone: "555-0123",
-    createdAt: "2025-04-01",
-    updatedAt: "2025-04-20"
-  };
+interface PatientsDashboardProps {
+  clientId?: string;
+  isAdmin?: boolean;
+}
+
+const PatientsDashboard: React.FC<PatientsDashboardProps> = ({ 
+  clientId = 'client1',
+  isAdmin = false
+}) => {
+  const [activeTab, setActiveTab] = useState('appointments');
+  const [client, setClient] = useState<Client | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const loadClient = async () => {
+      try {
+        setIsLoading(true);
+        const clientData = await clientsApi.getClient(clientId);
+        setClient(clientData);
+      } catch (error) {
+        console.error('Error loading client data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load client information.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadClient();
+  }, [clientId, toast]);
 
   const handleChatInitiated = () => {
-    setIsChatVisible(true);
+    setIsChatOpen(true);
+    setActiveTab('chat');
   };
 
   return (
-    <div className="space-y-6">
-      <PatientDashboardHeader 
-        client={mockClient}
-        caseStatus="Active Treatment"
-        lastUpdated="April 20, 2025"
-        onChatInitiated={handleChatInitiated}
-      />
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Case Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <Badge className="bg-yellow-500 hover:bg-yellow-600">Active Treatment</Badge>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Last Updated: April 20, 2025
-            </p>
-          </CardContent>
-        </Card>
+    <div className="container mx-auto px-4 py-6">
+      <Helmet>
+        <title>Patient Dashboard - LAW ERP 500</title>
+      </Helmet>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Assigned Attorney</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src="https://i.pravatar.cc/100?img=33" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-              <div className="ml-3">
-                <p className="text-sm font-medium">Jane Doelawyer</p>
-                <p className="text-xs text-muted-foreground">Personal Injury Specialist</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {isLoading ? (
+        <div className="flex justify-center items-center min-h-[200px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <>
+          <PatientDashboardHeader
+            client={client || undefined}
+            caseStatus={client?.caseStatus || 'Unknown'}
+            lastUpdated={client?.updatedAt ? new Date(client.updatedAt).toLocaleDateString() : 'Unknown'}
+            onChatInitiated={handleChatInitiated}
+            isAdmin={isAdmin}
+          />
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Next Appointment</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Follow-up Consultation</p>
-                <p className="text-xs text-muted-foreground">May 10, 2025 - 10:30 AM</p>
+          <div className="mt-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <div className="border-b">
+                <TabsList className="w-full justify-start">
+                  <TabsTrigger value="appointments">Appointments</TabsTrigger>
+                  <TabsTrigger value="medical">Medical Records</TabsTrigger>
+                  <TabsTrigger value="documents">Legal Documents</TabsTrigger>
+                  <TabsTrigger value="case">Case Report</TabsTrigger>
+                  <TabsTrigger value="chat" id="patient-attorney-chat">Attorney Chat</TabsTrigger>
+                </TabsList>
               </div>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
-      <PatientAttorneyChat 
-        client={mockClient} 
-        isVisible={isChatVisible}
-      />
+              <div className="mt-6">
+                <TabsContent value="appointments" className="space-y-6">
+                  <PatientsAppointments clientId={clientId} />
+                </TabsContent>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Updates</CardTitle>
-          <CardDescription>Latest activities on your case</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-start">
-              <div className="mr-4 mt-0.5">
-                <FileText className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">Medical records submitted</p>
-                <p className="text-xs text-muted-foreground">April 18, 2025</p>
-                <p className="text-sm mt-1">Your physical therapy records from City Rehab Center have been submitted to the insurance company.</p>
-              </div>
-            </div>
+                <TabsContent value="medical" className="space-y-6">
+                  <PatientsMedicalRecords clientId={clientId} />
+                </TabsContent>
 
-            <div className="flex items-start">
-              <div className="mr-4 mt-0.5">
-                <FileText className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">Insurance claim acknowledged</p>
-                <p className="text-xs text-muted-foreground">April 12, 2025</p>
-                <p className="text-sm mt-1">ABC Insurance has acknowledged receipt of your claim. Claim #123456.</p>
-              </div>
-            </div>
+                <TabsContent value="documents" className="space-y-6">
+                  <PatientsLegalDocuments clientId={clientId} />
+                </TabsContent>
 
-            <div className="flex items-start">
-              <div className="mr-4 mt-0.5">
-                <FileText className="h-5 w-5 text-muted-foreground" />
+                <TabsContent value="case" className="space-y-6">
+                  <PatientsCaseReport clientId={clientId} />
+                </TabsContent>
+
+                <TabsContent value="chat" className="space-y-6">
+                  <Card>
+                    <CardContent className="p-6">
+                      {isChatOpen ? (
+                        <PatientAttorneyChat clientId={clientId} />
+                      ) : (
+                        <div className="text-center py-12">
+                          <h3 className="text-lg font-medium mb-2">Chat with your attorney</h3>
+                          <p className="text-muted-foreground mb-4">
+                            Connect with your assigned attorney to discuss your case.
+                          </p>
+                          <Button onClick={handleChatInitiated}>Start Chat</Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
               </div>
-              <div>
-                <p className="text-sm font-medium">Case opened</p>
-                <p className="text-xs text-muted-foreground">April 5, 2025</p>
-                <p className="text-sm mt-1">Your case has been opened and assigned to attorney Jane Doelawyer.</p>
-              </div>
-            </div>
+            </Tabs>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-amber-50 border-amber-200">
-        <CardHeader className="pb-2">
-          <div className="flex items-center">
-            <AlertCircle className="h-5 w-5 text-amber-600 mr-2" />
-            <CardTitle className="text-sm font-medium text-amber-800">Smart Notifications</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-start">
-              <Bell className="h-4 w-4 text-amber-600 mr-2 mt-0.5" />
-              <p className="text-sm text-amber-800">You missed your physical therapy appointment on April 15, 2025. Please reschedule as soon as possible.</p>
-            </div>
-            <div className="flex items-start">
-              <Bell className="h-4 w-4 text-amber-600 mr-2 mt-0.5" />
-              <p className="text-sm text-amber-800">It's been 14 days since your last treatment. Please follow up with your provider.</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </>
+      )}
     </div>
   );
 };
