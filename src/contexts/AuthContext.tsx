@@ -3,14 +3,12 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, AuthContextType, LoginCredentials } from '@/types/auth';
 import { useAuthActions } from '@/hooks/useAuthActions';
 
-// Create the context with a default undefined value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Move all hooks to the top level of the function component
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { login: authLogin, logout: authLogout, hasPermission, isLoading: authActionsLoading } = useAuthActions();
+  const { login, logout, hasPermission, isLoading: authActionsLoading } = useAuthActions();
 
   useEffect(() => {
     const getUserFromStorage = () => {
@@ -42,10 +40,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const handleLogin = async (credentials: LoginCredentials) => {
-    const user = await authLogin(credentials);
+    const user = await login(credentials);
     
+    // Update user name based on role before setting to state
     if (user) {
-      // Update user name based on role before setting to state
       if (user.role === 'client') {
         user.name = 'Andrew Johnson';
       } else if (user.role === 'attorney') {
@@ -60,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const handleLogout = () => {
-    authLogout();
+    logout();
     setCurrentUser(null);
   };
 
@@ -76,7 +74,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Create the context value object
   const contextValue: AuthContextType = {
     currentUser,
     isAuthenticated: !!currentUser,
@@ -90,13 +87,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
-// Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  
   return context;
 };

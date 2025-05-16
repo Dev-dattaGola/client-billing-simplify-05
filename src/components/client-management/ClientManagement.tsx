@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClientList from "./ClientList";
@@ -143,7 +144,11 @@ const ClientManagement = () => {
           
           <RoleBasedLayout requiredRoles={['admin', 'attorney']}>
             <TabsContent value="overview">
-              <ClientDetails />
+              <ClientDetails 
+                client={selectedClient}
+                onBack={() => setActiveTab("view")}
+                onEdit={() => hasPermission('edit:clients') ? startEditClient(selectedClient) : null}
+              />
             </TabsContent>
           </RoleBasedLayout>
           
