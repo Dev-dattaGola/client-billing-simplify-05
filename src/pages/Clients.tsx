@@ -59,6 +59,13 @@ const Clients = () => {
     </form>
   ), [searchQuery, handleSearch, handleSearchChange]);
 
+  // Memoize ClientProvider and its content to prevent unnecessary re-renders
+  const clientManagementContent = useMemo(() => (
+    <ClientProvider>
+      <ClientManagement />
+    </ClientProvider>
+  ), []);
+
   return (
     <PageLayout>
       <Helmet>
@@ -108,9 +115,7 @@ const Clients = () => {
         </div>
         
         <div className="max-w-7xl mx-auto">
-          <ClientProvider>
-            <ClientManagement />
-          </ClientProvider>
+          {clientManagementContent}
         </div>
       </div>
       

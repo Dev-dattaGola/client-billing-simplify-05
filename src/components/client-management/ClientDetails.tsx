@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Client } from '@/types/client';
-import { useNavigate } from "react-router-dom";
 
 interface ClientDetailsProps {
   client: Client;
@@ -16,12 +15,14 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
   onBack,
   onEdit
 }) => {
-  const navigate = useNavigate();
-  
-  // Fix the type mismatch by using an explicit event handler
-  const handleNavigation = (event: React.MouseEvent<HTMLButtonElement>) => {
-    navigate('/clients');
-  };
+  // Fix: Convert the event handler to accept React.MouseEvent
+  const handleBack = React.useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    onBack();
+  }, [onBack]);
+
+  const handleEdit = React.useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    onEdit();
+  }, [onEdit]);
 
   return (
     <Card className="overflow-hidden">
@@ -35,10 +36,10 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={onBack}>
+            <Button variant="outline" onClick={handleBack}>
               Back
             </Button>
-            <Button onClick={onEdit}>
+            <Button onClick={handleEdit}>
               Edit
             </Button>
           </div>

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Routes, Route } from 'react-router-dom';
 import PageLayout from '@/frontend/components/layout/PageLayout';
@@ -7,6 +7,16 @@ import ClientManagement from "@/components/client-management/ClientManagement";
 import { ClientProvider } from '@/contexts/ClientContext';
 
 const Clients = () => {
+  // Memoize ClientProvider and its content to prevent unnecessary re-renders
+  const clientManagementContent = useMemo(() => (
+    <ClientProvider>
+      <Routes>
+        <Route index element={<ClientManagement />} />
+        <Route path="*" element={<ClientManagement />} />
+      </Routes>
+    </ClientProvider>
+  ), []);
+
   return (
     <PageLayout>
       <Helmet>
@@ -22,12 +32,7 @@ const Clients = () => {
         </div>
         
         <div className="max-w-7xl mx-auto">
-          <ClientProvider>
-            <Routes>
-              <Route index element={<ClientManagement />} />
-              <Route path="*" element={<ClientManagement />} />
-            </Routes>
-          </ClientProvider>
+          {clientManagementContent}
         </div>
       </div>
       
@@ -43,4 +48,4 @@ const Clients = () => {
   );
 };
 
-export default Clients;
+export default React.memo(Clients);
