@@ -8,12 +8,12 @@ import { Plus, FileDown, Search, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
-import { useNavigationTracking } from '@/hooks/use-navigation-tracking';
 
-const Clients = () => {
+const Clients: React.FC = () => {
   const navigate = useNavigate();
-  const { goBack } = useNavigationTracking();
   const [searchQuery, setSearchQuery] = useState('');
+  
+  console.log("Clients page rendering");
 
   // Memoize handlers to prevent unnecessary re-renders
   const handleExportClients = useCallback(async () => {

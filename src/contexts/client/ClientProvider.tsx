@@ -10,15 +10,14 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   
   // Use effect to load clients on mount
   React.useEffect(() => {
+    console.log("ClientProvider: Loading clients");
     clientActions.refreshClients();
     // We only want to run this once when the component mounts
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Memoize the context value to prevent unnecessary re-renders
-  const contextValue = useMemo(() => ({
-    ...clientActions
-  }), [clientActions]);
+  // Avoid creating a new context value on each render
+  const contextValue = useMemo(() => clientActions, [clientActions]);
 
   return (
     <ClientContext.Provider value={contextValue}>

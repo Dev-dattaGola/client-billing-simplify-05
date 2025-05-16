@@ -1,10 +1,11 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Client } from '@/types/client';
 import { clientsApi } from '@/lib/api/client-api';
 import { useToast } from '@/hooks/use-toast';
 
 export const useClientActions = () => {
+  // State declarations
   const [clients, setClients] = useState<Client[]>([]);
   const [droppedClients, setDroppedClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -14,7 +15,7 @@ export const useClientActions = () => {
   const [activeDetailTab, setActiveDetailTab] = useState("overview");
   const { toast } = useToast();
 
-  // Refresh clients
+  // Refresh clients - memoized
   const refreshClients = useCallback(async () => {
     try {
       setLoading(true);
@@ -38,7 +39,7 @@ export const useClientActions = () => {
     }
   }, [toast]);
 
-  // Add client
+  // Add client - memoized
   const handleAddClient = useCallback(async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       const newClient = await clientsApi.createClient(clientData);
@@ -63,7 +64,7 @@ export const useClientActions = () => {
     }
   }, [toast]);
 
-  // Edit client
+  // Edit client - memoized
   const handleEditClient = useCallback(async (clientData: Client) => {
     try {
       const updatedClient = await clientsApi.updateClient(clientData.id, clientData);
@@ -105,7 +106,7 @@ export const useClientActions = () => {
     }
   }, [selectedClient, toast]);
 
-  // Drop client
+  // Drop client - memoized
   const handleDropClient = useCallback(async (clientId: string, reason: string) => {
     try {
       const clientToDrop = clients.find(c => c.id === clientId);
@@ -149,7 +150,7 @@ export const useClientActions = () => {
     }
   }, [clients, selectedClient, toast]);
 
-  // Delete client
+  // Delete client - memoized
   const handleDeleteClient = useCallback(async (clientId: string) => {
     try {
       const clientName = clients.find(c => c.id === clientId)?.fullName || 
@@ -183,25 +184,26 @@ export const useClientActions = () => {
     }
   }, [clients, droppedClients, selectedClient, toast]);
 
-  // View client
+  // View client - memoized
   const handleViewClient = useCallback((client: Client) => {
     setSelectedClient(client);
     setActiveTab("details");
     setActiveDetailTab("overview");
   }, []);
 
-  // Start edit client
+  // Start edit client - memoized
   const startEditClient = useCallback((client: Client) => {
     setClientToEdit(client);
     setActiveTab("add");
   }, []);
 
-  // Clear client to edit
+  // Clear client to edit - memoized
   const clearClientToEdit = useCallback(() => {
     setClientToEdit(null);
   }, []);
 
-  return {
+  // Memoize the entire state object to prevent unnecessary re-renders
+  const stateAndActions = useMemo(() => ({
     // State
     clients,
     droppedClients,
@@ -224,5 +226,23 @@ export const useClientActions = () => {
     startEditClient,
     clearClientToEdit,
     refreshClients
-  };
+  }), [
+    clients, 
+    droppedClients, 
+    selectedClient, 
+    clientToEdit, 
+    loading, 
+    activeTab, 
+    activeDetailTab,
+    handleAddClient,
+    handleEditClient, 
+    handleDeleteClient, 
+    handleDropClient,
+    handleViewClient,
+    startEditClient,
+    clearClientToEdit,
+    refreshClients
+  ]);
+
+  return stateAndActions;
 };

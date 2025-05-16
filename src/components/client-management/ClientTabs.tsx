@@ -1,8 +1,9 @@
-import React from "react";
+
+import React, { useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClient } from "@/contexts/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Search } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import ClientList from "./ClientList";
 import DroppedClientsList from "./DroppedClientsList";
@@ -10,7 +11,11 @@ import ClientForm from "./ClientForm";
 import ClientDetailsView from "./ClientDetailsView";
 import { Separator } from "@/components/ui/separator";
 
-const ClientTabs = () => {
+interface ClientTabsProps {
+  onSearchClick?: () => void;
+}
+
+const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
   const { 
     clients,
     droppedClients,
@@ -31,8 +36,16 @@ const ClientTabs = () => {
   
   const { hasPermission, currentUser } = useAuth();
 
+  // Memoize handlers
+  const handleRefreshClick = useCallback(() => {
+    console.log("Refreshing clients");
+    refreshClients();
+  }, [refreshClients]);
+
   // Determine which tabs should be visible based on user role
   const shouldShowAddTab = currentUser && ['admin'].includes(currentUser.role);
+
+  console.log("ClientTabs rendering, active tab:", activeTab);
 
   return (
     <Tabs 
@@ -53,15 +66,28 @@ const ClientTabs = () => {
       <TabsContent value="view" className="p-6 space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold">Active Clients</h2>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-1"
-            onClick={refreshClients}
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            {onSearchClick && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-1"
+                onClick={onSearchClick}
+              >
+                <Search className="h-4 w-4" />
+                Search
+              </Button>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-1"
+              onClick={handleRefreshClick}
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
         </div>
         
         <ClientList 
@@ -114,7 +140,7 @@ const ClientTabs = () => {
       </TabsContent>
 
       <TabsContent value="details" className="p-6 space-y-4">
-        {selectedClient && <ClientDetailsView />}
+        {selectedClient && <ClientDetailsView onSearchClick={onSearchClick} />}
       </TabsContent>
     </Tabs>
   );

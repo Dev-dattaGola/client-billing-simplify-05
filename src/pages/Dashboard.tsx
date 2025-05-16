@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import PageLayout from '@/components/layout/PageLayout';
 import DashboardOverview from '@/components/dashboard/DashboardOverview';
@@ -12,8 +12,9 @@ const Dashboard: React.FC = () => {
   const { currentUser, isAuthenticated } = useAuth();
   const { toast } = useToast();
   
-  useEffect(() => {
-    // Simple initialization check
+  // Use callback to prevent unnecessary re-renders
+  const initDashboard = useCallback(() => {
+    console.log("Dashboard: Initializing");
     if (isAuthenticated && currentUser) {
       console.log("Dashboard: User authenticated", currentUser);
       setIsLoading(false);
@@ -22,12 +23,18 @@ const Dashboard: React.FC = () => {
       setTimeout(() => setIsLoading(false), 500); // Safety timeout
     }
   }, [isAuthenticated, currentUser]);
+  
+  useEffect(() => {
+    initDashboard();
+  }, [initDashboard]);
 
   // Just to verify the component is mounting
   useEffect(() => {
     console.log("Dashboard component mounted");
     return () => console.log("Dashboard component unmounted");
   }, []);
+
+  console.log("Dashboard rendering, isLoading:", isLoading);
 
   if (isLoading) {
     return (
@@ -56,4 +63,5 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+// Memoize the component to prevent unnecessary re-renders
+export default React.memo(Dashboard);

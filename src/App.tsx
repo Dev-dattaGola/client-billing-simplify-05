@@ -1,4 +1,5 @@
 
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import Dashboard from './pages/Dashboard';
@@ -30,6 +31,9 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import { ChatbotProvider } from './contexts/ChatbotContext';
 
 function App() {
+  // Using React.memo for main App component can help prevent unnecessary re-renders
+  console.log("App rendering");
+  
   return (
     <HelmetProvider>
       <Router>
@@ -44,33 +48,88 @@ function App() {
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   
-                  <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                  <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-                  <Route path="/clients/:id" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-                  <Route path="/clients/new" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-                  <Route path="/clients/:id/edit" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-                  
-                  <Route path="/cases" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
-                  <Route path="/cases/:id" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
-                  <Route path="/cases/create" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
-                  <Route path="/cases/:id/edit" element={<ProtectedRoute><Cases /></ProtectedRoute>} />
-                  
-                  <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-                  <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
-                  <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-                  <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-                  <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-                  <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/clients/*" element={
+                    <ProtectedRoute>
+                      <Clients />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/cases/*" element={
+                    <ProtectedRoute>
+                      <Cases />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/calendar" element={
+                    <ProtectedRoute>
+                      <Calendar />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/documents" element={
+                    <ProtectedRoute>
+                      <Documents />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/messages" element={
+                    <ProtectedRoute>
+                      <Messages />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/billing" element={
+                    <ProtectedRoute>
+                      <Billing />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/reports" element={
+                    <ProtectedRoute>
+                      <Reports />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings" element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
 
-                  {/* Adding missing routes */}
-                  <Route path="/files" element={<ProtectedRoute><Files /></ProtectedRoute>} />
-                  <Route path="/medical" element={<ProtectedRoute><Medical /></ProtectedRoute>} />
-                  <Route path="/calculator" element={<ProtectedRoute><Calculator /></ProtectedRoute>} />
-                  <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-                  <Route path="/depositions/*" element={<ProtectedRoute><Depositions /></ProtectedRoute>} />
-                  <Route path="/attorneys" element={<ProtectedRoute><Attorneys /></ProtectedRoute>} />
-                  <Route path="/attorneys/:id" element={<ProtectedRoute><Attorneys /></ProtectedRoute>} />
+                  {/* Additional routes */}
+                  <Route path="/files" element={
+                    <ProtectedRoute>
+                      <Files />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/medical" element={
+                    <ProtectedRoute>
+                      <Medical />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/calculator" element={
+                    <ProtectedRoute>
+                      <Calculator />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin" element={
+                    <ProtectedRoute>
+                      <Admin />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/depositions/*" element={
+                    <ProtectedRoute>
+                      <Depositions />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/attorneys/*" element={
+                    <ProtectedRoute>
+                      <Attorneys />
+                    </ProtectedRoute>
+                  } />
                   
                   <Route path="*" element={<NotFound />} />
                 </Routes>
@@ -83,4 +142,4 @@ function App() {
   );
 }
 
-export default App;
+export default React.memo(App);

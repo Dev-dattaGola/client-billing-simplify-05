@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useCallback } from "react";
 import { 
   Sheet, 
   SheetContent, 
@@ -29,10 +29,13 @@ const ClientSearchSheet: React.FC<ClientSearchSheetProps> = ({
   
   const { hasPermission } = useAuth();
 
-  const handleViewAndClose = (client: any) => {
+  const handleViewAndClose = useCallback((client: any) => {
+    console.log("Viewing client and closing sheet");
     handleViewClient(client);
     onOpenChange(false);
-  };
+  }, [handleViewClient, onOpenChange]);
+
+  console.log("ClientSearchSheet rendering, isOpen:", isOpen);
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>

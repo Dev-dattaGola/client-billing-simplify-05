@@ -1,3 +1,4 @@
+
 import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +14,11 @@ import ClientAppointments from "./ClientAppointments";
 import ClientCommunication from "./ClientCommunication";
 import ClientCaseReport from "./ClientCaseReport";
 
-const ClientDetailsView: React.FC = () => {
+interface ClientDetailsViewProps {
+  onSearchClick?: () => void;
+}
+
+const ClientDetailsView: React.FC<ClientDetailsViewProps> = ({ onSearchClick }) => {
   const { 
     selectedClient, 
     activeDetailTab,
@@ -24,11 +29,6 @@ const ClientDetailsView: React.FC = () => {
   
   const { hasPermission } = useAuth();
   const { toast } = useToast();
-
-  const handleSearchClick = useCallback(() => {
-    // This would be implemented in the parent component
-    // We're keeping this function signature for future implementation
-  }, []);
 
   const handleDownloadCaseSummary = useCallback(() => {
     if (!selectedClient) return;
@@ -48,6 +48,8 @@ const ClientDetailsView: React.FC = () => {
 
   if (!selectedClient) return null;
 
+  console.log("ClientDetailsView rendering, active tab:", activeDetailTab);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -55,10 +57,12 @@ const ClientDetailsView: React.FC = () => {
           Back to List
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleSearchClick} className="flex items-center gap-2">
-            <Search className="h-4 w-4" />
-            <span>Search Clients</span>
-          </Button>
+          {onSearchClick && (
+            <Button variant="outline" onClick={onSearchClick} className="flex items-center gap-2">
+              <Search className="h-4 w-4" />
+              <span>Search Clients</span>
+            </Button>
+          )}
           
           <RoleBasedLayout requiredRoles={['admin', 'attorney']}>
             <Button variant="outline" onClick={handleDownloadCaseSummary} className="flex items-center gap-2">
