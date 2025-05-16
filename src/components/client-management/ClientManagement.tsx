@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback } from "react";
 import { ClientProvider } from "@/contexts/client";
 import ClientTabs from "./ClientTabs";
 import ClientSearchSheet from "./ClientSearchSheet";
@@ -18,8 +18,7 @@ const ClientManagement = () => {
     setIsSearchOpen(open);
   }, []);
 
-  // Using ClientProvider at this level prevents re-creating the context 
-  // when child components re-render
+  // Debugging
   console.log("ClientManagement rendering");
   
   return (

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -121,6 +120,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     }
   ];
 
+  console.log("Sidebar rendering");
+
   return (
     <div 
       className={cn(
@@ -128,13 +129,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         isCollapsed ? "w-16" : "w-60"
       )}
     >
-      {/* <div className="p-3 flex items-center gap-2 border-b">
-        <div className="bg-lawfirm-light-blue text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg">
-          LYZ
-        </div>
-        {!isCollapsed && <div className="font-semibold">LYZ Law Firm</div>}
-      </div> */}
-
       <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
         {roleBasedNavItems
           .filter(item => !currentUser || item.roles.includes(currentUser.role))
@@ -148,6 +142,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                 isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
                 isCollapsed && "justify-center px-0"
               )}
+              onClick={(e) => {
+                // Add this click handler to log navigation events
+                console.log("Navigation link clicked:", item.path);
+              }}
             >
               {item.icon}
               {!isCollapsed && <span>{item.title}</span>}
@@ -176,4 +174,4 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   );
 };
 
-export default Sidebar;
+export default React.memo(Sidebar);

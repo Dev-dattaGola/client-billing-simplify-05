@@ -1,6 +1,6 @@
 
-import { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { ReactNode, useEffect } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -11,11 +11,27 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: ProtectedRouteProps) => {
-  const { isAuthenticated, currentUser, hasPermission } = useAuth();
+  const { isAuthenticated, currentUser, hasPermission, isLoading } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Log for debugging
+    console.log("ProtectedRoute checking auth:", { 
+      isAuthenticated, 
+      currentUser: currentUser?.email, 
+      path: location.pathname,
+      isLoading
+    });
+  }, [isAuthenticated, currentUser, location.pathname, isLoading]);
+  
+  if (isLoading) {
+    return <div className="flex h-full w-full items-center justify-center">Loading...</div>;
+  }
   
   if (!isAuthenticated) {
+    console.log("Not authenticated, redirecting to login");
     toast({
       title: "Authentication Required",
       description: "Please log in to access this page.",

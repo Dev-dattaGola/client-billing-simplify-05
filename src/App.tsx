@@ -26,7 +26,6 @@ import Depositions from './pages/Depositions';
 import Attorneys from './pages/Attorneys';
 import { AuthProvider } from './contexts/AuthContext';
 import { UserProvider } from './contexts/UserContext';
-import { ClientProvider } from './contexts/ClientContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { ChatbotProvider } from './contexts/ChatbotContext';
 
@@ -39,7 +38,6 @@ function App() {
       <Router>
         <AuthProvider>
           <UserProvider>
-            <ClientProvider>
               <ChatbotProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -48,6 +46,7 @@ function App() {
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   
+                  {/* ProtectedRoutes */}
                   <Route path="/dashboard" element={
                     <ProtectedRoute>
                       <Dashboard />
@@ -134,7 +133,6 @@ function App() {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </ChatbotProvider>
-            </ClientProvider>
           </UserProvider>
         </AuthProvider>
       </Router>
