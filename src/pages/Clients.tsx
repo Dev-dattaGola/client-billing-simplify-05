@@ -3,7 +3,6 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import PageLayout from '@/frontend/components/layout/PageLayout';
 import ClientManagement from "@/components/client-management/ClientManagement";
-import { ClientProvider } from '@/contexts/ClientContext';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Plus, FileDown, Search, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -59,13 +58,6 @@ const Clients = () => {
     </form>
   ), [searchQuery, handleSearch, handleSearchChange]);
 
-  // Memoize ClientProvider and its content to prevent unnecessary re-renders
-  const clientManagementContent = useMemo(() => (
-    <ClientProvider>
-      <ClientManagement />
-    </ClientProvider>
-  ), []);
-
   return (
     <PageLayout>
       <Helmet>
@@ -115,7 +107,7 @@ const Clients = () => {
         </div>
         
         <div className="max-w-7xl mx-auto">
-          {clientManagementContent}
+          <ClientManagement />
         </div>
       </div>
       

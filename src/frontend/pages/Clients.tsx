@@ -7,16 +7,6 @@ import ClientManagement from "@/components/client-management/ClientManagement";
 import { ClientProvider } from '@/contexts/ClientContext';
 
 const Clients = () => {
-  // Memoize ClientProvider and its content to prevent unnecessary re-renders
-  const clientManagementContent = useMemo(() => (
-    <ClientProvider>
-      <Routes>
-        <Route index element={<ClientManagement />} />
-        <Route path="*" element={<ClientManagement />} />
-      </Routes>
-    </ClientProvider>
-  ), []);
-
   return (
     <PageLayout>
       <Helmet>
@@ -32,7 +22,10 @@ const Clients = () => {
         </div>
         
         <div className="max-w-7xl mx-auto">
-          {clientManagementContent}
+          <Routes>
+            <Route index element={<ClientManagement />} />
+            <Route path="*" element={<ClientManagement />} />
+          </Routes>
         </div>
       </div>
       
