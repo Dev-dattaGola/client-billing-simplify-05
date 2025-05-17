@@ -40,7 +40,7 @@ const Admin: React.FC = () => {
               <p className="text-white/70">Manage users, permissions and system settings</p>
             </div>
             
-            <Card className="overflow-hidden">
+            <Card className="card-glass overflow-hidden">
               <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                   <TabsList className="grid grid-cols-4 h-14 rounded-none bg-white/5 backdrop-blur-lg">
