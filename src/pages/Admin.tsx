@@ -32,12 +32,12 @@ const Admin: React.FC = () => {
       <Helmet>
         <title>Admin Panel - Law EMR</title>
       </Helmet>
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 min-h-screen px-4 py-6">
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 min-h-screen px-4 py-6 bg-transparent">
         <UserProvider>
           <div className="max-w-7xl mx-auto">
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-800">Administrator Control Panel</h1>
-              <p className="text-gray-600">Manage users, permissions and system settings</p>
+              <h1 className="text-2xl font-bold text-white">Administrator Control Panel</h1>
+              <p className="text-white/70">Manage users, permissions and system settings</p>
             </div>
             
             <Card className="overflow-hidden">
@@ -58,7 +58,7 @@ const Admin: React.FC = () => {
                     </TabsTrigger>
                   </TabsList>
                   
-                  <div className="p-6 bg-white/5 backdrop-blur-lg text-white">
+                  <div className="p-6 bg-white/5 backdrop-blur-lg text-white border-t border-white/10">
                     <TabsContent value="users" className="mt-0 p-0">
                       <UsersManagement />
                     </TabsContent>
