@@ -4,10 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import LandingPage from "./LandingPage";
 
 const Index = () => {
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  
-  // Show the landing page instead of auto-redirecting
+  // Remove auto-redirect logic to prevent loops
   return <LandingPage />;
 };
 

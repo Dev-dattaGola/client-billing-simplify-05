@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { useNavigate, Navigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,23 +27,14 @@ const Login = () => {
 
   // Check authentication status on component mount and when auth state changes
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log("User is authenticated, redirecting to:", from);
+    if (isAuthenticated && !authLoading) {
+      console.log("Login component: User authenticated, redirecting to:", from);
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, from]);
+  }, [isAuthenticated, navigate, from, authLoading]);
 
-  // Extra debugging for authentication status
-  useEffect(() => {
-    console.log("Login component: Auth status =", isAuthenticated);
-    console.log("Login component: Redirect destination =", from);
-  }, [isAuthenticated, from]);
-
-  if (isAuthenticated && !isLoading) {
-    console.log("Redirecting to destination from render:", from);
-    return <Navigate to={from} />;
-  }
-
+  // Remove duplicate redirect to prevent loops
+  
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -87,6 +79,11 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+  // Don't show login form if already authenticated
+  if (isAuthenticated && !isLoading && !authLoading) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-purple-50 px-4">

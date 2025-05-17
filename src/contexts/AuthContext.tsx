@@ -8,14 +8,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authInitialized, setAuthInitialized] = useState(false);
   const { login, logout, hasPermission, isLoading: authActionsLoading } = useAuthActions();
 
   useEffect(() => {
     const getUserFromStorage = () => {
       try {
+        console.log("AuthProvider: Getting user from storage");
         const userDataString = localStorage.getItem('userData') || sessionStorage.getItem('userData');
         
         if (userDataString) {
+          console.log("AuthProvider: Found user data in storage");
           const userData = JSON.parse(userDataString);
           
           // Update user name based on role
@@ -28,11 +31,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           
           setCurrentUser(userData);
+        } else {
+          console.log("AuthProvider: No user data found in storage");
         }
       } catch (error) {
         console.error('Error parsing user data from storage:', error);
       } finally {
         setIsLoading(false);
+        setAuthInitialized(true);
       }
     };
 
@@ -63,21 +69,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateAuthState = () => {
+    console.log("AuthProvider: Updating auth state");
     const userDataString = localStorage.getItem('userData') || sessionStorage.getItem('userData');
     if (userDataString) {
       try {
         const userData = JSON.parse(userDataString);
+        console.log("AuthProvider: Updated user data:", userData.email);
         setCurrentUser(userData);
       } catch (error) {
         console.error('Error updating auth state:', error);
       }
+    } else {
+      console.log("AuthProvider: No user data found when updating auth state");
+      setCurrentUser(null);
     }
   };
 
   const contextValue: AuthContextType = {
     currentUser,
-    isAuthenticated: !!currentUser,
-    isLoading: isLoading || authActionsLoading,
+    isAuthenticated: !!currentUser && authInitialized,
+    isLoading: isLoading || authActionsLoading || !authInitialized,
     login: handleLogin,
     logout: handleLogout,
     hasPermission,
