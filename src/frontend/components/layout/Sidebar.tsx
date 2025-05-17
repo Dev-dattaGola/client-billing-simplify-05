@@ -14,7 +14,6 @@ import {
   Settings,
   BarChart,
   Calculator,
-  FileSearch,
   Gavel,
   Shield
 } from 'lucide-react';
@@ -56,13 +55,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       roles: ['admin', 'attorney', 'client'] // All users
     },
     { 
-      title: 'Files', 
-      path: '/files', 
-      icon: <FileSearch size={20} />,
-      roles: ['admin', 'attorney'],
-      visibleOn: ['/dashboard', '/calendar', '/messages', '/admin', '/depositions', '/attorneys', '/settings', '/medical', '/billing', '/calculator']
-    },
-    { 
       title: 'Medical', 
       path: '/medical', 
       icon: <Building2 size={20} />,
@@ -79,13 +71,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       path: '/calculator', 
       icon: <Calculator size={20} />,
       roles: ['admin', 'attorney'] 
-    },
-    { 
-      title: 'Reports', 
-      path: '/reports', 
-      icon: <FileSearch size={20} />,
-      roles: ['admin', 'attorney'],
-      visibleOn: ['/dashboard', '/calendar', '/messages', '/admin', '/depositions', '/attorneys', '/settings', '/medical', '/billing', '/calculator']
     },
     { 
       title: 'Calendar', 
@@ -130,21 +115,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     setIsCollapsed(!isCollapsed);
   }, [isCollapsed, setIsCollapsed]);
 
-  // Check if a nav item should be visible on the current path
-  const isItemVisible = (item: any) => {
-    if (!item.visibleOn) return true;
-    
-    // Hide Files and Reports tabs when on /clients, /cases, /files, or /reports pages
-    if (currentPath.startsWith('/clients') || 
-        currentPath.startsWith('/cases') || 
-        currentPath.startsWith('/files') || 
-        currentPath.startsWith('/reports')) {
-      return false;
-    }
-    
-    return item.visibleOn.some((path: string) => currentPath.startsWith(path));
-  };
-
   return (
     <div 
       className={cn(
@@ -155,7 +125,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
         {roleBasedNavItems
           .filter(item => !currentUser || item.roles.includes(currentUser.role))
-          .filter(isItemVisible)
           .map((item) => (
             <NavLink
               key={item.path}

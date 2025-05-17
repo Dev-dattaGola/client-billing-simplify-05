@@ -44,7 +44,7 @@ const MainContent: React.FC<MainContentProps> = ({ children, isSidebarOpen, isMo
 
   if (!isAuthenticated) {
     return (
-      <main className="flex-1 overflow-y-auto p-4 text-white">
+      <main className="flex-1 overflow-y-auto text-white">
         {loginContent}
       </main>
     );
@@ -52,7 +52,7 @@ const MainContent: React.FC<MainContentProps> = ({ children, isSidebarOpen, isMo
 
   return (
     <main 
-      className={`flex-1 overflow-y-auto p-4 transition-all duration-300 text-white ${sidebarAdjustmentClass}`}
+      className={`flex-1 overflow-y-auto transition-all duration-300 text-white ${sidebarAdjustmentClass}`}
     >
       {children}
     </main>
