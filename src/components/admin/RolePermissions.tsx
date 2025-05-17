@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -257,23 +258,23 @@ const RolePermissions: React.FC<PermissionProps> = ({
   };
 
   return (
-    <Card className="mt-4">
+    <Card className="mt-4 bg-transparent border-white/20">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-white">
           <Shield className="h-5 w-5" />
           {role} Permissions
         </CardTitle>
       </CardHeader>
       <CardContent>
         {/* Special 'All Permissions' switch at the top */}
-        <div className="mb-6 p-3 bg-purple-50 rounded-lg border border-purple-200">
+        <div className="mb-6 p-3 bg-purple-50/10 backdrop-blur-sm rounded-lg border border-purple-200/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-purple-600" />
-              <Label htmlFor="permission-all" className="font-medium text-purple-800">
+              <Shield className="h-5 w-5 text-purple-300" />
+              <Label htmlFor="permission-all" className="font-medium text-purple-100">
                 All Permissions
               </Label>
-              <Badge variant="outline" className="bg-purple-200 text-purple-800 border-purple-300">
+              <Badge variant="outline" className="bg-purple-200/20 text-purple-100 border-purple-300/30">
                 Full Administrator Access
               </Badge>
             </div>
@@ -281,12 +282,13 @@ const RolePermissions: React.FC<PermissionProps> = ({
               id="permission-all"
               checked={hasAllPermission}
               onCheckedChange={() => handleTogglePermission('all')}
+              className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
             />
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="mb-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6 text-white">
+          <TabsList className="mb-4 bg-transparent backdrop-blur-lg">
             <TabsTrigger value="modules">By Module</TabsTrigger>
             <TabsTrigger value="types">By Permission Type</TabsTrigger>
           </TabsList>
@@ -294,25 +296,25 @@ const RolePermissions: React.FC<PermissionProps> = ({
           {/* Module-based view */}
           <TabsContent value="modules" className="space-y-6">
             {permissionModules.map((module) => (
-              <div key={module.id} className="border rounded-lg overflow-hidden">
+              <div key={module.id} className="border border-white/20 rounded-lg overflow-hidden backdrop-blur-sm">
                 <div 
                   className={`p-3 flex items-center justify-between cursor-pointer
-                    ${expandedModules.includes(module.id) ? 'bg-gray-50' : 'bg-white'}`}
+                    ${expandedModules.includes(module.id) ? 'bg-gray-50/10' : 'bg-transparent'}`}
                   onClick={() => toggleModule(module.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <Lock className="h-4 w-4 text-gray-500" />
+                    <Lock className="h-4 w-4 text-gray-300" />
                     <div>
-                      <h3 className="font-medium">{module.name}</h3>
-                      <p className="text-xs text-muted-foreground">{module.description}</p>
+                      <h3 className="font-medium text-white">{module.name}</h3>
+                      <p className="text-xs text-white/70">{module.description}</p>
                     </div>
                     {getModulePermissionStatus(module.id) === 'full' && (
-                      <Badge className="bg-green-100 border-green-200 text-green-800 ml-2">
+                      <Badge className="bg-green-100/20 border-green-200/30 text-green-100 ml-2">
                         Full Access
                       </Badge>
                     )}
                     {getModulePermissionStatus(module.id) === 'partial' && (
-                      <Badge className="bg-yellow-100 border-yellow-200 text-yellow-800 ml-2">
+                      <Badge className="bg-yellow-100/20 border-yellow-200/30 text-yellow-100 ml-2">
                         Partial Access
                       </Badge>
                     )}
@@ -339,12 +341,12 @@ const RolePermissions: React.FC<PermissionProps> = ({
                 
                 {/* Expanded module permissions */}
                 {expandedModules.includes(module.id) && (
-                  <div className="p-3 bg-gray-50 border-t">
+                  <div className="p-3 bg-gray-50/5 border-t border-white/10">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                       {module.permissions.map((permission) => (
                         <div 
                           key={permission.id} 
-                          className="flex items-center justify-between p-2 rounded-lg bg-white border"
+                          className="flex items-center justify-between p-2 rounded-lg bg-transparent border border-white/20 backdrop-blur-sm"
                         >
                           <div className="flex items-center gap-2">
                             <Badge 
@@ -358,7 +360,7 @@ const RolePermissions: React.FC<PermissionProps> = ({
                             </Badge>
                             <Label 
                               htmlFor={`permission-${permission.id}`} 
-                              className="text-sm cursor-pointer"
+                              className="text-sm cursor-pointer text-white"
                             >
                               {permission.label}
                             </Label>
@@ -368,6 +370,7 @@ const RolePermissions: React.FC<PermissionProps> = ({
                             checked={permissions.includes(permission.id) || hasAllPermission}
                             disabled={hasAllPermission}
                             onCheckedChange={() => handleTogglePermission(permission.id)}
+                            className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
                           />
                         </div>
                       ))}
@@ -383,7 +386,7 @@ const RolePermissions: React.FC<PermissionProps> = ({
             <div className="space-y-6">
               {/* View Permissions */}
               <div>
-                <h3 className="font-medium mb-2 flex items-center">
+                <h3 className="font-medium mb-2 flex items-center text-white">
                   <Badge className={getPermissionTypeColor('basic')}>View</Badge>
                   <span className="ml-2">View Permissions</span>
                 </h3>
@@ -393,22 +396,23 @@ const RolePermissions: React.FC<PermissionProps> = ({
                     .map(permission => (
                       <div 
                         key={permission.id} 
-                        className="flex items-center justify-between p-2 rounded-lg bg-white border"
+                        className="flex items-center justify-between p-2 rounded-lg bg-transparent backdrop-blur-sm border border-white/20"
                       >
                         <div className="flex flex-col">
                           <Label 
                             htmlFor={`perm-${permission.id}`} 
-                            className="text-sm cursor-pointer"
+                            className="text-sm cursor-pointer text-white"
                           >
                             {permission.label}
                           </Label>
-                          <span className="text-xs text-muted-foreground">{permission.module}</span>
+                          <span className="text-xs text-white/70">{permission.module}</span>
                         </div>
                         <Switch
                           id={`perm-${permission.id}`}
                           checked={permissions.includes(permission.id) || hasAllPermission}
                           disabled={hasAllPermission}
                           onCheckedChange={() => handleTogglePermission(permission.id)}
+                          className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
                         />
                       </div>
                     ))
@@ -418,7 +422,7 @@ const RolePermissions: React.FC<PermissionProps> = ({
               
               {/* Write Permissions */}
               <div>
-                <h3 className="font-medium mb-2 flex items-center">
+                <h3 className="font-medium mb-2 flex items-center text-white">
                   <Badge className={getPermissionTypeColor('write')}>Write</Badge>
                   <span className="ml-2">Create/Edit Permissions</span>
                 </h3>
@@ -428,22 +432,23 @@ const RolePermissions: React.FC<PermissionProps> = ({
                     .map(permission => (
                       <div 
                         key={permission.id} 
-                        className="flex items-center justify-between p-2 rounded-lg bg-white border"
+                        className="flex items-center justify-between p-2 rounded-lg bg-transparent backdrop-blur-sm border border-white/20"
                       >
                         <div className="flex flex-col">
                           <Label 
                             htmlFor={`perm-${permission.id}`} 
-                            className="text-sm cursor-pointer"
+                            className="text-sm cursor-pointer text-white"
                           >
                             {permission.label}
                           </Label>
-                          <span className="text-xs text-muted-foreground">{permission.module}</span>
+                          <span className="text-xs text-white/70">{permission.module}</span>
                         </div>
                         <Switch
                           id={`perm-${permission.id}`}
                           checked={permissions.includes(permission.id) || hasAllPermission}
                           disabled={hasAllPermission}
                           onCheckedChange={() => handleTogglePermission(permission.id)}
+                          className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
                         />
                       </div>
                     ))
@@ -453,7 +458,7 @@ const RolePermissions: React.FC<PermissionProps> = ({
               
               {/* Danger Permissions */}
               <div>
-                <h3 className="font-medium mb-2 flex items-center">
+                <h3 className="font-medium mb-2 flex items-center text-white">
                   <Badge className={getPermissionTypeColor('danger')}>Danger</Badge>
                   <span className="ml-2">Delete Permissions</span>
                 </h3>
@@ -463,22 +468,23 @@ const RolePermissions: React.FC<PermissionProps> = ({
                     .map(permission => (
                       <div 
                         key={permission.id} 
-                        className="flex items-center justify-between p-2 rounded-lg bg-white border"
+                        className="flex items-center justify-between p-2 rounded-lg bg-transparent backdrop-blur-sm border border-white/20"
                       >
                         <div className="flex flex-col">
                           <Label 
                             htmlFor={`perm-${permission.id}`} 
-                            className="text-sm cursor-pointer"
+                            className="text-sm cursor-pointer text-white"
                           >
                             {permission.label}
                           </Label>
-                          <span className="text-xs text-muted-foreground">{permission.module}</span>
+                          <span className="text-xs text-white/70">{permission.module}</span>
                         </div>
                         <Switch
                           id={`perm-${permission.id}`}
                           checked={permissions.includes(permission.id) || hasAllPermission}
                           disabled={hasAllPermission}
                           onCheckedChange={() => handleTogglePermission(permission.id)}
+                          className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
                         />
                       </div>
                     ))
@@ -488,7 +494,7 @@ const RolePermissions: React.FC<PermissionProps> = ({
               
               {/* Admin Permissions */}
               <div>
-                <h3 className="font-medium mb-2 flex items-center">
+                <h3 className="font-medium mb-2 flex items-center text-white">
                   <Badge className={getPermissionTypeColor('admin')}>Admin</Badge>
                   <span className="ml-2">Administrative Permissions</span>
                 </h3>
@@ -498,22 +504,23 @@ const RolePermissions: React.FC<PermissionProps> = ({
                     .map(permission => (
                       <div 
                         key={permission.id} 
-                        className="flex items-center justify-between p-2 rounded-lg bg-white border"
+                        className="flex items-center justify-between p-2 rounded-lg bg-transparent backdrop-blur-sm border border-white/20"
                       >
                         <div className="flex flex-col">
                           <Label 
                             htmlFor={`perm-${permission.id}`} 
-                            className="text-sm cursor-pointer"
+                            className="text-sm cursor-pointer text-white"
                           >
                             {permission.label}
                           </Label>
-                          <span className="text-xs text-muted-foreground">{permission.module}</span>
+                          <span className="text-xs text-white/70">{permission.module}</span>
                         </div>
                         <Switch
                           id={`perm-${permission.id}`}
                           checked={permissions.includes(permission.id) || hasAllPermission}
                           disabled={hasAllPermission}
                           onCheckedChange={() => handleTogglePermission(permission.id)}
+                          className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
                         />
                       </div>
                     ))
