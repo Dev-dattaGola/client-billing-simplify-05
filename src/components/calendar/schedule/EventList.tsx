@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CalendarEvent } from "@/lib/api/calendar-api";
 import { format } from "date-fns";
@@ -19,7 +19,16 @@ const EventList: React.FC<EventListProps> = ({
   onEventClick,
   selectedDate,
 }) => {
-  // Format the time from an ISO string
+  // Memoize the date formatting to prevent unnecessary recalculations
+  const formattedDate = useMemo(() => {
+    try {
+      return selectedDate.toLocaleDateString();
+    } catch {
+      return '';
+    }
+  }, [selectedDate]);
+
+  // Format the time from an ISO string - memoize this function
   const formatEventTime = (dateString: string) => {
     try {
       return format(new Date(dateString), 'h:mm a');
@@ -33,7 +42,7 @@ const EventList: React.FC<EventListProps> = ({
       <DialogContent className="glass-effect border-white/20 bg-transparent text-white">
         <DialogHeader>
           <DialogTitle className="text-white">
-            Events for {selectedDate.toLocaleDateString()}
+            Events for {formattedDate}
           </DialogTitle>
         </DialogHeader>
         
@@ -62,4 +71,4 @@ const EventList: React.FC<EventListProps> = ({
   );
 };
 
-export default EventList;
+export default React.memo(EventList); // Use memo to prevent unnecessary re-renders

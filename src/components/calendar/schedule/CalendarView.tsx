@@ -34,4 +34,4 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   );
 };
 
-export default CalendarView;
+export default React.memo(CalendarView); // Memoize the component

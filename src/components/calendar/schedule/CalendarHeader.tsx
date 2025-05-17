@@ -17,6 +17,9 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   onNextMonth,
   onAddEvent
 }) => {
+  // Format the date once instead of on every render
+  const formattedDate = format(selectedDate, 'MMMM yyyy');
+
   return (
     <div className="flex items-center justify-between w-full mb-4">
       <Button
@@ -24,17 +27,19 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         size="icon"
         className="border-white/20 bg-white/5 text-white hover:bg-white/10"
         onClick={onPreviousMonth}
+        type="button" // Explicitly set button type
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
       <h2 className="text-lg font-medium text-white">
-        {format(selectedDate, 'MMMM yyyy')}
+        {formattedDate}
       </h2>
       <Button
         variant="outline"
         size="icon"
         className="border-white/20 bg-white/5 text-white hover:bg-white/10"
         onClick={onNextMonth}
+        type="button" // Explicitly set button type
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
@@ -42,4 +47,4 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   );
 };
 
-export default CalendarHeader;
+export default React.memo(CalendarHeader); // Memoize the component to prevent unnecessary re-renders

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarEvent } from "@/lib/api/calendar-api";
@@ -26,8 +26,8 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
   // Use our custom hook to fetch and manage events
   const { events, isLoading, getDatesWithEvents } = useCalendarEvents();
 
-  // Handler for date selection
-  const handleDateSelect = (date: Date | undefined) => {
+  // Handler for date selection - memoize to prevent recreation on render
+  const handleDateSelect = useCallback((date: Date | undefined) => {
     if (!date) return;
     
     setSelectedDate(date);
@@ -42,51 +42,55 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
       );
     });
     
+    setSelectedDateEvents(dateEvents);
     if (dateEvents.length > 0) {
-      setSelectedDateEvents(dateEvents);
       setShowEventsDialog(true);
     }
-  };
+  }, [events]);
 
-  // Handle opening the event details
-  const handleEventClick = (event: CalendarEvent) => {
+  // Handle opening the event details - memoize to prevent recreation on render
+  const handleEventClick = useCallback((event: CalendarEvent) => {
     if (onSelectEvent) {
       onSelectEvent(event);
     }
-  };
+  }, [onSelectEvent]);
 
-  // Navigate to previous month
-  const handlePreviousMonth = () => {
-    const prevMonth = new Date(selectedDate);
-    prevMonth.setMonth(prevMonth.getMonth() - 1);
-    setSelectedDate(prevMonth);
-  };
+  // Navigate to previous month - memoize to prevent recreation on render
+  const handlePreviousMonth = useCallback(() => {
+    setSelectedDate(prevDate => {
+      const prevMonth = new Date(prevDate);
+      prevMonth.setMonth(prevMonth.getMonth() - 1);
+      return prevMonth;
+    });
+  }, []);
 
-  // Navigate to next month
-  const handleNextMonth = () => {
-    const nextMonth = new Date(selectedDate);
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
-    setSelectedDate(nextMonth);
-  };
+  // Navigate to next month - memoize to prevent recreation on render
+  const handleNextMonth = useCallback(() => {
+    setSelectedDate(prevDate => {
+      const nextMonth = new Date(prevDate);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      return nextMonth;
+    });
+  }, []);
 
-  if (isLoading) {
-    return <LoadingState />;
-  }
-
-  // Prepare the modifiers in the format expected by react-day-picker
-  const eventDates = getDatesWithEvents();
-  const modifiers = {
+  // Memoize these values to prevent unnecessary recalculations
+  const eventDates = useMemo(() => getDatesWithEvents(), [getDatesWithEvents]);
+  
+  const modifiers = useMemo(() => ({
     eventDay: eventDates
-  };
+  }), [eventDates]);
 
-  // Prepare the modifiers styles
-  const modifiersStyles = {
+  const modifiersStyles = useMemo(() => ({
     eventDay: {
       fontWeight: 'bold',
       textDecoration: 'underline',
       color: 'var(--white)'
     }
-  };
+  }), []);
+
+  if (isLoading) {
+    return <LoadingState />;
+  }
 
   return (
     <>
@@ -118,7 +122,6 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
         </CardContent>
       </Card>
       
-      {/* Dialog for showing events on a selected date */}
       <EventList 
         isOpen={showEventsDialog}
         onOpenChange={setShowEventsDialog}
