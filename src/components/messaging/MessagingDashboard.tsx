@@ -440,16 +440,16 @@ const MessagingDashboard = () => {
 
   return (
     <div className="container mx-auto py-6">
-      <div className="flex flex-col lg:flex-row rounded-lg overflow-hidden border h-[calc(100vh-12rem)]">
+      <div className="flex flex-col lg:flex-row rounded-lg overflow-hidden border border-white/20 h-[calc(100vh-12rem)] bg-white/5 backdrop-blur-lg">
         {/* Contacts Sidebar */}
-        <div className="w-full lg:w-80 border-r bg-white">
-          <div className="p-4 border-b">
+        <div className="w-full lg:w-80 border-r border-white/20 bg-white/5 backdrop-blur-lg">
+          <div className="p-4 border-b border-white/20">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/70" />
               <Input
                 type="search"
                 placeholder="Search conversations..."
-                className="pl-10"
+                className="pl-10 bg-white/10 border-white/20 text-white"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -457,22 +457,22 @@ const MessagingDashboard = () => {
           </div>
           
           <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)}>
-            <TabsList className="w-full p-0 h-12 rounded-none">
-              <TabsTrigger value="all" className="flex-1">All</TabsTrigger>
-              <TabsTrigger value="attorneys" className="flex-1">Attorneys</TabsTrigger>
-              <TabsTrigger value="clients" className="flex-1">Clients</TabsTrigger>
+            <TabsList className="w-full p-0 h-12 rounded-none bg-white/5">
+              <TabsTrigger value="all" className="flex-1 text-white">All</TabsTrigger>
+              <TabsTrigger value="attorneys" className="flex-1 text-white">Attorneys</TabsTrigger>
+              <TabsTrigger value="clients" className="flex-1 text-white">Clients</TabsTrigger>
             </TabsList>
             
             <ScrollArea className="h-[calc(100vh-15.5rem)]">
               <TabsContent value="all" className="m-0">
                 {filteredContacts.length === 0 ? (
-                  <div className="p-4 text-center text-gray-500">No contacts found.</div>
+                  <div className="p-4 text-center text-white/70">No contacts found.</div>
                 ) : (
                   filteredContacts.map((contact) => (
                     <div
                       key={contact.id}
-                      className={`p-4 border-b hover:bg-gray-50 cursor-pointer flex items-center ${
-                        selectedContact?.id === contact.id ? "bg-gray-100" : ""
+                      className={`p-4 border-b border-white/10 hover:bg-white/10 cursor-pointer flex items-center ${
+                        selectedContact?.id === contact.id ? "bg-white/10" : ""
                       }`}
                       onClick={() => setSelectedContact(contact)}
                     >
@@ -484,14 +484,14 @@ const MessagingDashboard = () => {
                       </Avatar>
                       <div className="ml-4 flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-medium">{contact.name}</span>
+                          <span className="font-medium text-white">{contact.name}</span>
                           {contact.unreadCount > 0 && (
                             <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-0.5">
                               {contact.unreadCount}
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-white/70">
                           {contact.role.charAt(0).toUpperCase() + contact.role.slice(1)}
                         </p>
                       </div>
@@ -572,11 +572,11 @@ const MessagingDashboard = () => {
         </div>
         
         {/* Messages Area */}
-        <div className="flex-1 flex flex-col bg-gray-50">
+        <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-lg">
           {selectedContact ? (
             <>
               {/* Contact Header */}
-              <div className="p-4 border-b bg-white flex items-center">
+              <div className="p-4 border-b border-white/20 bg-white/5 backdrop-blur-lg flex items-center">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={selectedContact.avatarUrl} />
                   <AvatarFallback className={getAvatarColor(selectedContact.role)}>
@@ -584,8 +584,8 @@ const MessagingDashboard = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div className="ml-4">
-                  <h3 className="font-medium">{selectedContact.name}</h3>
-                  <p className="text-sm text-gray-500">
+                  <h3 className="font-medium text-white">{selectedContact.name}</h3>
+                  <p className="text-sm text-white/70">
                     {selectedContact.role.charAt(0).toUpperCase() + selectedContact.role.slice(1)} • {selectedContact.email}
                   </p>
                 </div>
@@ -594,8 +594,8 @@ const MessagingDashboard = () => {
               {/* Messages */}
               <ScrollArea className="flex-1 p-4">
                 {messages.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                    <User className="h-12 w-12 mb-2 text-gray-400" />
+                  <div className="h-full flex flex-col items-center justify-center text-white/70">
+                    <User className="h-12 w-12 mb-2 text-white/50" />
                     <p>No messages yet with {selectedContact.name}.</p>
                     <p className="text-sm">Send a message to start the conversation.</p>
                   </div>
@@ -610,7 +610,7 @@ const MessagingDashboard = () => {
                         <div key={msg.id} className="space-y-4">
                           {showDate && (
                             <div className="flex justify-center">
-                              <span className="text-xs bg-gray-200 rounded-full px-3 py-1 text-gray-600">
+                              <span className="text-xs bg-white/10 rounded-full px-3 py-1 text-white/70">
                                 {formatDate(msg.timestamp)}
                               </span>
                             </div>
@@ -632,18 +632,18 @@ const MessagingDashboard = () => {
                                   className={`rounded-lg p-4 ${
                                     isCurrentUser 
                                       ? "bg-blue-500 text-white" 
-                                      : "bg-white border"
+                                      : "bg-white/10 backdrop-blur-sm text-white border border-white/10"
                                   }`}
                                 >
                                   <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                                   
                                   {msg.attachments && msg.attachments.length > 0 && (
-                                    <div className="mt-3 pt-3 border-t border-opacity-20">
+                                    <div className="mt-3 pt-3 border-t border-white/20">
                                       {msg.attachments.map((attachment) => (
                                         <div 
                                           key={attachment.id} 
                                           className={`flex items-center rounded-md p-2 mb-1 ${
-                                            isCurrentUser ? "bg-blue-600" : "bg-gray-100"
+                                            isCurrentUser ? "bg-blue-600" : "bg-white/10"
                                           }`}
                                         >
                                           <PaperclipIcon className="h-4 w-4 mr-2 flex-shrink-0" />
@@ -654,7 +654,7 @@ const MessagingDashboard = () => {
                                   )}
                                 </div>
                                 
-                                <div className={`text-xs text-gray-500 mt-1 ${isCurrentUser ? "text-right" : ""}`}>
+                                <div className={`text-xs text-white/50 mt-1 ${isCurrentUser ? "text-right" : ""}`}>
                                   {formatTime(msg.timestamp)}
                                   {isCurrentUser && (
                                     <span className="ml-2">
@@ -674,13 +674,13 @@ const MessagingDashboard = () => {
               </ScrollArea>
               
               {/* Message Input */}
-              <div className="p-4 border-t bg-white">
+              <div className="p-4 border-t border-white/20 bg-white/5 backdrop-blur-lg">
                 {messageAttachments.length > 0 && (
                   <div className="mb-3 flex flex-wrap gap-2">
                     {messageAttachments.map((attachment) => (
                       <div
                         key={attachment.id}
-                        className="flex items-center bg-gray-100 rounded-full pl-3 pr-2 py-1"
+                        className="flex items-center bg-white/10 rounded-full pl-3 pr-2 py-1 text-white"
                       >
                         <PaperclipIcon className="h-4 w-4 mr-1" />
                         <span className="text-sm truncate max-w-[150px]">
@@ -689,10 +689,11 @@ const MessagingDashboard = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-6 w-6 p-0 ml-1 rounded-full"
+                          className="h-6 w-6 p-0 ml-1 rounded-full text-white/70 hover:text-white hover:bg-white/10"
                           onClick={() => removeAttachment(attachment.id)}
+                          type="button"
                         >
-                          <Trash2 className="h-3 w-3 text-gray-500" />
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
                     ))}
@@ -702,11 +703,11 @@ const MessagingDashboard = () => {
                 <div className="flex items-center space-x-2">
                   <Dialog open={isAttachmentDialogOpen} onOpenChange={setIsAttachmentDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-full">
+                      <Button variant="ghost" size="icon" className="rounded-full text-white hover:bg-white/10" type="button">
                         <PaperclipIcon className="h-5 w-5" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="bg-white/10 backdrop-blur-lg border-white/20 text-white">
                       <DialogHeader>
                         <DialogTitle>Add Attachment</DialogTitle>
                       </DialogHeader>
@@ -731,12 +732,14 @@ const MessagingDashboard = () => {
                         sendMessage();
                       }
                     }}
-                    className="flex-1"
+                    className="flex-1 bg-white/10 border-white/20 text-white"
                   />
                   
                   <Button 
                     onClick={sendMessage}
                     disabled={!newMessage.trim() && messageAttachments.length === 0}
+                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                    type="button"
                   >
                     <Send className="h-5 w-5" />
                     <span className="sr-only">Send</span>
@@ -745,10 +748,10 @@ const MessagingDashboard = () => {
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <User className="h-16 w-16 mb-4 text-gray-400" />
-              <h3 className="text-xl font-medium">No conversation selected</h3>
-              <p className="mt-2">Select a contact to start messaging</p>
+            <div className="flex flex-col items-center justify-center h-full text-white/70">
+              <User className="h-16 w-16 mb-4 text-white/50" />
+              <h3 className="text-xl font-medium text-white">No conversation selected</h3>
+              <p className="mt-2 text-white/70">Select a contact to start messaging</p>
             </div>
           )}
         </div>

@@ -43,22 +43,22 @@ const Admin: React.FC = () => {
             <Card className="overflow-hidden">
               <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                  <TabsList className="grid grid-cols-4 h-14 rounded-none bg-muted/20">
-                    <TabsTrigger value="users" className="text-sm md:text-base font-medium">
+                  <TabsList className="grid grid-cols-4 h-14 rounded-none bg-white/5 backdrop-blur-lg">
+                    <TabsTrigger value="users" className="text-sm md:text-base font-medium text-white">
                       Users & Permissions
                     </TabsTrigger>
-                    <TabsTrigger value="roles" className="text-sm md:text-base font-medium">
+                    <TabsTrigger value="roles" className="text-sm md:text-base font-medium text-white">
                       Roles Management
                     </TabsTrigger>
-                    <TabsTrigger value="logs" className="text-sm md:text-base font-medium">
+                    <TabsTrigger value="logs" className="text-sm md:text-base font-medium text-white">
                       Audit Logs
                     </TabsTrigger>
-                    <TabsTrigger value="settings" className="text-sm md:text-base font-medium">
+                    <TabsTrigger value="settings" className="text-sm md:text-base font-medium text-white">
                       System Settings
                     </TabsTrigger>
                   </TabsList>
                   
-                  <div className="p-6">
+                  <div className="p-6 bg-white/5 backdrop-blur-lg text-white">
                     <TabsContent value="users" className="mt-0 p-0">
                       <UsersManagement />
                     </TabsContent>
