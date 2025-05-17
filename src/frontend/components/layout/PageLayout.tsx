@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../../../components/layout/Navbar';
 import Sidebar from './Sidebar';
 import MainContent from './MainContent';
@@ -23,9 +23,13 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
     };
   }, []);
 
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarCollapsed(prev => !prev);
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+    <div className="min-h-screen flex flex-col dark">
+      <Navbar toggleSidebar={toggleSidebar} />
       <div className="flex flex-1 mt-16 h-[calc(100vh-4rem)]">
         <Sidebar 
           isCollapsed={isSidebarCollapsed} 
@@ -39,4 +43,4 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   );
 };
 
-export default PageLayout;
+export default React.memo(PageLayout);

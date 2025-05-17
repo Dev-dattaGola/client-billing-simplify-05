@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useCallback } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -26,6 +26,8 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const { hasPermission, currentUser } = useAuth();
+  const location = useLocation();
+  const currentPath = location.pathname;
   
   // Define which roles can access which items
   const roleBasedNavItems = [
@@ -57,7 +59,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Files', 
       path: '/files', 
       icon: <FileSearch size={20} />,
-      roles: ['admin', 'attorney'] 
+      roles: ['admin', 'attorney'],
+      visibleOn: ['/dashboard', '/files', '/reports', '/calendar', '/messages', '/admin', '/depositions', '/attorneys', '/settings', '/medical', '/billing', '/calculator']
     },
     { 
       title: 'Medical', 
@@ -81,7 +84,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Reports', 
       path: '/reports', 
       icon: <FileSearch size={20} />,
-      roles: ['admin', 'attorney'] 
+      roles: ['admin', 'attorney'],
+      visibleOn: ['/dashboard', '/files', '/reports', '/calendar', '/messages', '/admin', '/depositions', '/attorneys', '/settings', '/medical', '/billing', '/calculator'] 
     },
     { 
       title: 'Calendar', 
@@ -121,31 +125,42 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     }
   ];
 
+  // Use useCallback for toggle function to prevent recreating on each render
+  const toggleSidebar = useCallback(() => {
+    setIsCollapsed(!isCollapsed);
+  }, [isCollapsed, setIsCollapsed]);
+
+  // Check if a nav item should be visible on the current path
+  const isItemVisible = (item: any) => {
+    if (!item.visibleOn) return true;
+    
+    // If current path starts with /clients, hide items not visible on clients pages
+    if (currentPath.startsWith('/clients')) {
+      return false;
+    }
+    
+    return item.visibleOn.some((path: string) => currentPath.startsWith(path));
+  };
+
   return (
     <div 
       className={cn(
-        "border-r border-border h-screen transition-all duration-300 flex flex-col bg-background",
+        "border-r border-white/10 h-screen transition-all duration-300 flex flex-col glass-effect",
         isCollapsed ? "w-16" : "w-60"
       )}
     >
-      {/* <div className="p-3 flex items-center gap-2 border-b">
-        <div className="bg-lawfirm-light-blue text-white w-10 h-10 flex items-center justify-center rounded font-bold text-lg">
-          LYZ
-        </div>
-        {!isCollapsed && <div className="font-semibold">LYZ Law Firm</div>}
-      </div> */}
-
       <div className="flex flex-col gap-1 p-2 flex-1 overflow-y-auto">
         {roleBasedNavItems
           .filter(item => !currentUser || item.roles.includes(currentUser.role))
+          .filter(isItemVisible)
           .map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               className={({ isActive }) => cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                "hover:bg-accent hover:text-accent-foreground",
-                isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground",
+                "hover:bg-white/20 hover:text-white",
+                isActive ? "bg-white/20 text-white" : "text-white/70",
                 isCollapsed && "justify-center px-0"
               )}
             >
@@ -155,19 +170,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
           ))}
       </div>
 
-      <div className="p-3 border-t mt-auto">
+      <div className="p-3 border-t border-white/10 mt-auto">
         {!isCollapsed && currentUser && (
-          <div className="text-xs text-muted-foreground mb-2">
+          <div className="text-xs text-white/70 mb-2">
             <div className="font-medium">{currentUser.name}</div>
             <div>{currentUser.email}</div>
-            <div className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs inline-block mt-1">
+            <div className="bg-blue-500/30 text-blue-100 px-2 py-0.5 rounded-full text-xs inline-block mt-1 backdrop-blur-sm">
               {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
             </div>
           </div>
         )}
         <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="w-full flex items-center justify-center h-10 border rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+          onClick={toggleSidebar}
+          className="w-full flex items-center justify-center h-10 border border-white/20 rounded-md text-white/70 hover:bg-white/10 hover:text-white transition-colors backdrop-blur-sm"
         >
           {isCollapsed ? "→" : "←"}
         </button>
@@ -176,4 +191,4 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   );
 };
 
-export default Sidebar;
+export default React.memo(Sidebar);

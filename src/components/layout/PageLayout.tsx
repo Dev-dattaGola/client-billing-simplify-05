@@ -28,7 +28,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col dark">
       <Navbar toggleSidebar={toggleSidebar} />
       <div className="flex flex-1 mt-16 h-[calc(100vh-4rem)]">
         <Sidebar 
