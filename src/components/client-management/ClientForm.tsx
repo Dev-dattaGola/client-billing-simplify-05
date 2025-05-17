@@ -104,16 +104,16 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 text-white">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
             name="fullName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name *</FormLabel>
+                <FormLabel className="text-white">Full Name *</FormLabel>
                 <FormControl>
-                  <Input placeholder="John Doe" {...field} />
+                  <Input placeholder="John Doe" {...field} className="bg-white/10 text-white border-white/20" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -125,9 +125,9 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email *</FormLabel>
+                <FormLabel className="text-white">Email *</FormLabel>
                 <FormControl>
-                  <Input placeholder="john.doe@example.com" type="email" {...field} />
+                  <Input placeholder="john.doe@example.com" type="email" {...field} className="bg-white/10 text-white border-white/20" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -139,9 +139,9 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone Number *</FormLabel>
+                <FormLabel className="text-white">Phone Number *</FormLabel>
                 <FormControl>
-                  <Input placeholder="(555) 123-4567" {...field} />
+                  <Input placeholder="(555) 123-4567" {...field} className="bg-white/10 text-white border-white/20" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -153,11 +153,11 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
             name="companyName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Company Name</FormLabel>
+                <FormLabel className="text-white">Company Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Acme Inc." {...field} />
+                  <Input placeholder="Acme Inc." {...field} className="bg-white/10 text-white border-white/20" />
                 </FormControl>
-                <FormDescription>Optional</FormDescription>
+                <FormDescription className="text-white/70">Optional</FormDescription>
               </FormItem>
             )}
           />
@@ -168,17 +168,17 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
               name="assignedAttorneyId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assigned Attorney</FormLabel>
+                  <FormLabel className="text-white">Assigned Attorney</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-white/10 text-white border-white/20">
                         <SelectValue placeholder="Select an attorney" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-white/90 backdrop-blur-lg text-black">
                       {attorneys.map(attorney => (
                         <SelectItem key={attorney.id} value={attorney.id}>
                           {attorney.name}
@@ -186,7 +186,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>
+                  <FormDescription className="text-white/70">
                     Attorney responsible for this client's cases
                   </FormDescription>
                 </FormItem>
@@ -199,20 +199,20 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
             name="address"
             render={({ field }) => (
               <FormItem className={isAdmin ? "" : "md:col-span-2"}>
-                <FormLabel>Address</FormLabel>
+                <FormLabel className="text-white">Address</FormLabel>
                 <FormControl>
-                  <Input placeholder="123 Main St, Anytown, USA" {...field} />
+                  <Input placeholder="123 Main St, Anytown, USA" {...field} className="bg-white/10 text-white border-white/20" />
                 </FormControl>
-                <FormDescription>Optional</FormDescription>
+                <FormDescription className="text-white/70">Optional</FormDescription>
               </FormItem>
             )}
           />
           
           <div className="md:col-span-2">
-            <FormLabel>Tags</FormLabel>
+            <FormLabel className="text-white">Tags</FormLabel>
             <div className="flex flex-wrap gap-2 mb-2">
               {tags.map(tag => (
-                <Badge key={tag} variant="secondary" className="gap-1">
+                <Badge key={tag} variant="secondary" className="gap-1 bg-white/20 text-white">
                   {tag}
                   <X 
                     className="h-3 w-3 cursor-pointer" 
@@ -227,6 +227,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
                 value={currentTag}
                 onChange={(e) => setCurrentTag(e.target.value)}
                 onKeyDown={handleKeyPress}
+                className="bg-white/10 text-white border-white/20"
               />
               <Button 
                 type="button" 
@@ -236,7 +237,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-sm text-white/70 mt-2">
               Press Enter or click + to add a tag
             </p>
           </div>
@@ -246,15 +247,15 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
             name="notes"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>Notes</FormLabel>
+                <FormLabel className="text-white">Notes</FormLabel>
                 <FormControl>
                   <Textarea 
                     placeholder="Add any additional notes or information about the client..."
-                    className="min-h-[120px]"
+                    className="min-h-[120px] bg-white/10 text-white border-white/20"
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>Optional</FormDescription>
+                <FormDescription className="text-white/70">Optional</FormDescription>
               </FormItem>
             )}
           />

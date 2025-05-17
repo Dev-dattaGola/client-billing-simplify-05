@@ -51,21 +51,21 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
     <Tabs 
       value={activeTab} 
       onValueChange={setActiveTab}
-      className="w-full"
+      className="w-full text-white"
     >
-      <div className="border-b px-6 py-2">
-        <TabsList className={`grid w-full ${shouldShowAddTab ? 'grid-cols-2' : 'grid-cols-1'}`}>
-          <TabsTrigger value="view">View Clients</TabsTrigger>
+      <div className="border-b border-white/20 px-6 py-2">
+        <TabsList className={`grid w-full ${shouldShowAddTab ? 'grid-cols-2' : 'grid-cols-1'} bg-white/10`}>
+          <TabsTrigger value="view" className="text-white data-[state=active]:bg-white/20">View Clients</TabsTrigger>
           
           {shouldShowAddTab && (
-            <TabsTrigger value="add">{clientToEdit ? "Edit Client" : "Add Client"}</TabsTrigger>
+            <TabsTrigger value="add" className="text-white data-[state=active]:bg-white/20">{clientToEdit ? "Edit Client" : "Add Client"}</TabsTrigger>
           )}
         </TabsList>
       </div>
       
       <TabsContent value="view" className="p-6 space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">Active Clients</h2>
+          <h2 className="text-xl font-bold text-white">Active Clients</h2>
           <div className="flex gap-2">
             {onSearchClick && (
               <Button 
@@ -100,7 +100,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
         
         {droppedClients.length > 0 && (
           <>
-            <Separator className="my-8" />
+            <Separator className="my-8 bg-white/20" />
             <DroppedClientsList
               clients={droppedClients}
               onViewClient={handleViewClient}
@@ -122,10 +122,10 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
             }}
           />
         ) : (
-          <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 flex flex-col items-center justify-center">
+          <div className="glass-card p-6 rounded-lg border border-white/20 flex flex-col items-center justify-center text-white">
             <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
-            <h3 className="text-lg font-medium text-yellow-800">Access Restricted</h3>
-            <p className="text-yellow-600 text-center mt-2">
+            <h3 className="text-lg font-medium text-white">Access Restricted</h3>
+            <p className="text-white/80 text-center mt-2">
               You do not have permission to {clientToEdit ? "edit" : "add"} clients.
             </p>
             <Button 

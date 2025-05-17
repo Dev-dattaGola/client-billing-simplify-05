@@ -102,13 +102,13 @@ const ClientList = ({
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 text-white">
         <div className="flex flex-wrap gap-2">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/70" />
             <Input
               placeholder="Search clients..."
-              className="pl-9"
+              className="pl-9 bg-white/10 text-white border-white/20"
               value={filterParams.search}
               onChange={(e) => setFilterParams({...filterParams, search: e.target.value})}
             />
@@ -125,9 +125,9 @@ const ClientList = ({
         </div>
         
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 glass-card rounded-lg">
             <div>
-              <p className="text-sm font-medium mb-2">Filter by Tag</p>
+              <p className="text-sm font-medium mb-2 text-white">Filter by Tag</p>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full justify-start gap-2">
@@ -135,15 +135,16 @@ const ClientList = ({
                     {filterParams.tag || "Select Tag"}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setFilterParams({...filterParams, tag: undefined})}>
+                <DropdownMenuContent className="glass-card bg-white/20 backdrop-blur-lg text-white border border-white/20">
+                  <DropdownMenuItem onClick={() => setFilterParams({...filterParams, tag: undefined})} className="hover:bg-white/20">
                     All Tags
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-white/20" />
                   {uniqueTags.map(tag => (
                     <DropdownMenuItem 
                       key={tag}
                       onClick={() => setFilterParams({...filterParams, tag})}
+                      className="hover:bg-white/20"
                     >
                       {tag}
                     </DropdownMenuItem>
@@ -153,15 +154,15 @@ const ClientList = ({
             </div>
             
             <div>
-              <p className="text-sm font-medium mb-2">Created Date Range</p>
+              <p className="text-sm font-medium mb-2 text-white">Created Date Range</p>
               <div className="grid grid-cols-2 gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
-                      variant={"outline"}
+                      variant="outline"
                       className={cn(
                         "justify-start text-left font-normal",
-                        !filterParams.dateRange?.from && "text-muted-foreground"
+                        !filterParams.dateRange?.from && "text-white/70"
                       )}
                     >
                       {filterParams.dateRange?.from ? (
@@ -171,7 +172,7 @@ const ClientList = ({
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="glass-card bg-white/20 backdrop-blur-lg text-white border border-white/20 p-0">
                     <Calendar
                       mode="single"
                       selected={filterParams.dateRange?.from}
@@ -185,6 +186,7 @@ const ClientList = ({
                         })
                       }
                       initialFocus
+                      className="bg-transparent text-white"
                     />
                   </PopoverContent>
                 </Popover>
@@ -192,10 +194,10 @@ const ClientList = ({
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
-                      variant={"outline"}
+                      variant="outline"
                       className={cn(
                         "justify-start text-left font-normal",
-                        !filterParams.dateRange?.to && "text-muted-foreground"
+                        !filterParams.dateRange?.to && "text-white/70"
                       )}
                     >
                       {filterParams.dateRange?.to ? (
@@ -205,7 +207,7 @@ const ClientList = ({
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="glass-card bg-white/20 backdrop-blur-lg text-white border border-white/20 p-0">
                     <Calendar
                       mode="single"
                       selected={filterParams.dateRange?.to}
@@ -219,6 +221,7 @@ const ClientList = ({
                         })
                       }
                       initialFocus
+                      className="bg-transparent text-white"
                     />
                   </PopoverContent>
                 </Popover>
@@ -237,55 +240,55 @@ const ClientList = ({
         )}
         
         {loading ? (
-          <div className="text-center py-12 border rounded-lg bg-muted/20">
-            <Loader2 className="mx-auto h-12 w-12 text-muted-foreground opacity-50 animate-spin" />
-            <h3 className="mt-4 text-lg font-medium">Loading clients...</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
+          <div className="text-center py-12 glass-card rounded-lg">
+            <Loader2 className="mx-auto h-12 w-12 text-white/50 opacity-50 animate-spin" />
+            <h3 className="mt-4 text-lg font-medium text-white">Loading clients...</h3>
+            <p className="mt-2 text-sm text-white/70">
               Please wait while we fetch client data
             </p>
           </div>
         ) : filteredClients.length === 0 ? (
-          <div className="text-center py-12 border rounded-lg bg-muted/20">
-            <FileText className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
-            <h3 className="mt-4 text-lg font-medium">No clients found</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
+          <div className="text-center py-12 glass-card rounded-lg">
+            <FileText className="mx-auto h-12 w-12 text-white/50 opacity-50" />
+            <h3 className="mt-4 text-lg font-medium text-white">No clients found</h3>
+            <p className="mt-2 text-sm text-white/70">
               Try adjusting your search or filter criteria
             </p>
           </div>
         ) : (
-          <div className="rounded-md border">
+          <div className="glass-card rounded-md border border-white/20">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="hidden md:table-cell">Email</TableHead>
-                  <TableHead className="hidden md:table-cell">Phone</TableHead>
-                  <TableHead className="hidden md:table-cell">Company</TableHead>
-                  <TableHead className="hidden lg:table-cell">Tags</TableHead>
-                  <TableHead>Actions</TableHead>
+                <TableRow className="border-white/20 hover:bg-white/5">
+                  <TableHead className="text-white">Name</TableHead>
+                  <TableHead className="hidden md:table-cell text-white">Email</TableHead>
+                  <TableHead className="hidden md:table-cell text-white">Phone</TableHead>
+                  <TableHead className="hidden md:table-cell text-white">Company</TableHead>
+                  <TableHead className="hidden lg:table-cell text-white">Tags</TableHead>
+                  <TableHead className="text-white">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredClients.map((client) => (
-                  <TableRow key={client.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium">
+                  <TableRow key={client.id} className="border-white/20 hover:bg-white/10">
+                    <TableCell className="font-medium text-white">
                       {client.fullName}
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
+                    <TableCell className="hidden md:table-cell text-white">
                       {client.email}
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
+                    <TableCell className="hidden md:table-cell text-white">
                       {client.phone}
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
+                    <TableCell className="hidden md:table-cell text-white">
                       {client.companyName || "-"}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <div className="flex flex-wrap gap-1">
                         {client.tags?.map(tag => (
-                          <Badge key={tag} variant="outline">{tag}</Badge>
+                          <Badge key={tag} variant="outline" className="text-white border-white/30 bg-white/10">{tag}</Badge>
                         ))}
-                        {!client.tags?.length && "-"}
+                        {!client.tags?.length && <span className="text-white/50">-</span>}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -294,6 +297,7 @@ const ClientList = ({
                           size="icon"
                           variant="ghost"
                           onClick={() => onViewClient(client)}
+                          className="hover:bg-white/10"
                         >
                           <Eye className="h-4 w-4" />
                           <span className="sr-only">View</span>
@@ -302,6 +306,7 @@ const ClientList = ({
                           size="icon"
                           variant="ghost"
                           onClick={() => onEditClient(client)}
+                          className="hover:bg-white/10"
                         >
                           <Edit className="h-4 w-4" />
                           <span className="sr-only">Edit</span>
@@ -313,6 +318,7 @@ const ClientList = ({
                             setClientToDrop(client);
                             setDropReason("");
                           }}
+                          className="hover:bg-white/10"
                         >
                           <UserMinus className="h-4 w-4" />
                           <span className="sr-only">Drop Client</span>
@@ -336,22 +342,22 @@ const ClientList = ({
           }
         }}
       >
-        <DialogContent>
+        <DialogContent className="glass-card bg-white/10 backdrop-blur-lg border border-white/20 text-white">
           <DialogHeader>
-            <DialogTitle>Drop this client?</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-white">Drop this client?</DialogTitle>
+            <DialogDescription className="text-white/70">
               This will move the client to the dropped clients list. They will no longer appear in your active clients.
             </DialogDescription>
           </DialogHeader>
           
           <div className="py-4">
-            <Label htmlFor="drop-reason" className="mb-2 block">Reason for dropping</Label>
+            <Label htmlFor="drop-reason" className="mb-2 block text-white">Reason for dropping</Label>
             <Textarea
               id="drop-reason"
               placeholder="Please provide a reason for dropping this client..."
               value={dropReason}
               onChange={(e) => setDropReason(e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[100px] bg-white/10 text-white border-white/20"
             />
           </div>
           

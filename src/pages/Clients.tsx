@@ -47,13 +47,13 @@ const Clients: React.FC = () => {
   // Memoize the search form
   const searchForm = useMemo(() => (
     <form onSubmit={handleSearch} className="relative">
-      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/70" />
       <Input
         type="search"
         placeholder="Search clients..."
         value={searchQuery}
         onChange={handleSearchChange}
-        className="w-full pl-8 md:w-[200px] lg:w-[300px]"
+        className="w-full pl-8 md:w-[200px] lg:w-[300px] bg-white/10 text-white border-white/20"
       />
     </form>
   ), [searchQuery, handleSearch, handleSearchChange]);
@@ -67,8 +67,8 @@ const Clients: React.FC = () => {
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Client Management</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl font-bold text-white">Client Management</h1>
+            <p className="text-white/70 mt-1">
               View, add, edit and manage all your clients and their cases
             </p>
           </div>
@@ -111,10 +111,10 @@ const Clients: React.FC = () => {
         </div>
       </div>
       
-      <footer className="px-4 py-6 border-t text-sm text-muted-foreground">
+      <footer className="px-4 py-6 border-t border-white/20 text-sm text-white/60">
         <div className="container mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-medium">LYZ Law Firm</span> | Client Management
+            <span className="font-medium text-white">LYZ Law Firm</span> | Client Management
           </div>
           <div className="text-sm">© 2023 LYZ Law Firm. All rights reserved.</div>
         </div>

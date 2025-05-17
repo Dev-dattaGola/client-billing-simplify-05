@@ -15,8 +15,8 @@ const Clients = () => {
       
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">Client Management</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl font-bold text-white">Client Management</h1>
+          <p className="text-white/70 mt-1">
             View, add, edit and manage all your clients and their cases
           </p>
         </div>
@@ -29,10 +29,10 @@ const Clients = () => {
         </div>
       </div>
       
-      <footer className="px-4 py-6 border-t text-sm text-muted-foreground">
+      <footer className="px-4 py-6 border-t border-white/20 text-sm text-white/60">
         <div className="container mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-medium">LYZ Law Firm</span> | Client Management
+            <span className="font-medium text-white">LYZ Law Firm</span> | Client Management
           </div>
           <div className="text-sm">© 2023 LYZ Law Firm. All rights reserved.</div>
         </div>

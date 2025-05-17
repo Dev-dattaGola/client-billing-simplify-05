@@ -22,7 +22,7 @@ const ClientManagement = () => {
   console.log("ClientManagement rendering");
   
   return (
-    <div className="bg-white rounded-lg border shadow-sm">
+    <div className="glass-card backdrop-blur-lg border border-white/20 rounded-lg shadow-sm">
       <ClientProvider>
         <ClientTabs onSearchClick={handleSearchClick} />
         <ClientSearchSheet 
