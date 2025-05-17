@@ -114,7 +114,7 @@ const DashboardOverview = () => {
                     {clients.slice(0, 6).map((client) => (
                       <Card key={client.id} className="overflow-hidden">
                         <CardContent className="p-4">
-                          <div className="font-medium">{client.name}</div>
+                          <div className="font-medium">{client.fullName}</div>
                           <div className="text-sm text-muted-foreground mt-1">{client.phone || client.email}</div>
                           <div className="text-xs text-muted-foreground mt-2">Added: {new Date(client.createdAt).toLocaleDateString()}</div>
                         </CardContent>
