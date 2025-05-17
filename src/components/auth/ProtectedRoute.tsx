@@ -1,6 +1,6 @@
 
-import { ReactNode, useEffect } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { ReactNode, useEffect, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
   const { isAuthenticated, currentUser, hasPermission, isLoading } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
-  const navigate = useNavigate();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
   
   useEffect(() => {
     // Log for debugging
@@ -24,19 +24,23 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
       path: location.pathname,
       isLoading
     });
-  }, [isAuthenticated, currentUser, location.pathname, isLoading]);
+    
+    if (!isLoading && !isAuthenticated) {
+      console.log("Not authenticated, will redirect to login");
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to access this page.",
+        variant: "destructive",
+      });
+      setShouldRedirect(true);
+    }
+  }, [isAuthenticated, currentUser, location.pathname, isLoading, toast]);
   
   if (isLoading) {
     return <div className="flex h-full w-full items-center justify-center">Loading...</div>;
   }
   
-  if (!isAuthenticated) {
-    console.log("Not authenticated, redirecting to login");
-    toast({
-      title: "Authentication Required",
-      description: "Please log in to access this page.",
-      variant: "destructive",
-    });
+  if (shouldRedirect || !isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
@@ -54,11 +58,15 @@ const ProtectedRoute = ({ children, requiredPermissions = [], roles = [] }: Prot
   
   // Grant access if either permission or role checks pass
   if (!hasPermissionAccess && !hasRoleAccess) {
-    toast({
-      title: "Access Denied",
-      description: "You don't have permission to access this page.",
-      variant: "destructive",
-    });
+    // Use useEffect to handle this toast and navigation
+    useEffect(() => {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to access this page.",
+        variant: "destructive",
+      });
+    }, []);
+    
     return <Navigate to="/dashboard" replace />;
   }
   

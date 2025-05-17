@@ -28,7 +28,6 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import { ChatbotProvider } from './contexts/ChatbotContext';
 
 function App() {
-  // Using React.memo for main App component can help prevent unnecessary re-renders
   console.log("App rendering");
   
   return (
@@ -36,91 +35,91 @@ function App() {
       <Router>
         <AuthProvider>
           <UserProvider>
-              <ChatbotProvider>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  
-                  {/* ProtectedRoutes */}
-                  <Route path="/dashboard" element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/clients/*" element={
-                    <ProtectedRoute>
-                      <Clients />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/cases/*" element={
-                    <ProtectedRoute>
-                      <Cases />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/calendar" element={
-                    <ProtectedRoute>
-                      <Calendar />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/documents" element={
-                    <ProtectedRoute>
-                      <Documents />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/messages" element={
-                    <ProtectedRoute>
-                      <Messages />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/billing" element={
-                    <ProtectedRoute>
-                      <Billing />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/settings" element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/profile" element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  } />
+            <ChatbotProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                
+                {/* ProtectedRoutes */}
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/clients/*" element={
+                  <ProtectedRoute>
+                    <Clients />
+                  </ProtectedRoute>
+                } />
+                <Route path="/cases/*" element={
+                  <ProtectedRoute>
+                    <Cases />
+                  </ProtectedRoute>
+                } />
+                <Route path="/calendar" element={
+                  <ProtectedRoute>
+                    <Calendar />
+                  </ProtectedRoute>
+                } />
+                <Route path="/documents" element={
+                  <ProtectedRoute>
+                    <Documents />
+                  </ProtectedRoute>
+                } />
+                <Route path="/messages" element={
+                  <ProtectedRoute>
+                    <Messages />
+                  </ProtectedRoute>
+                } />
+                <Route path="/billing" element={
+                  <ProtectedRoute>
+                    <Billing />
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } />
 
-                  {/* Additional routes */}
-                  <Route path="/medical" element={
-                    <ProtectedRoute>
-                      <Medical />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/calculator" element={
-                    <ProtectedRoute>
-                      <Calculator />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin" element={
-                    <ProtectedRoute>
-                      <Admin />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/depositions/*" element={
-                    <ProtectedRoute>
-                      <Depositions />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/attorneys/*" element={
-                    <ProtectedRoute>
-                      <Attorneys />
-                    </ProtectedRoute>
-                  } />
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </ChatbotProvider>
+                {/* Additional routes */}
+                <Route path="/medical" element={
+                  <ProtectedRoute>
+                    <Medical />
+                  </ProtectedRoute>
+                } />
+                <Route path="/calculator" element={
+                  <ProtectedRoute>
+                    <Calculator />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <Admin />
+                  </ProtectedRoute>
+                } />
+                <Route path="/depositions/*" element={
+                  <ProtectedRoute>
+                    <Depositions />
+                  </ProtectedRoute>
+                } />
+                <Route path="/attorneys/*" element={
+                  <ProtectedRoute>
+                    <Attorneys />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </ChatbotProvider>
           </UserProvider>
         </AuthProvider>
       </Router>

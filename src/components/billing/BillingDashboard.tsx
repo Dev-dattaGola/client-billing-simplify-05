@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import InvoiceManagement from './InvoiceManagement';
@@ -13,6 +13,14 @@ const BillingDashboard = () => {
   const [activeTab, setActiveTab] = useState('invoices');
   const { toast } = useToast();
 
+  // Use useCallback to prevent recreation of this function on each render
+  const handleNewInvoiceClick = useCallback(() => {
+    toast({
+      title: "Coming Soon",
+      description: "Invoice creation will be available in the next update.",
+    });
+  }, [toast]);
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
@@ -23,10 +31,7 @@ const BillingDashboard = () => {
         <div className="mt-4 md:mt-0">
           <button 
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-md hover:from-amber-600 hover:to-orange-700 transition-all shadow-md"
-            onClick={() => toast({
-              title: "Coming Soon",
-              description: "Invoice creation will be available in the next update.",
-            })}
+            onClick={handleNewInvoiceClick}
           >
             <PlusCircle className="h-5 w-5" />
             <span>New Invoice</span>
@@ -105,4 +110,4 @@ const BillingDashboard = () => {
   );
 };
 
-export default BillingDashboard;
+export default React.memo(BillingDashboard);

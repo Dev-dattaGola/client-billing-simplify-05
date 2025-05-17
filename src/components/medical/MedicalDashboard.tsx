@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ProviderManagement from './ProviderManagement';
@@ -11,6 +11,14 @@ import { Stethoscope, FileHeart, PlusCircle, FileText } from 'lucide-react';
 const MedicalDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('providers');
   const { toast } = useToast();
+  
+  // Use useCallback to prevent recreation of this function on each render
+  const handleAddProvider = useCallback(() => {
+    toast({
+      title: "Coming Soon",
+      description: "This feature will be available in the next update.",
+    });
+  }, [toast]);
 
   return (
     <div className="container mx-auto p-6">
@@ -22,10 +30,7 @@ const MedicalDashboard: React.FC = () => {
         <div className="mt-4 md:mt-0">
           <button 
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-md hover:from-green-600 hover:to-emerald-700 transition-all shadow-md"
-            onClick={() => toast({
-              title: "Coming Soon",
-              description: "This feature will be available in the next update.",
-            })}
+            onClick={handleAddProvider}
           >
             <PlusCircle className="h-5 w-5" />
             <span>Add Provider</span>
@@ -93,4 +98,4 @@ const MedicalDashboard: React.FC = () => {
   );
 };
 
-export default MedicalDashboard;
+export default React.memo(MedicalDashboard);
