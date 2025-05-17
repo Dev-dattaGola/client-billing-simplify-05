@@ -21,9 +21,9 @@ const Cases = () => {
       <footer className="px-4 py-6 border-t text-sm text-muted-foreground">
         <div className="container mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-medium">LYZ Law Firm</span> | Case Management
+            <span className="font-medium">LAWerp500</span> | Case Management
           </div>
-          <div className="text-sm">© 2023 LYZ Law Firm. All rights reserved.</div>
+          <div className="text-sm">© 2025 LAWerp500. All rights reserved.</div>
         </div>
       </footer>
     </PageLayout>

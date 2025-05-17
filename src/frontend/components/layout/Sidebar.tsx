@@ -60,7 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       path: '/files', 
       icon: <FileSearch size={20} />,
       roles: ['admin', 'attorney'],
-      visibleOn: ['/dashboard', '/files', '/reports', '/calendar', '/messages', '/admin', '/depositions', '/attorneys', '/settings', '/medical', '/billing', '/calculator']
+      visibleOn: ['/dashboard', '/calendar', '/messages', '/admin', '/depositions', '/attorneys', '/settings', '/medical', '/billing', '/calculator']
     },
     { 
       title: 'Medical', 
@@ -85,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       path: '/reports', 
       icon: <FileSearch size={20} />,
       roles: ['admin', 'attorney'],
-      visibleOn: ['/dashboard', '/files', '/reports', '/calendar', '/messages', '/admin', '/depositions', '/attorneys', '/settings', '/medical', '/billing', '/calculator'] 
+      visibleOn: ['/dashboard', '/calendar', '/messages', '/admin', '/depositions', '/attorneys', '/settings', '/medical', '/billing', '/calculator']
     },
     { 
       title: 'Calendar', 
@@ -134,8 +134,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   const isItemVisible = (item: any) => {
     if (!item.visibleOn) return true;
     
-    // If current path starts with /clients, hide items not visible on clients pages
-    if (currentPath.startsWith('/clients')) {
+    // Hide Files and Reports tabs when on /clients, /cases, /files, or /reports pages
+    if (currentPath.startsWith('/clients') || 
+        currentPath.startsWith('/cases') || 
+        currentPath.startsWith('/files') || 
+        currentPath.startsWith('/reports')) {
       return false;
     }
     

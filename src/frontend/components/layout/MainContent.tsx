@@ -19,7 +19,7 @@ const MainContent: React.FC<MainContentProps> = ({ children, isSidebarOpen, isMo
     if (!isAuthenticated) {
       return (
         <div className="h-full flex flex-col items-center justify-center gap-4 p-4">
-          <h1 className="text-2xl font-bold text-gradient">Welcome to LYZ Law Firm</h1>
+          <h1 className="text-2xl font-bold text-gradient">Welcome to LAWerp500</h1>
           <p className="text-gray-300 text-center max-w-md">
             Please log in to access the dashboard
           </p>
@@ -44,7 +44,7 @@ const MainContent: React.FC<MainContentProps> = ({ children, isSidebarOpen, isMo
 
   if (!isAuthenticated) {
     return (
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto text-white">
         {loginContent}
       </main>
     );
@@ -52,7 +52,7 @@ const MainContent: React.FC<MainContentProps> = ({ children, isSidebarOpen, isMo
 
   return (
     <main 
-      className={`flex-1 overflow-y-auto transition-all duration-300 ${sidebarAdjustmentClass}`}
+      className={`flex-1 overflow-y-auto transition-all duration-300 text-white ${sidebarAdjustmentClass}`}
     >
       {children}
     </main>
