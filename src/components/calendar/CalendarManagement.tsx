@@ -1,10 +1,9 @@
 
 // Implementation for CalendarManagement.tsx
-// We're fixing type compatibility issues with CalendarEvent and Task
 
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarEvent, calendarApi, Task, tasksApi } from "@/lib/api/calendar-api";
+import { CalendarEvent, calendarApi } from "@/lib/api/calendar-api";
 import CalendarSchedule from "./CalendarSchedule";
 import TaskManagement from "./TaskManagement";
 import EventForm from "./EventForm";
