@@ -67,97 +67,109 @@ const TaskForm = ({ onSave, onCancel, isLoading = false }: TaskFormProps) => {
   ];
 
   return (
-    <div className="grid gap-4 py-4">
+    <div className="grid gap-4 py-4 glass-effect border-white/20 bg-transparent text-white p-6 rounded-lg">
       <div className="grid gap-2">
-        <Label htmlFor="title">Title</Label>
-        <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
-      </div>
-      
-      <div className="grid gap-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea 
-          id="description" 
-          value={description} 
-          onChange={(e) => setDescription(e.target.value)} 
-          className="resize-none min-h-24"
+        <Label htmlFor="title" className="text-white">Title</Label>
+        <Input 
+          id="title" 
+          value={title} 
+          onChange={(e) => setTitle(e.target.value)} 
+          required 
+          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
         />
       </div>
       
       <div className="grid gap-2">
-        <Label htmlFor="assignedTo">Assigned To</Label>
+        <Label htmlFor="description" className="text-white">Description</Label>
+        <Textarea 
+          id="description" 
+          value={description} 
+          onChange={(e) => setDescription(e.target.value)} 
+          className="resize-none min-h-24 bg-white/10 border-white/20 text-white placeholder:text-white/50"
+        />
+      </div>
+      
+      <div className="grid gap-2">
+        <Label htmlFor="assignedTo" className="text-white">Assigned To</Label>
         <Input 
           id="assignedTo" 
           value={assignedTo} 
           onChange={(e) => setAssignedTo(e.target.value)} 
           placeholder="Enter name"
+          className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
         />
       </div>
       
       <div className="grid gap-2">
-        <Label>Due Date</Label>
+        <Label className="text-white">Due Date</Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
-                "w-full justify-start text-left font-normal",
-                !dueDate && "text-muted-foreground"
+                "w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white",
+                !dueDate && "text-white/50"
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {dueDate ? format(dueDate, "PPP") : "Pick a date"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
+          <PopoverContent className="bg-gray-800 text-white border-white/20 p-0">
             <Calendar
               mode="single"
               selected={dueDate}
               onSelect={(date) => date && setDueDate(date)}
               initialFocus
+              classNames={{
+                day_selected: "bg-amber-500 text-white hover:bg-amber-600",
+                day_today: "bg-white/10 text-white",
+                day: "text-white hover:bg-white/10"
+              }}
             />
           </PopoverContent>
         </Popover>
       </div>
       
       <div className="grid gap-2">
-        <Label>Priority</Label>
-        <RadioGroup value={priority} onValueChange={(value) => setPriority(value as TaskPriority)}>
+        <Label className="text-white">Priority</Label>
+        <RadioGroup value={priority} onValueChange={(value) => setPriority(value as TaskPriority)} className="text-white">
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="low" id="priority-low" />
-              <Label htmlFor="priority-low">Low</Label>
+              <Label htmlFor="priority-low" className="text-white">Low</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="medium" id="priority-medium" />
-              <Label htmlFor="priority-medium">Medium</Label>
+              <Label htmlFor="priority-medium" className="text-white">Medium</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="high" id="priority-high" />
-              <Label htmlFor="priority-high">High</Label>
+              <Label htmlFor="priority-high" className="text-white">High</Label>
             </div>
           </div>
         </RadioGroup>
       </div>
       
       <div className="grid gap-2">
-        <Label>Status</Label>
-        <RadioGroup value={status} onValueChange={(value) => setStatus(value as TaskStatus)}>
+        <Label className="text-white">Status</Label>
+        <RadioGroup value={status} onValueChange={(value) => setStatus(value as TaskStatus)} className="text-white">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="pending" id="status-pending" />
-              <Label htmlFor="status-pending">Pending</Label>
+              <Label htmlFor="status-pending" className="text-white">Pending</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="in-progress" id="status-in-progress" />
-              <Label htmlFor="status-in-progress">In Progress</Label>
+              <Label htmlFor="status-in-progress" className="text-white">In Progress</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="completed" id="status-completed" />
-              <Label htmlFor="status-completed">Completed</Label>
+              <Label htmlFor="status-completed" className="text-white">Completed</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="cancelled" id="status-cancelled" />
-              <Label htmlFor="status-cancelled">Cancelled</Label>
+              <Label htmlFor="status-cancelled" className="text-white">Cancelled</Label>
             </div>
           </div>
         </RadioGroup>
@@ -170,47 +182,52 @@ const TaskForm = ({ onSave, onCancel, isLoading = false }: TaskFormProps) => {
             checked={reminderEnabled}
             onCheckedChange={setReminderEnabled}
           />
-          <Label htmlFor="reminder">Set Reminder</Label>
+          <Label htmlFor="reminder" className="text-white">Set Reminder</Label>
         </div>
         
         {reminderEnabled && (
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Reminder Date</Label>
+              <Label className="text-white">Reminder Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !reminderDate && "text-muted-foreground"
+                      "w-full justify-start text-left font-normal bg-white/10 border-white/20 text-white",
+                      !reminderDate && "text-white/50"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {reminderDate ? format(reminderDate, "PPP") : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="bg-gray-800 text-white border-white/20 p-0">
                   <Calendar
                     mode="single"
                     selected={reminderDate}
                     onSelect={(date) => date && setReminderDate(date)}
                     disabled={(date) => date > dueDate}
                     initialFocus
+                    classNames={{
+                      day_selected: "bg-amber-500 text-white hover:bg-amber-600",
+                      day_today: "bg-white/10 text-white",
+                      day: "text-white hover:bg-white/10"
+                    }}
                   />
                 </PopoverContent>
               </Popover>
             </div>
             
             <div className="grid gap-2">
-              <Label>Reminder Time</Label>
+              <Label className="text-white">Reminder Time</Label>
               <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={reminderTime}
                 onChange={(e) => setReminderTime(e.target.value)}
               >
                 {timeOptions.map((time) => (
-                  <option key={time} value={time}>
+                  <option key={time} value={time} className="bg-gray-800 text-white">
                     {time}
                   </option>
                 ))}
@@ -221,13 +238,18 @@ const TaskForm = ({ onSave, onCancel, isLoading = false }: TaskFormProps) => {
       </div>
       
       <div className="flex justify-end space-x-3 pt-4">
-        <Button variant="outline" onClick={onCancel}>
+        <Button 
+          variant="outline" 
+          onClick={onCancel}
+          className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+        >
           Cancel
         </Button>
         <Button 
           type="submit" 
           onClick={handleSubmit} 
           disabled={isLoading || !title || !assignedTo}
+          className="bg-amber-600/70 hover:bg-amber-700/70 text-white"
         >
           {isLoading ? "Creating..." : "Create Task"}
         </Button>

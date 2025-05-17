@@ -10,7 +10,6 @@ import { CalendarEvent, calendarApi } from "@/lib/api/calendar-api";
 import { ChevronLeft, ChevronRight, Loader2, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
-import { DayPickerBase } from "react-day-picker";
 
 interface CalendarScheduleProps {
   onAddEvent?: () => void;
@@ -93,9 +92,9 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="glass-effect border-white/20 shadow-lg bg-transparent text-white">
         <CardContent className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-white" />
         </CardContent>
       </Card>
     );
@@ -111,28 +110,29 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
     eventDay: {
       fontWeight: 'bold',
       textDecoration: 'underline',
-      color: 'var(--primary)'
+      color: 'var(--white)'
     }
   };
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Calendar</CardTitle>
+      <Card className="glass-effect border-white/20 shadow-lg bg-transparent">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-white/10">
+          <CardTitle className="text-white">Calendar</CardTitle>
           {onAddEvent && (
-            <Button onClick={onAddEvent}>
+            <Button onClick={onAddEvent} className="button-glass">
               <Plus className="h-4 w-4 mr-2" />
               Add Event
             </Button>
           )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <div className="flex flex-col items-center">
             <div className="flex items-center justify-between w-full mb-4">
               <Button
                 variant="outline"
                 size="icon"
+                className="border-white/20 bg-white/5 text-white hover:bg-white/10"
                 onClick={() => {
                   const prevMonth = new Date(selectedDate);
                   prevMonth.setMonth(prevMonth.getMonth() - 1);
@@ -141,12 +141,13 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <h2 className="text-lg font-medium">
+              <h2 className="text-lg font-medium text-white">
                 {format(selectedDate, 'MMMM yyyy')}
               </h2>
               <Button
                 variant="outline"
                 size="icon"
+                className="border-white/20 bg-white/5 text-white hover:bg-white/10"
                 onClick={() => {
                   const nextMonth = new Date(selectedDate);
                   nextMonth.setMonth(nextMonth.getMonth() + 1);
@@ -157,23 +158,30 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
               </Button>
             </div>
             
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDateSelect}
-              className="rounded-md border"
-              modifiers={modifiers}
-              modifiersStyles={modifiersStyles}
-            />
+            <div className="bg-white/5 border border-white/10 rounded-md p-4 w-full">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleDateSelect}
+                className="text-white"
+                modifiers={modifiers}
+                modifiersStyles={modifiersStyles}
+                classNames={{
+                  day_selected: "bg-amber-500 text-white hover:bg-amber-600",
+                  day_today: "bg-white/10 text-white",
+                  day: "text-white hover:bg-white/10"
+                }}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
       
       {/* Dialog for showing events on a selected date */}
       <Dialog open={showEventsDialog} onOpenChange={setShowEventsDialog}>
-        <DialogContent>
+        <DialogContent className="glass-effect border-white/20 bg-transparent text-white">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-white">
               Events for {selectedDate.toLocaleDateString()}
             </DialogTitle>
           </DialogHeader>
@@ -182,18 +190,18 @@ const CalendarSchedule: React.FC<CalendarScheduleProps> = ({
             {selectedDateEvents.map(event => (
               <div 
                 key={event.id} 
-                className="border p-3 rounded-md hover:bg-muted/50 cursor-pointer"
+                className="border border-white/20 p-3 rounded-md hover:bg-white/10 cursor-pointer"
                 onClick={() => handleEventClick(event)}
               >
-                <h3 className="font-medium">{event.title}</h3>
-                <div className="flex items-center text-sm text-muted-foreground mt-1">
+                <h3 className="font-medium text-white">{event.title}</h3>
+                <div className="flex items-center text-sm text-white/80 mt-1">
                   <span>{formatEventTime(event.startDate)} - {formatEventTime(event.endDate)}</span>
                   {event.location && (
                     <span className="ml-2">• {event.location}</span>
                   )}
                 </div>
                 {event.description && (
-                  <p className="text-sm mt-2">{event.description}</p>
+                  <p className="text-sm mt-2 text-white/70">{event.description}</p>
                 )}
               </div>
             ))}

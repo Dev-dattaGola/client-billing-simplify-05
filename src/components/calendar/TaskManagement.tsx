@@ -152,21 +152,21 @@ const TaskManagement: React.FC<TaskManagementProps> = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
       </div>
     );
   }
   
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Tasks</CardTitle>
-        <Button onClick={handleAddTask}>
+    <Card className="glass-effect border-white/20 bg-transparent shadow-lg">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-white/10">
+        <CardTitle className="text-white">Tasks</CardTitle>
+        <Button onClick={handleAddTask} className="bg-amber-600/70 hover:bg-amber-700/70 text-white">
           <Plus className="h-4 w-4 mr-2" />
           Add Task
         </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         {isAddingTask ? (
           <TaskForm onSave={handleTaskSave} onCancel={() => setIsAddingTask(false)} />
         ) : selectedTask ? (
@@ -178,11 +178,31 @@ const TaskManagement: React.FC<TaskManagementProps> = () => {
           />
         ) : (
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid grid-cols-4 mb-4">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="pending">To Do</TabsTrigger>
-              <TabsTrigger value="in-progress">In Progress</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
+            <TabsList className="grid grid-cols-4 mb-4 bg-white/5 border border-white/10">
+              <TabsTrigger 
+                value="all" 
+                className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70"
+              >
+                All
+              </TabsTrigger>
+              <TabsTrigger 
+                value="pending" 
+                className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70"
+              >
+                To Do
+              </TabsTrigger>
+              <TabsTrigger 
+                value="in-progress" 
+                className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70"
+              >
+                In Progress
+              </TabsTrigger>
+              <TabsTrigger 
+                value="completed" 
+                className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70"
+              >
+                Completed
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="all">
@@ -209,7 +229,7 @@ const TaskManagement: React.FC<TaskManagementProps> = () => {
 
 const renderTaskList = (tasks: AppTask[], onTaskClick: (task: AppTask) => void) => {
   if (tasks.length === 0) {
-    return <p className="text-center py-8 text-muted-foreground">No tasks found.</p>;
+    return <p className="text-center py-8 text-white/70">No tasks found.</p>;
   }
   
   return (
@@ -218,22 +238,22 @@ const renderTaskList = (tasks: AppTask[], onTaskClick: (task: AppTask) => void) 
         <div 
           key={task.id} 
           onClick={() => onTaskClick(task)}
-          className="p-3 border rounded-md hover:bg-muted/50 cursor-pointer"
+          className="p-3 border border-white/20 rounded-md hover:bg-white/10 cursor-pointer"
         >
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-medium">{task.title}</h3>
+              <h3 className="font-medium text-white">{task.title}</h3>
               {task.dueDate && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-white/70">
                   Due: {new Date(task.dueDate).toLocaleDateString()}
                 </p>
               )}
             </div>
             <div className={`px-2 py-1 rounded-md text-xs ${
-              task.status === 'completed' ? 'bg-green-100 text-green-800' :
-              task.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
-              task.status === 'pending' ? 'bg-amber-100 text-amber-800' :
-              'bg-gray-100 text-gray-800'
+              task.status === 'completed' ? 'bg-green-800/50 text-green-100' :
+              task.status === 'in-progress' ? 'bg-blue-800/50 text-blue-100' :
+              task.status === 'pending' ? 'bg-amber-800/50 text-amber-100' :
+              'bg-gray-800/50 text-gray-100'
             }`}>
               {task.status === 'pending' ? 'To Do' : 
                task.status === 'in-progress' ? 'In Progress' : 

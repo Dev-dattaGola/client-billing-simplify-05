@@ -36,11 +36,11 @@ const EventDetails = ({ event, isOpen, onClose, onDelete }: EventDetailsProps) =
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="glass-effect border-white/20 bg-transparent text-white sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{event.title}</DialogTitle>
+          <DialogTitle className="text-white">{event.title}</DialogTitle>
           {event.description && (
-            <DialogDescription>
+            <DialogDescription className="text-white/80">
               {event.description}
             </DialogDescription>
           )}
@@ -48,10 +48,10 @@ const EventDetails = ({ event, isOpen, onClose, onDelete }: EventDetailsProps) =
         
         <div className="py-4 space-y-4">
           <div className="flex items-start gap-3">
-            <CalendarIcon className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+            <CalendarIcon className="h-5 w-5 text-white/70 shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium">Date</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="font-medium text-white">Date</p>
+              <p className="text-sm text-white/70">
                 {formatDate(new Date(event.start))}
                 {!isSameDay(new Date(event.start), new Date(event.end)) && 
                   ` - ${formatDate(new Date(event.end))}`}
@@ -61,10 +61,10 @@ const EventDetails = ({ event, isOpen, onClose, onDelete }: EventDetailsProps) =
           
           {!event.allDay && (
             <div className="flex items-start gap-3">
-              <Clock className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+              <Clock className="h-5 w-5 text-white/70 shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium">Time</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-medium text-white">Time</p>
+                <p className="text-sm text-white/70">
                   {formatTime(new Date(event.start))} - {formatTime(new Date(event.end))}
                 </p>
               </div>
@@ -73,26 +73,26 @@ const EventDetails = ({ event, isOpen, onClose, onDelete }: EventDetailsProps) =
           
           {event.allDay && (
             <div className="flex items-center">
-              <Badge>All day</Badge>
+              <Badge className="bg-amber-600/50 text-white border-amber-400/30">All day</Badge>
             </div>
           )}
           
           {event.location && (
             <div className="flex items-start gap-3">
-              <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+              <MapPin className="h-5 w-5 text-white/70 shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium">Location</p>
-                <p className="text-sm text-muted-foreground">{event.location}</p>
+                <p className="font-medium text-white">Location</p>
+                <p className="text-sm text-white/70">{event.location}</p>
               </div>
             </div>
           )}
           
           {event.participants && event.participants.length > 0 && (
             <div className="flex items-start gap-3">
-              <Users className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+              <Users className="h-5 w-5 text-white/70 shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium">Participants</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-medium text-white">Participants</p>
+                <p className="text-sm text-white/70">
                   {event.participants.join(", ")}
                 </p>
               </div>
@@ -101,10 +101,10 @@ const EventDetails = ({ event, isOpen, onClose, onDelete }: EventDetailsProps) =
           
           {event.reminderTime && (
             <div className="flex items-start gap-3">
-              <CalendarClock className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+              <CalendarClock className="h-5 w-5 text-white/70 shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium">Reminder</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-medium text-white">Reminder</p>
+                <p className="text-sm text-white/70">
                   {formatDate(new Date(event.reminderTime))}, {formatTime(new Date(event.reminderTime))}
                 </p>
               </div>
@@ -115,29 +115,29 @@ const EventDetails = ({ event, isOpen, onClose, onDelete }: EventDetailsProps) =
         <DialogFooter className="gap-2">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="gap-2">
+              <Button variant="destructive" className="gap-2 bg-red-600/70 hover:bg-red-700/70 text-white">
                 <Trash2 className="h-4 w-4" />
                 Delete
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="glass-effect border-white/20 bg-transparent text-white">
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
+                <AlertDialogTitle className="text-white">Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription className="text-white/80">
                   This action cannot be undone. This will permanently delete the event
                   from your calendar.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => onDelete(event.id)}>
+                <AlertDialogCancel className="bg-white/10 text-white border-white/20 hover:bg-white/20">Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => onDelete(event.id)} className="bg-red-600/70 hover:bg-red-700/70 text-white">
                   Delete
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
           
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={onClose} className="bg-white/10 text-white border-white/20 hover:bg-white/20">Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

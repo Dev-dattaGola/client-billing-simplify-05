@@ -96,9 +96,19 @@ const CalendarManagement: React.FC = () => {
 
   return (
     <Tabs defaultValue="calendar" className="w-full">
-      <TabsList className="grid grid-cols-2">
-        <TabsTrigger value="calendar">Calendar</TabsTrigger>
-        <TabsTrigger value="tasks">Tasks</TabsTrigger>
+      <TabsList className="grid grid-cols-2 bg-transparent border-b border-white/10">
+        <TabsTrigger 
+          value="calendar" 
+          className="data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-amber-400 text-white/70 rounded-none border-0 hover:text-white transition-colors"
+        >
+          Calendar
+        </TabsTrigger>
+        <TabsTrigger 
+          value="tasks" 
+          className="data-[state=active]:text-white data-[state=active]:border-b-2 data-[state=active]:border-amber-400 text-white/70 rounded-none border-0 hover:text-white transition-colors"
+        >
+          Tasks
+        </TabsTrigger>
       </TabsList>
       
       <TabsContent value="calendar" className="space-y-4 pt-4">
