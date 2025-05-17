@@ -58,7 +58,7 @@ const Admin: React.FC = () => {
                     </TabsTrigger>
                   </TabsList>
                   
-                  <div className="p-6 bg-white/5 backdrop-blur-lg text-white border-t border-white/10">
+                  <div className="p-6  backdrop-blur-lg text-white border-t border-white/10">
                     <TabsContent value="users" className="mt-0 p-0">
                       <UsersManagement />
                     </TabsContent>
