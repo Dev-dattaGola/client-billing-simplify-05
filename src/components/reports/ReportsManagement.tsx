@@ -18,16 +18,16 @@ const ReportsManagement = () => {
   }, [tabFromUrl]);
 
   return (
-    <div className="bg-white rounded-lg border shadow-sm">
+    <div className="glass-card backdrop-blur-lg border border-white/20 rounded-lg shadow-sm">
       <Tabs 
         value={activeTab} 
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <div className="border-b px-6 py-2">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="medical">Medical Reports</TabsTrigger>
-            <TabsTrigger value="reduction">Reduction Statements</TabsTrigger>
+        <div className="border-b border-white/10 px-6 py-2">
+          <TabsList className="grid w-full max-w-md grid-cols-2 bg-white/5">
+            <TabsTrigger value="medical" className="text-white data-[state=active]:bg-white/10">Medical Reports</TabsTrigger>
+            <TabsTrigger value="reduction" className="text-white data-[state=active]:bg-white/10">Reduction Statements</TabsTrigger>
           </TabsList>
         </div>
         

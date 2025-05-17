@@ -163,10 +163,10 @@ const MedicalReportsSheet = () => {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/70" />
           <Input 
             placeholder="Search reports..." 
-            className="pl-9"
+            className="pl-9 bg-white/5 border-white/20 text-white"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -178,54 +178,57 @@ const MedicalReportsSheet = () => {
       </div>
       
       {filteredReports.length > 0 ? (
-        <Card>
+        <Card className="glass-card backdrop-blur-lg border border-white/20">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Provider</TableHead>
-                  <TableHead>Document Type</TableHead>
-                  <TableHead>Visit Date</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead className="w-[120px]">Actions</TableHead>
+                <TableRow className="border-white/10">
+                  <TableHead className="text-white/80">Client</TableHead>
+                  <TableHead className="text-white/80">Provider</TableHead>
+                  <TableHead className="text-white/80">Document Type</TableHead>
+                  <TableHead className="text-white/80">Visit Date</TableHead>
+                  <TableHead className="text-white/80">Notes</TableHead>
+                  <TableHead className="w-[120px] text-white/80">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredReports.map((report) => (
-                  <TableRow key={report.id}>
-                    <TableCell>{report.client_name}</TableCell>
-                    <TableCell>{report.provider_name}</TableCell>
-                    <TableCell>
+                  <TableRow key={report.id} className="border-white/10">
+                    <TableCell className="text-white">{report.client_name}</TableCell>
+                    <TableCell className="text-white">{report.provider_name}</TableCell>
+                    <TableCell className="text-white">
                       <div className="flex items-center">
-                        <FileText className="h-4 w-4 mr-2 text-blue-500" />
+                        <FileText className="h-4 w-4 mr-2 text-blue-400" />
                         {report.document_type}
                       </div>
                     </TableCell>
-                    <TableCell>{new Date(report.visit_date).toLocaleDateString()}</TableCell>
-                    <TableCell className="max-w-xs truncate">{report.notes}</TableCell>
+                    <TableCell className="text-white">{new Date(report.visit_date).toLocaleDateString()}</TableCell>
+                    <TableCell className="max-w-xs truncate text-white">{report.notes}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           onClick={() => setReportToEdit(report)}
+                          className="hover:bg-white/10"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-4 w-4 text-white" />
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="icon"
                           onClick={() => handleDownload(report.id)}
+                          className="hover:bg-white/10"
                         >
-                          <Download className="h-4 w-4" />
+                          <Download className="h-4 w-4 text-white" />
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           onClick={() => handleDeleteReport(report.id)}
+                          className="hover:bg-white/10"
                         >
-                          <Trash2 className="h-4 w-4 text-red-500" />
+                          <Trash2 className="h-4 w-4 text-red-400" />
                         </Button>
                       </div>
                     </TableCell>
@@ -236,10 +239,10 @@ const MedicalReportsSheet = () => {
           </div>
         </Card>
       ) : (
-        <div className="text-center py-10 border rounded-md">
-          <FileText className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-          <h3 className="text-lg font-medium mb-1">No medical reports found</h3>
-          <p className="text-muted-foreground">
+        <div className="text-center py-10 border rounded-md border-white/10 backdrop-blur-lg bg-white/5">
+          <FileText className="h-12 w-12 mx-auto mb-3 text-white/40" />
+          <h3 className="text-lg font-medium mb-1 text-white">No medical reports found</h3>
+          <p className="text-white/70">
             {searchTerm ? "Try adjusting your search criteria" : "Add your first medical report to get started"}
           </p>
         </div>

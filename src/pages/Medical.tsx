@@ -10,7 +10,7 @@ const Medical: React.FC = () => {
       <Helmet>
         <title>Medical Management - Law EMR</title>
       </Helmet>
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 min-h-screen">
+      <div className="min-h-screen">
         <MedicalDashboard />
       </div>
     </PageLayout>

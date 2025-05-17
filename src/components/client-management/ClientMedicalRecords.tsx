@@ -38,20 +38,20 @@ const ClientMedicalRecords: React.FC<ClientMedicalRecordsProps> = ({ clientId })
   }
 
   return (
-    <Card>
+    <Card className="glass-card backdrop-blur-lg border border-white/20">
       <CardHeader>
         <CardTitle>Medical Records</CardTitle>
       </CardHeader>
       <CardContent>
         {documents.length === 0 ? (
-          <p className="text-center py-8 text-muted-foreground">No medical records found for this client.</p>
+          <p className="text-center py-8 text-white/70">No medical records found for this client.</p>
         ) : (
           <div className="space-y-4">
             {documents.map((doc) => (
-              <div key={doc.id} className="border rounded-md p-4 hover:bg-muted/50 transition-colors">
-                <h3 className="font-medium">{doc.name}</h3>
-                <p className="text-sm text-muted-foreground">{doc.category}</p>
-                <div className="mt-1 text-sm">
+              <div key={doc.id} className="border border-white/10 rounded-md p-4 hover:bg-white/5 transition-colors backdrop-blur-sm">
+                <h3 className="font-medium text-white">{doc.name}</h3>
+                <p className="text-sm text-white/70">{doc.category}</p>
+                <div className="mt-1 text-sm text-white/80">
                   <span>Uploaded: {doc.uploadDate} by {doc.uploadedBy}</span>
                 </div>
               </div>
