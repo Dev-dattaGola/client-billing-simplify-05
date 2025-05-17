@@ -162,17 +162,17 @@ const InvoiceManagement: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Invoice Management</h2>
+        <h2 className="text-xl font-semibold text-white">Invoice Management</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-amber-600 hover:bg-amber-700">
               <Plus className="h-4 w-4 mr-2" />
               Create Invoice
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-4xl glass-card backdrop-blur-lg border border-white/20 bg-white/5 text-white">
             <DialogHeader>
-              <DialogTitle>Create New Invoice</DialogTitle>
+              <DialogTitle className="text-white">Create New Invoice</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -290,65 +290,65 @@ const InvoiceManagement: React.FC = () => {
         </Dialog>
       </div>
 
-      <div className="border rounded-md">
+      <div className="border border-white/20 rounded-md bg-transparent backdrop-blur-sm">
         {isLoading ? (
           <div className="p-4 space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="space-y-2">
-                <Skeleton className="h-5 w-[250px]" />
-                <Skeleton className="h-4 w-[400px]" />
+                <Skeleton className="h-5 w-[250px] bg-white/10" />
+                <Skeleton className="h-4 w-[400px] bg-white/10" />
               </div>
             ))}
           </div>
         ) : (
           <ScrollArea className="h-[500px]">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice ID</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+              <TableHeader className="bg-white/5">
+                <TableRow className="border-white/10 hover:bg-white/5">
+                  <TableHead className="text-white">Invoice ID</TableHead>
+                  <TableHead className="text-white">Client</TableHead>
+                  <TableHead className="text-white">Amount</TableHead>
+                  <TableHead className="text-white">Due Date</TableHead>
+                  <TableHead className="text-white">Status</TableHead>
+                  <TableHead className="text-white">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {invoices.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  <TableRow className="border-white/10 hover:bg-white/5">
+                    <TableCell colSpan={6} className="text-center text-white/70">
                       No invoices found. Create a new invoice to get started.
                     </TableCell>
                   </TableRow>
                 ) : (
                   invoices.map(invoice => (
-                    <TableRow key={invoice.id}>
-                      <TableCell className="font-medium">INV-{invoice.id.slice(0, 6).toUpperCase()}</TableCell>
-                      <TableCell>
+                    <TableRow key={invoice.id} className="border-white/10 hover:bg-white/10">
+                      <TableCell className="font-medium text-white">INV-{invoice.id.slice(0, 6).toUpperCase()}</TableCell>
+                      <TableCell className="text-white">
                         {mockClients.find(c => c.id === invoice.clientId)?.name || invoice.clientId}
                       </TableCell>
-                      <TableCell>${invoice.amount.toFixed(2)}</TableCell>
-                      <TableCell>{new Date(invoice.dueDate).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-white">${invoice.amount.toFixed(2)}</TableCell>
+                      <TableCell className="text-white">{new Date(invoice.dueDate).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <Badge className={
-                          invoice.status === 'paid' ? 'bg-green-100 text-green-800 hover:bg-green-100' :
-                          invoice.status === 'pending' ? 'bg-amber-100 text-amber-800 hover:bg-amber-100' :
-                          invoice.status === 'overdue' ? 'bg-red-100 text-red-800 hover:bg-red-100' :
-                          'bg-gray-100 text-gray-800 hover:bg-gray-100'
+                          invoice.status === 'paid' ? 'bg-green-500/30 text-green-200 hover:bg-green-500/40 border border-green-400/30' :
+                          invoice.status === 'pending' ? 'bg-amber-500/30 text-amber-200 hover:bg-amber-500/40 border border-amber-400/30' :
+                          invoice.status === 'overdue' ? 'bg-red-500/30 text-red-200 hover:bg-red-500/40 border border-red-400/30' :
+                          'bg-gray-500/30 text-gray-200 hover:bg-gray-500/40 border border-gray-400/30'
                         }>
                           {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
                             <Printer className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
                             <Download className="h-4 w-4" />
                           </Button>
                           {invoice.status !== 'paid' && (
-                            <Button variant="ghost" size="icon" onClick={() => handleMarkAsPaid(invoice.id)}>
+                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => handleMarkAsPaid(invoice.id)}>
                               <CheckCircle className="h-4 w-4" />
                             </Button>
                           )}

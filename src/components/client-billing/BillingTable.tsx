@@ -195,15 +195,15 @@ const BillingTable = () => {
   };
 
   return (
-    <div className="rounded-md border bg-white shadow-sm">
+    <div className="rounded-md border border-white/20 glass-card backdrop-blur-lg bg-transparent">
       <div className="p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="w-full sm:max-w-xs relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/60" />
           <Input
             placeholder="Search client name or ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
+            className="pl-8 bg-white/5 border-white/20 text-white"
           />
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
@@ -211,10 +211,10 @@ const BillingTable = () => {
             value={filterStatus}
             onValueChange={setFilterStatus}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-white/5 border-white/20 text-white">
               <SelectValue placeholder="LOP Status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-gray-800 text-white border-white/20">
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="signed">Signed</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
@@ -224,33 +224,33 @@ const BillingTable = () => {
           
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2 bg-white/5 border-white/20 text-white">
                 <Filter className="h-4 w-4" />
                 Filter
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80">
+            <PopoverContent className="w-80 bg-gray-800 text-white border-white/20">
               <div className="grid gap-4">
                 <div className="space-y-2">
                   <h4 className="font-medium leading-none">Advanced Filters</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-white/70">
                     Filter clients by additional criteria
                   </p>
                 </div>
                 <div className="grid gap-2">
                   <div className="grid grid-cols-3 items-center gap-4">
-                    <Label htmlFor="provider" className="text-right">
+                    <Label htmlFor="provider" className="text-right text-white">
                       Provider
                     </Label>
                     <Input
                       id="provider"
                       value={filters.provider}
                       onChange={(e) => setFilters({ ...filters, provider: e.target.value })}
-                      className="col-span-2"
+                      className="col-span-2 bg-white/5 border-white/20 text-white"
                     />
                   </div>
                   <div className="grid grid-cols-3 items-center gap-4">
-                    <Label htmlFor="dateFrom" className="text-right">
+                    <Label htmlFor="dateFrom" className="text-right text-white">
                       Date From
                     </Label>
                     <Input
@@ -258,11 +258,11 @@ const BillingTable = () => {
                       type="date"
                       value={filters.dateFrom}
                       onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                      className="col-span-2"
+                      className="col-span-2 bg-white/5 border-white/20 text-white"
                     />
                   </div>
                   <div className="grid grid-cols-3 items-center gap-4">
-                    <Label htmlFor="dateTo" className="text-right">
+                    <Label htmlFor="dateTo" className="text-right text-white">
                       Date To
                     </Label>
                     <Input
@@ -270,15 +270,17 @@ const BillingTable = () => {
                       type="date"
                       value={filters.dateTo}
                       onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                      className="col-span-2"
+                      className="col-span-2 bg-white/5 border-white/20 text-white"
                     />
                   </div>
                 </div>
                 <div className="flex justify-between">
-                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                  <Button variant="outline" size="sm" onClick={clearFilters} 
+                    className="bg-white/5 border-white/20 text-white hover:bg-white/10">
                     Clear
                   </Button>
-                  <Button size="sm" onClick={applyFilters}>
+                  <Button size="sm" onClick={applyFilters}
+                    className="bg-amber-600 hover:bg-amber-700 text-white">
                     Apply Filters
                   </Button>
                 </div>
@@ -286,7 +288,7 @@ const BillingTable = () => {
             </PopoverContent>
           </Popover>
           
-          <Button variant="outline">Export</Button>
+          <Button variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10">Export</Button>
         </div>
       </div>
       
@@ -294,7 +296,7 @@ const BillingTable = () => {
       {activeFilters.length > 0 && (
         <div className="px-4 pb-2 flex flex-wrap gap-2">
           {activeFilters.map((filter, index) => (
-            <Badge key={index} variant="secondary" className="flex gap-1 items-center">
+            <Badge key={index} variant="secondary" className="flex gap-1 items-center bg-white/10 text-white">
               {filter}
               <X 
                 className="h-3 w-3 cursor-pointer" 
@@ -307,35 +309,35 @@ const BillingTable = () => {
       
       <div className="overflow-x-auto">
         <Table>
-          <TableHeader className="bg-lawfirm-gray bg-opacity-50">
-            <TableRow>
-              <TableHead className="font-medium">Client Name</TableHead>
-              <TableHead className="font-medium">ID / Case Number</TableHead>
-              <TableHead className="font-medium">DOB</TableHead>
-              <TableHead className="font-medium">DOJ</TableHead>
-              <TableHead className="font-medium">Provider</TableHead>
-              <TableHead className="font-medium">LOP Status</TableHead>
-              <TableHead className="font-medium">Actions</TableHead>
+          <TableHeader className="bg-white/5">
+            <TableRow className="border-white/10 hover:bg-white/5">
+              <TableHead className="font-medium text-white">Client Name</TableHead>
+              <TableHead className="font-medium text-white">ID / Case Number</TableHead>
+              <TableHead className="font-medium text-white">DOB</TableHead>
+              <TableHead className="font-medium text-white">DOJ</TableHead>
+              <TableHead className="font-medium text-white">Provider</TableHead>
+              <TableHead className="font-medium text-white">LOP Status</TableHead>
+              <TableHead className="font-medium text-white">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedData.length > 0 ? (
               paginatedData.map((client) => (
-                <TableRow key={client.id}>
-                  <TableCell className="font-medium">{client.name}</TableCell>
-                  <TableCell>{client.id}</TableCell>
-                  <TableCell>{client.dob}</TableCell>
-                  <TableCell>{client.doj}</TableCell>
-                  <TableCell>{client.provider}</TableCell>
+                <TableRow key={client.id} className="border-white/10 hover:bg-white/10">
+                  <TableCell className="font-medium text-white">{client.name}</TableCell>
+                  <TableCell className="text-white">{client.id}</TableCell>
+                  <TableCell className="text-white">{client.dob}</TableCell>
+                  <TableCell className="text-white">{client.doj}</TableCell>
+                  <TableCell className="text-white">{client.provider}</TableCell>
                   <TableCell>
                     <span
                       className={cn(
                         "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
                         client.lopStatus === "Signed"
-                          ? "bg-green-100 text-green-800"
+                          ? "bg-green-500/30 text-green-200 border border-green-400/30"
                           : client.lopStatus === "Pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800"
+                          ? "bg-yellow-500/30 text-yellow-200 border border-yellow-400/30"
+                          : "bg-gray-500/30 text-gray-200 border border-gray-400/30"
                       )}
                     >
                       {client.lopStatus}
@@ -343,10 +345,10 @@ const BillingTable = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
                         View
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
                         Edit
                       </Button>
                     </div>
@@ -354,8 +356,8 @@ const BillingTable = () => {
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-6">
+              <TableRow className="border-white/10">
+                <TableCell colSpan={7} className="text-center py-6 text-white/70">
                   No results found
                 </TableCell>
               </TableRow>
@@ -365,7 +367,7 @@ const BillingTable = () => {
       </div>
       
       {totalPages > 1 && (
-        <div className="px-4 py-2 border-t">
+        <div className="px-4 py-2 border-t border-white/10">
           <Pagination>
             <PaginationContent>
               <PaginationItem>
@@ -375,7 +377,7 @@ const BillingTable = () => {
                     e.preventDefault();
                     setCurrentPage((prev) => Math.max(prev - 1, 1));
                   }}
-                  className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
+                  className={cn(currentPage === 1 && "pointer-events-none opacity-50", "text-white hover:bg-white/10")}
                 />
               </PaginationItem>
               
@@ -388,6 +390,7 @@ const BillingTable = () => {
                       setCurrentPage(i + 1);
                     }}
                     isActive={currentPage === i + 1}
+                    className="text-white hover:bg-white/10"
                   >
                     {i + 1}
                   </PaginationLink>
@@ -401,7 +404,7 @@ const BillingTable = () => {
                     e.preventDefault();
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
                   }}
-                  className={cn(currentPage === totalPages && "pointer-events-none opacity-50")}
+                  className={cn(currentPage === totalPages && "pointer-events-none opacity-50", "text-white hover:bg-white/10")}
                 />
               </PaginationItem>
             </PaginationContent>

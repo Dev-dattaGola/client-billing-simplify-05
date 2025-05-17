@@ -160,18 +160,18 @@ const LettersManagement: React.FC = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Letters Management</h2>
+        <h2 className="text-xl font-semibold text-white">Letters Management</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-amber-600 hover:bg-amber-700">
               <Plus className="h-4 w-4 mr-2" />
               Create Letter
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl glass-card backdrop-blur-lg border border-white/20 bg-white/5 text-white">
             <DialogHeader>
-              <DialogTitle>Create New Letter</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-white">Create New Letter</DialogTitle>
+              <DialogDescription className="text-white/70">
                 Draft a new letter for a client case
               </DialogDescription>
             </DialogHeader>
@@ -249,81 +249,81 @@ const LettersManagement: React.FC = () => {
         </Dialog>
       </div>
 
-      <div className="border rounded-md">
+      <div className="border border-white/20 rounded-md bg-transparent backdrop-blur-sm">
         {isLoading ? (
           <div className="p-4 space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="space-y-2">
-                <Skeleton className="h-5 w-[250px]" />
-                <Skeleton className="h-4 w-[400px]" />
+                <Skeleton className="h-5 w-[250px] bg-white/10" />
+                <Skeleton className="h-4 w-[400px] bg-white/10" />
               </div>
             ))}
           </div>
         ) : (
           <ScrollArea className="h-[500px]">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Recipient</TableHead>
-                  <TableHead>Case</TableHead>
-                  <TableHead>Date Created</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+              <TableHeader className="bg-white/5">
+                <TableRow className="border-white/10 hover:bg-white/5">
+                  <TableHead className="text-white">ID</TableHead>
+                  <TableHead className="text-white">Type</TableHead>
+                  <TableHead className="text-white">Recipient</TableHead>
+                  <TableHead className="text-white">Case</TableHead>
+                  <TableHead className="text-white">Date Created</TableHead>
+                  <TableHead className="text-white">Status</TableHead>
+                  <TableHead className="text-white">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {letters.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                  <TableRow className="border-white/10 hover:bg-white/5">
+                    <TableCell colSpan={7} className="text-center text-white/70">
                       No letters found. Create a new letter to get started.
                     </TableCell>
                   </TableRow>
                 ) : (
                   letters.map(letter => (
-                    <TableRow key={letter.id}>
-                      <TableCell className="font-medium">L-{letter.id.slice(0, 6).toUpperCase()}</TableCell>
+                    <TableRow key={letter.id} className="border-white/10 hover:bg-white/10">
+                      <TableCell className="font-medium text-white">L-{letter.id.slice(0, 6).toUpperCase()}</TableCell>
                       <TableCell>
                         <Badge className={
-                          letter.type === 'demand' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' :
-                          letter.type === 'settlement' ? 'bg-green-100 text-green-800 hover:bg-green-100' :
-                          'bg-purple-100 text-purple-800 hover:bg-purple-100'
+                          letter.type === 'demand' ? 'bg-blue-500/30 text-blue-200 hover:bg-blue-500/40 border border-blue-400/30' :
+                          letter.type === 'settlement' ? 'bg-green-500/30 text-green-200 hover:bg-green-500/40 border border-green-400/30' :
+                          'bg-purple-500/30 text-purple-200 hover:bg-purple-500/40 border border-purple-400/30'
                         }>
                           {letter.type.replace('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-white">
                         {mockRecipients.find(r => r.id === letter.recipientId)?.name || letter.recipientId}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-white">
                         {mockCases.find(c => c.id === letter.caseId)?.name || letter.caseId}
                       </TableCell>
-                      <TableCell>{new Date(letter.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-white">{new Date(letter.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <Badge className={
-                          letter.status === 'sent' ? 'bg-amber-100 text-amber-800 hover:bg-amber-100' :
-                          letter.status === 'responded' ? 'bg-green-100 text-green-800 hover:bg-green-100' :
-                          'bg-gray-100 text-gray-800 hover:bg-gray-100'
+                          letter.status === 'sent' ? 'bg-amber-500/30 text-amber-200 hover:bg-amber-500/40 border border-amber-400/30' :
+                          letter.status === 'responded' ? 'bg-green-500/30 text-green-200 hover:bg-green-500/40 border border-green-400/30' :
+                          'bg-gray-500/30 text-gray-200 hover:bg-gray-500/40 border border-gray-400/30'
                         }>
                           {letter.status.charAt(0).toUpperCase() + letter.status.slice(1)}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
                             <Download className="h-4 w-4" />
                           </Button>
                           {letter.status === 'draft' && (
-                            <Button variant="ghost" size="icon" onClick={() => handleSendLetter(letter.id)}>
+                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => handleSendLetter(letter.id)}>
                               <Mail className="h-4 w-4" />
                             </Button>
                           )}
                           {letter.status === 'sent' && (
-                            <Button variant="ghost" size="icon" onClick={() => handleMarkLetterAsResponded(letter.id)}>
+                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => handleMarkLetterAsResponded(letter.id)}>
                               <Reply className="h-4 w-4" />
                             </Button>
                           )}

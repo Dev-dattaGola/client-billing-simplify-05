@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useState } from "react";
 import { 
@@ -150,14 +151,16 @@ const BillsSheet = () => {
   return (
     <div className="space-y-4">
       {isFormOpen ? (
-        <BillsForm
-          onSubmit={editingBill ? handleEditBill : handleAddBill}
-          initialData={editingBill}
-          onCancel={() => {
-            setIsFormOpen(false);
-            setEditingBill(null);
-          }}
-        />
+        <div className="glass-card backdrop-blur-lg border border-white/20 p-6 rounded-lg">
+          <BillsForm
+            onSubmit={editingBill ? handleEditBill : handleAddBill}
+            initialData={editingBill}
+            onCancel={() => {
+              setIsFormOpen(false);
+              setEditingBill(null);
+            }}
+          />
+        </div>
       ) : (
         <>
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -166,61 +169,63 @@ const BillsSheet = () => {
                 placeholder="Search bills..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
+                className="max-w-sm glass-effect text-white bg-white/5"
               />
             </div>
-            <Button onClick={() => setIsFormOpen(true)} className="w-full md:w-auto">
+            <Button onClick={() => setIsFormOpen(true)} className="w-full md:w-auto bg-amber-600 hover:bg-amber-700">
               <Plus className="h-4 w-4 mr-2" /> Add Medical Bill
             </Button>
           </div>
 
           {filteredBills.length === 0 ? (
-            <div className="text-center py-10">
-              <FileText className="h-12 w-12 mx-auto text-gray-300" />
-              <h3 className="mt-2 text-sm font-medium">No Medical Bills</h3>
-              <p className="mt-1 text-sm text-gray-500">
+            <div className="text-center py-10 glass-card backdrop-blur-lg border border-white/20 rounded-lg">
+              <FileText className="h-12 w-12 mx-auto text-white/40" />
+              <h3 className="mt-2 text-sm font-medium text-white">No Medical Bills</h3>
+              <p className="mt-1 text-sm text-white/60">
                 {searchTerm ? "No bills match your search criteria." : "Get started by adding a new medical bill."}
               </p>
             </div>
           ) : (
-            <div className="border rounded-md overflow-hidden">
+            <div className="border border-white/20 rounded-md bg-transparent backdrop-blur-sm overflow-hidden">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Provider</TableHead>
-                    <TableHead>Date of Service</TableHead>
-                    <TableHead>Billed Amount</TableHead>
-                    <TableHead>Balance Due</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                <TableHeader className="bg-white/5">
+                  <TableRow className="border-white/10 hover:bg-white/5">
+                    <TableHead className="text-white">Client</TableHead>
+                    <TableHead className="text-white">Provider</TableHead>
+                    <TableHead className="text-white">Date of Service</TableHead>
+                    <TableHead className="text-white">Billed Amount</TableHead>
+                    <TableHead className="text-white">Balance Due</TableHead>
+                    <TableHead className="text-white">Status</TableHead>
+                    <TableHead className="text-white text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredBills.map((bill) => (
-                    <TableRow key={bill.id}>
-                      <TableCell className="font-medium">{bill.client_name}</TableCell>
-                      <TableCell>{bill.provider_name}</TableCell>
-                      <TableCell>{new Date(bill.date_of_service).toLocaleDateString()}</TableCell>
-                      <TableCell>{formatCurrency(bill.billed_amount)}</TableCell>
-                      <TableCell>{formatCurrency(bill.balance_due)}</TableCell>
+                    <TableRow key={bill.id} className="border-white/10 hover:bg-white/10">
+                      <TableCell className="font-medium text-white">{bill.client_name}</TableCell>
+                      <TableCell className="text-white">{bill.provider_name}</TableCell>
+                      <TableCell className="text-white">{new Date(bill.date_of_service).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-white">{formatCurrency(bill.billed_amount)}</TableCell>
+                      <TableCell className="text-white">{formatCurrency(bill.balance_due)}</TableCell>
                       <TableCell>
-                        <Badge variant={getStatusBadgeColor(bill.status)}>
+                        <Badge variant={getStatusBadgeColor(bill.status)} className="bg-opacity-30">
                           {bill.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
+                            className="text-white hover:bg-white/10"
                             onClick={() => handleDownload(bill.id)}
                           >
                             <Download className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
+                            className="text-white hover:bg-white/10"
                             onClick={() => {
                               setEditingBill(bill);
                               setIsFormOpen(true);
@@ -229,8 +234,9 @@ const BillsSheet = () => {
                             <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
+                            className="text-white hover:bg-white/10"
                             onClick={() => handleDeleteBill(bill.id)}
                           >
                             <Trash2 className="h-4 w-4" />
