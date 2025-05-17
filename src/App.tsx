@@ -11,14 +11,12 @@ import Settings from './pages/Settings';
 import Calendar from './pages/Calendar';
 import Billing from './pages/Billing';
 import Documents from './pages/Documents';
-import Reports from './pages/Reports';
 import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import NotFound from './pages/NotFound';
 import Index from './pages/Index';
-import Files from './pages/Files';
 import Medical from './pages/Medical';
 import Calculator from './pages/Calculator';
 import Admin from './pages/Admin';
@@ -82,11 +80,6 @@ function App() {
                       <Billing />
                     </ProtectedRoute>
                   } />
-                  <Route path="/reports" element={
-                    <ProtectedRoute>
-                      <Reports />
-                    </ProtectedRoute>
-                  } />
                   <Route path="/settings" element={
                     <ProtectedRoute>
                       <Settings />
@@ -99,11 +92,6 @@ function App() {
                   } />
 
                   {/* Additional routes */}
-                  <Route path="/files" element={
-                    <ProtectedRoute>
-                      <Files />
-                    </ProtectedRoute>
-                  } />
                   <Route path="/medical" element={
                     <ProtectedRoute>
                       <Medical />

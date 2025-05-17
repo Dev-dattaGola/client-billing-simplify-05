@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, BarChart3, FileText, ChevronDown } from "lucide-react";
 import BillingTable from "../client-billing/BillingTable";
 import LienCalculator from "../calculator/LienCalculator";
-import ClientAnalyticsChart from "./ClientAnalyticsChart";
 import { clientsApi } from "@/lib/api/mongodb-api";
 import { Client } from "@/types/client";
 import { useToast } from "@/hooks/use-toast";
@@ -72,27 +71,15 @@ const DashboardOverview = () => {
     );
   }
 
-  // For other roles (admin, attorney), show the original dashboard
+  // For admin/attorney users, show a more comprehensive dashboard
   return (
     <div className="space-y-8">
       <div className="space-y-3 pt-2">
-        <h1 className="text-2xl font-bold tracking-tight">Client Billings</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard Overview</h1>
         <p className="text-muted-foreground">
-          Manage client billing, view analytics, and access important documents.
+          Manage clients, cases, and access important information.
         </p>
       </div>
-
-      <Card>
-        <CardContent className="p-6">
-          {loading ? (
-            <div className="h-80 flex items-center justify-center">
-              <p className="text-muted-foreground">Loading client data...</p>
-            </div>
-          ) : (
-            <ClientAnalyticsChart />
-          )}
-        </CardContent>
-      </Card>
 
       {showCalculator && (
         <Card>
@@ -107,7 +94,7 @@ const DashboardOverview = () => {
           <TabsTrigger value="billings">Billings</TabsTrigger>
           <TabsTrigger value="clients">Clients</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="upcoming">Upcoming Events</TabsTrigger>
         </TabsList>
         <TabsContent value="billings">
           <BillingTable />
@@ -115,27 +102,78 @@ const DashboardOverview = () => {
         <TabsContent value="clients">
           <Card>
             <CardContent className="p-6">
-              <p className="text-center py-8 text-muted-foreground">
-                Client management section would appear here
-              </p>
+              {loading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-12 w-1/2" />
+                  <Skeleton className="h-[200px] w-full" />
+                </div>
+              ) : clients.length > 0 ? (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Recent Clients</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {clients.slice(0, 6).map((client) => (
+                      <Card key={client.id} className="overflow-hidden">
+                        <CardContent className="p-4">
+                          <div className="font-medium">{client.firstName} {client.lastName}</div>
+                          <div className="text-sm text-muted-foreground mt-1">{client.phone || client.email}</div>
+                          <div className="text-xs text-muted-foreground mt-2">Added: {new Date(client.createdAt).toLocaleDateString()}</div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No clients found. Add clients to get started.
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="documents">
           <Card>
             <CardContent className="p-6">
-              <p className="text-center py-8 text-muted-foreground">
-                Document management section would appear here
-              </p>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Recent Documents</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="flex items-center p-3 border rounded-md">
+                      <FileText className="h-8 w-8 text-blue-500 mr-3" />
+                      <div>
+                        <div className="font-medium">Document Title {i}</div>
+                        <div className="text-xs text-muted-foreground">Added: {new Date().toLocaleDateString()}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="reports">
+        <TabsContent value="upcoming">
           <Card>
             <CardContent className="p-6">
-              <p className="text-center py-8 text-muted-foreground">
-                Reports section would appear here
-              </p>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Upcoming Events</h3>
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex items-center justify-between p-3 border rounded-md">
+                      <div className="flex items-center">
+                        <div className="bg-blue-100 p-2 rounded-md mr-3">
+                          <Calendar className="h-5 w-5 text-blue-500" />
+                        </div>
+                        <div>
+                          <div className="font-medium">Client Meeting {i}</div>
+                          <div className="text-xs text-muted-foreground">Case #{1000 + i}</div>
+                        </div>
+                      </div>
+                      <div className="text-sm">
+                        {new Date(Date.now() + i * 86400000).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

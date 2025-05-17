@@ -4,8 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ProviderManagement from './ProviderManagement';
 import MedicalRecordsManagement from './MedicalRecordsManagement';
+import MedicalReportsSheet from '../reports/MedicalReportsSheet';
 import { useToast } from "@/hooks/use-toast";
-import { Stethoscope, FileHeart, PlusCircle } from 'lucide-react';
+import { Stethoscope, FileHeart, PlusCircle, FileText } from 'lucide-react';
 
 const MedicalDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('providers');
@@ -16,7 +17,7 @@ const MedicalDashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-lawfirm-dark-purple">Medical Management</h1>
-          <p className="text-lawfirm-neutral-gray mt-1">Track healthcare providers and medical records for your cases</p>
+          <p className="text-lawfirm-neutral-gray mt-1">Track healthcare providers, medical records, and reports for your cases</p>
         </div>
         <div className="mt-4 md:mt-0">
           <button 
@@ -39,7 +40,7 @@ const MedicalDashboard: React.FC = () => {
             Medical Record System
           </CardTitle>
           <CardDescription className="text-green-700/80">
-            Centralized management of healthcare providers and patient medical records
+            Centralized management of healthcare providers, patient medical records, and reports
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -61,6 +62,13 @@ const MedicalDashboard: React.FC = () => {
                     <FileHeart className="mr-2 h-5 w-5" />
                     <span>Medical Records</span>
                   </TabsTrigger>
+                  <TabsTrigger 
+                    value="reports" 
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-green-500 data-[state=active]:text-green-700 data-[state=active]:bg-transparent rounded-none h-14 px-4 py-2 font-medium transition-all"
+                  >
+                    <FileText className="mr-2 h-5 w-5" />
+                    <span>Medical Reports</span>
+                  </TabsTrigger>
                 </TabsList>
               </div>
             </div>
@@ -72,6 +80,10 @@ const MedicalDashboard: React.FC = () => {
               
               <TabsContent value="records" className="m-0 p-6">
                 <MedicalRecordsManagement />
+              </TabsContent>
+
+              <TabsContent value="reports" className="m-0 p-6">
+                <MedicalReportsSheet />
               </TabsContent>
             </div>
           </Tabs>

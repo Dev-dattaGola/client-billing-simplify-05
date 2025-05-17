@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -13,7 +14,6 @@ import {
   Settings,
   BarChart,
   Calculator,
-  FileSearch,
   Gavel,
   Shield
 } from 'lucide-react';
@@ -53,12 +53,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       roles: ['admin', 'attorney', 'client'] // All users
     },
     { 
-      title: 'Files', 
-      path: '/files', 
-      icon: <FileSearch size={20} />,
-      roles: ['admin', 'attorney'] 
-    },
-    { 
       title: 'Medical', 
       path: '/medical', 
       icon: <Building2 size={20} />,
@@ -74,12 +68,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
       title: 'Calculator', 
       path: '/calculator', 
       icon: <Calculator size={20} />,
-      roles: ['admin', 'attorney'] 
-    },
-    { 
-      title: 'Reports', 
-      path: '/reports', 
-      icon: <FileSearch size={20} />,
       roles: ['admin', 'attorney'] 
     },
     { 

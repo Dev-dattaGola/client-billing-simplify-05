@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import InvoiceManagement from './InvoiceManagement';
 import SettlementsManagement from './SettlementsManagement';
 import LettersManagement from './LettersManagement';
-import { DollarSign, FileText, Scale, PlusCircle } from 'lucide-react';
+import ReductionStatementsSheet from '../reports/ReductionStatementsSheet';
+import { DollarSign, FileText, Scale, PlusCircle, ArrowDownIcon } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const BillingDashboard = () => {
@@ -17,7 +18,7 @@ const BillingDashboard = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-lawfirm-dark-purple">Billing & Settlements</h1>
-          <p className="text-lawfirm-neutral-gray mt-1">Track invoices, manage settlements and generate payment letters</p>
+          <p className="text-lawfirm-neutral-gray mt-1">Track invoices, manage settlements, generate payment letters, and handle reduction statements</p>
         </div>
         <div className="mt-4 md:mt-0">
           <button 
@@ -69,6 +70,13 @@ const BillingDashboard = () => {
                     <FileText className="mr-2 h-5 w-5" />
                     <span>Letters</span>
                   </TabsTrigger>
+                  <TabsTrigger 
+                    value="reductions" 
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-amber-500 data-[state=active]:text-amber-700 data-[state=active]:bg-transparent rounded-none h-14 px-4 py-2 font-medium transition-all"
+                  >
+                    <ArrowDownIcon className="mr-2 h-5 w-5" />
+                    <span>Reduction Statements</span>
+                  </TabsTrigger>
                 </TabsList>
               </div>
             </div>
@@ -84,6 +92,10 @@ const BillingDashboard = () => {
               
               <TabsContent value="letters" className="m-0 p-6">
                 <LettersManagement />
+              </TabsContent>
+
+              <TabsContent value="reductions" className="m-0 p-6">
+                <ReductionStatementsSheet />
               </TabsContent>
             </div>
           </Tabs>
