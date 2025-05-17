@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -86,14 +87,14 @@ const PatientsDocuments: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Document Center</h2>
+        <h2 className="text-xl font-semibold text-white">Document Center</h2>
         <div className="flex gap-2">
           <div className="relative w-64">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/70" />
             <Input
               type="search"
               placeholder="Search documents..."
-              className="pl-8 h-9"
+              className="pl-8 h-9 bg-white/10 border-white/20 text-white"
               value={searchQuery}
               onChange={handleSearchChange}
             />
@@ -102,15 +103,15 @@ const PatientsDocuments: React.FC = () => {
       </div>
 
       {searchQuery && (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-white/70">
           Found {totalMatchingDocs} document{totalMatchingDocs !== 1 ? 's' : ''} matching "{searchQuery}"
         </div>
       )}
 
-      <Tabs defaultValue={documentCategories[0].id}>
-        <TabsList>
+      <Tabs defaultValue={documentCategories[0].id} className="text-white">
+        <TabsList className="bg-white/10 border border-white/20">
           {documentCategories.map(category => (
-            <TabsTrigger key={category.id} value={category.id}>
+            <TabsTrigger key={category.id} value={category.id} className="data-[state=active]:bg-white/20 text-white">
               {category.label}
             </TabsTrigger>
           ))}
@@ -118,31 +119,31 @@ const PatientsDocuments: React.FC = () => {
 
         {filteredCategories.map(category => (
           <TabsContent key={category.id} value={category.id}>
-            <Card>
+            <Card className="border-white/20 bg-white/5 backdrop-blur-lg text-white">
               <CardHeader>
                 <CardTitle>{category.label}</CardTitle>
-                <CardDescription>View and download your {category.label.toLowerCase()}</CardDescription>
+                <CardDescription className="text-white/70">View and download your {category.label.toLowerCase()}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {category.documents.length === 0 ? (
-                    <p className="text-center py-8 text-muted-foreground">
+                    <p className="text-center py-8 text-white/60">
                       {searchQuery 
                         ? `No ${category.label.toLowerCase()} matching your search.` 
                         : `No ${category.label.toLowerCase()} available.`}
                     </p>
                   ) : (
                     category.documents.map(doc => (
-                      <div key={doc.id} className="flex items-center justify-between p-2 border rounded-md hover:bg-gray-50">
+                      <div key={doc.id} className="flex items-center justify-between p-2 border border-white/20 rounded-md hover:bg-white/10">
                         <div className="flex items-center">
                           {doc.type === "pdf" ? (
-                            <File className="h-8 w-8 text-red-500 mr-3" />
+                            <File className="h-8 w-8 text-red-400 mr-3" />
                           ) : (
-                            <FileImage className="h-8 w-8 text-blue-500 mr-3" />
+                            <FileImage className="h-8 w-8 text-blue-400 mr-3" />
                           )}
                           <div>
-                            <p className="font-medium text-sm">{doc.name}</p>
-                            <div className="flex items-center text-xs text-muted-foreground">
+                            <p className="font-medium text-sm text-white">{doc.name}</p>
+                            <div className="flex items-center text-xs text-white/70">
                               <span>Uploaded {doc.date}</span>
                               <span className="mx-1.5">•</span>
                               <span>By {doc.uploadedBy}</span>
@@ -153,6 +154,7 @@ const PatientsDocuments: React.FC = () => {
                           size="sm" 
                           variant="ghost"
                           onClick={() => handleDownloadDocument(doc.name, doc.type)}
+                          className="text-white hover:bg-white/20"
                         >
                           <Download className="h-4 w-4 mr-1" />
                           Download
