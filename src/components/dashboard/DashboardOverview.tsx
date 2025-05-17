@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -90,15 +89,37 @@ const DashboardOverview = () => {
       )}
 
       <Tabs defaultValue="billings">
-        <TabsList className="mb-4">
-          <TabsTrigger value="billings">Billings</TabsTrigger>
-          <TabsTrigger value="clients">Clients</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming Events</TabsTrigger>
+        <TabsList className="mb-4 bg-transparent">
+          <TabsTrigger 
+            value="billings" 
+            className="data-[state=active]:border-b-2 data-[state=active]:border-amber-400 data-[state=active]:text-amber-300 data-[state=active]:bg-transparent text-white"
+          >
+            Billings
+          </TabsTrigger>
+          <TabsTrigger 
+            value="clients" 
+            className="data-[state=active]:border-b-2 data-[state=active]:border-blue-400 data-[state=active]:text-blue-300 data-[state=active]:bg-transparent text-white"
+          >
+            Clients
+          </TabsTrigger>
+          <TabsTrigger 
+            value="documents" 
+            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-400 data-[state=active]:text-indigo-300 data-[state=active]:bg-transparent text-white"
+          >
+            Documents
+          </TabsTrigger>
+          <TabsTrigger 
+            value="upcoming" 
+            className="data-[state=active]:border-b-2 data-[state=active]:border-teal-400 data-[state=active]:text-teal-300 data-[state=active]:bg-transparent text-white"
+          >
+            Upcoming Events
+          </TabsTrigger>
         </TabsList>
+        
         <TabsContent value="billings">
           <BillingTable />
         </TabsContent>
+        
         <TabsContent value="clients">
           <Card>
             <CardContent className="p-6">
@@ -130,6 +151,7 @@ const DashboardOverview = () => {
             </CardContent>
           </Card>
         </TabsContent>
+        
         <TabsContent value="documents">
           <Card>
             <CardContent className="p-6">
@@ -150,6 +172,7 @@ const DashboardOverview = () => {
             </CardContent>
           </Card>
         </TabsContent>
+        
         <TabsContent value="upcoming">
           <Card>
             <CardContent className="p-6">

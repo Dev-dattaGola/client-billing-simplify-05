@@ -18,13 +18,33 @@ const DocumentsManagement: React.FC = () => {
     <Card className="glass-card backdrop-blur-lg border border-white/20">
       <CardContent className="p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-white/5 border border-white/10">
-            <TabsTrigger value="insurance" className="text-white data-[state=active]:text-white data-[state=active]:bg-white/10">Insurance</TabsTrigger>
-            <TabsTrigger value="bills" className="text-white data-[state=active]:text-white data-[state=active]:bg-white/10">Bills</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 bg-transparent border border-white/10">
+            <TabsTrigger 
+              value="insurance" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-400 data-[state=active]:text-blue-300 data-[state=active]:bg-transparent text-white"
+            >
+              Insurance
+            </TabsTrigger>
+            <TabsTrigger 
+              value="bills" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-teal-400 data-[state=active]:text-teal-300 data-[state=active]:bg-transparent text-white"
+            >
+              Bills
+            </TabsTrigger>
             {!isClient && (
               <>
-                <TabsTrigger value="lop" className="text-white data-[state=active]:text-white data-[state=active]:bg-white/10">LOP</TabsTrigger>
-                <TabsTrigger value="lor" className="text-white data-[state=active]:text-white data-[state=active]:bg-white/10">LOR</TabsTrigger>
+                <TabsTrigger 
+                  value="lop" 
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-pink-400 data-[state=active]:text-pink-300 data-[state=active]:bg-transparent text-white"
+                >
+                  LOP
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="lor" 
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-400 data-[state=active]:text-indigo-300 data-[state=active]:bg-transparent text-white"
+                >
+                  LOR
+                </TabsTrigger>
               </>
             )}
           </TabsList>
@@ -51,3 +71,4 @@ const DocumentsManagement: React.FC = () => {
 };
 
 export default DocumentsManagement;
+

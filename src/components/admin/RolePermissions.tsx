@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -289,8 +288,18 @@ const RolePermissions: React.FC<PermissionProps> = ({
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6 text-white">
           <TabsList className="mb-4 bg-transparent backdrop-blur-lg">
-            <TabsTrigger value="modules">By Module</TabsTrigger>
-            <TabsTrigger value="types">By Permission Type</TabsTrigger>
+            <TabsTrigger 
+              value="modules" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-purple-400 data-[state=active]:text-purple-300 data-[state=active]:bg-transparent text-white"
+            >
+              By Module
+            </TabsTrigger>
+            <TabsTrigger 
+              value="types" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-400 data-[state=active]:text-indigo-300 data-[state=active]:bg-transparent text-white"
+            >
+              By Permission Type
+            </TabsTrigger>
           </TabsList>
           
           {/* Module-based view */}

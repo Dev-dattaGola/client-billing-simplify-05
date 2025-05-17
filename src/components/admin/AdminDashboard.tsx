@@ -89,21 +89,21 @@ const AdminDashboard = () => {
                   </TabsTrigger>
                   <TabsTrigger 
                     value="roles" 
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-purple-500 data-[state=active]:text-purple-300 data-[state=active]:bg-transparent rounded-none h-14 px-4 py-2 font-medium transition-all text-white/70"
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-300 data-[state=active]:bg-transparent rounded-none h-14 px-4 py-2 font-medium transition-all text-white/70"
                   >
                     <Shield className="mr-2 h-5 w-5" />
                     <span>Roles</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="logs" 
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-purple-500 data-[state=active]:text-purple-300 data-[state=active]:bg-transparent rounded-none h-14 px-4 py-2 font-medium transition-all text-white/70"
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-amber-500 data-[state=active]:text-amber-300 data-[state=active]:bg-transparent rounded-none h-14 px-4 py-2 font-medium transition-all text-white/70"
                   >
                     <ClipboardList className="mr-2 h-5 w-5" />
                     <span>Audit Logs</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="settings" 
-                    className="data-[state=active]:border-b-2 data-[state=active]:border-purple-500 data-[state=active]:text-purple-300 data-[state=active]:bg-transparent rounded-none h-14 px-4 py-2 font-medium transition-all text-white/70"
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-teal-500 data-[state=active]:text-teal-300 data-[state=active]:bg-transparent rounded-none h-14 px-4 py-2 font-medium transition-all text-white/70"
                   >
                     <Settings className="mr-2 h-5 w-5" />
                     <span>Settings</span>
@@ -137,3 +137,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+

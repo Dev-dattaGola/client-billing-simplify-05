@@ -12,7 +12,7 @@ const Settings: React.FC = () => {
         <title>Settings - Law ERP</title>
       </Helmet>
       <UserProvider>
-        <div className="w-full max-w-6xl mx-auto">
+        <div className="w-full max-w-6xl mx-auto min-h-screen">
           <SettingsDashboard />
         </div>
       </UserProvider>
@@ -21,3 +21,4 @@ const Settings: React.FC = () => {
 };
 
 export default Settings;
+

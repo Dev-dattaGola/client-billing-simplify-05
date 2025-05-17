@@ -25,9 +25,19 @@ const ReportsManagement = () => {
         className="w-full"
       >
         <div className="border-b border-white/10 px-6 py-2">
-          <TabsList className="grid w-full max-w-md grid-cols-2 bg-white/5">
-            <TabsTrigger value="medical" className="text-white data-[state=active]:bg-white/10">Medical Reports</TabsTrigger>
-            <TabsTrigger value="reduction" className="text-white data-[state=active]:bg-white/10">Reduction Statements</TabsTrigger>
+          <TabsList className="grid w-full max-w-md grid-cols-2 bg-transparent">
+            <TabsTrigger 
+              value="medical" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-purple-400 data-[state=active]:text-purple-300 data-[state=active]:bg-transparent text-white"
+            >
+              Medical Reports
+            </TabsTrigger>
+            <TabsTrigger 
+              value="reduction" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-cyan-400 data-[state=active]:text-cyan-300 data-[state=active]:bg-transparent text-white"
+            >
+              Reduction Statements
+            </TabsTrigger>
           </TabsList>
         </div>
         
@@ -44,3 +54,4 @@ const ReportsManagement = () => {
 };
 
 export default ReportsManagement;
+
