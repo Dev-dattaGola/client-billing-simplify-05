@@ -47,7 +47,7 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {featureLinks.map((feature) => (
           <Link to={feature.path} key={feature.id} className="no-underline">
-            <Card className="h-full hover:shadow-lg transition-shadow border border-white/20 card-glass">
+            <Card className="h-full hover:shadow-lg transition-shadow border border-white/20 card-glass bg-transparent">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-white">
                   <feature.icon className="h-5 w-5 text-purple-300" />
@@ -65,7 +65,7 @@ const AdminDashboard = () => {
         ))}
       </div>
       
-      <Card className="border border-white/20 shadow-lg card-glass overflow-hidden rounded-xl">
+      <Card className="border border-white/20 shadow-lg card-glass overflow-hidden rounded-xl bg-transparent">
         <CardHeader className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 pb-8 border-b border-white/10">
           <CardTitle className="flex items-center gap-2 text-2xl text-white">
             <Shield className="h-6 w-6 text-purple-300" />
@@ -112,20 +112,20 @@ const AdminDashboard = () => {
               </div>
             </div>
             
-            <div className="bg-white/5 backdrop-blur-lg">
-              <TabsContent value="users" className="m-0 p-6">
+            <div className="bg-transparent backdrop-blur-lg">
+              <TabsContent value="users" className="m-0 p-6 bg-transparent">
                 <UsersManagement />
               </TabsContent>
               
-              <TabsContent value="roles" className="m-0 p-6">
+              <TabsContent value="roles" className="m-0 p-6 bg-transparent">
                 <RolesManagement />
               </TabsContent>
               
-              <TabsContent value="logs" className="m-0 p-6">
+              <TabsContent value="logs" className="m-0 p-6 bg-transparent">
                 <AuditLogs />
               </TabsContent>
               
-              <TabsContent value="settings" className="m-0 p-6">
+              <TabsContent value="settings" className="m-0 p-6 bg-transparent">
                 <SystemSettings />
               </TabsContent>
             </div>

@@ -32,7 +32,7 @@ const Admin: React.FC = () => {
       <Helmet>
         <title>Admin Panel - Law EMR</title>
       </Helmet>
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 min-h-screen px-4 py-6 bg-transparent">
+      <div className="bg-transparent min-h-screen px-4 py-6">
         <UserProvider>
           <div className="max-w-7xl mx-auto">
             <div className="mb-6">
@@ -40,10 +40,10 @@ const Admin: React.FC = () => {
               <p className="text-white/70">Manage users, permissions and system settings</p>
             </div>
             
-            <Card className="card-glass overflow-hidden">
+            <Card className="card-glass overflow-hidden border-white/20 bg-transparent">
               <CardContent className="p-0">
                 <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                  <TabsList className="grid grid-cols-4 h-14 rounded-none backdrop-blur-lg">
+                  <TabsList className="grid grid-cols-4 h-14 rounded-none backdrop-blur-lg bg-white/5 border-b border-white/10">
                     <TabsTrigger value="users" className="text-sm md:text-base font-medium text-white">
                       Users & Permissions
                     </TabsTrigger>
@@ -58,17 +58,17 @@ const Admin: React.FC = () => {
                     </TabsTrigger>
                   </TabsList>
                   
-                  <div className="p-6  backdrop-blur-lg text-white border-t border-white/10">
-                    <TabsContent value="users" className="mt-0 p-0">
+                  <div className="p-6 backdrop-blur-lg bg-transparent text-white border-t border-white/10">
+                    <TabsContent value="users" className="mt-0 p-0 bg-transparent">
                       <UsersManagement />
                     </TabsContent>
-                    <TabsContent value="roles" className="mt-0 p-0">
+                    <TabsContent value="roles" className="mt-0 p-0 bg-transparent">
                       <RolesManagement />
                     </TabsContent>
-                    <TabsContent value="logs" className="mt-0 p-0">
+                    <TabsContent value="logs" className="mt-0 p-0 bg-transparent">
                       <AuditLogs />
                     </TabsContent>
-                    <TabsContent value="settings" className="mt-0 p-0">
+                    <TabsContent value="settings" className="mt-0 p-0 bg-transparent">
                       <SystemSettings />
                     </TabsContent>
                   </div>
