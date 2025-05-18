@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { Plus, Search, Filter, SlidersHorizontal, Loader2, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,7 @@ import PatientForm from "@/components/patients/PatientForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const CaseManagement = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -32,84 +33,81 @@ const CaseManagement = () => {
 
   const clientIdFromURL = searchParams.get('clientId');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        
-        const casesData = await casesApi.getCases();
-        setCases(casesData);
-        
-        const clientsData = await clientsApi.getClients();
-        setClients(clientsData);
-        
-        if (id) {
-          const caseItem = await casesApi.getCase(id);
-          if (caseItem) {
-            setSelectedCase(caseItem);
-          } else {
-            toast({
-              title: "Error",
-              description: "Case not found",
-              variant: "destructive",
-            });
-            navigate('/cases');
-          }
-        } else if (searchParams.get('new') === 'true') {
-          setIsCreating(true);
+  // Memoized fetch function to prevent re-renders
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      const casesData = await casesApi.getCases();
+      setCases(casesData);
+      
+      const clientsData = await clientsApi.getClients();
+      setClients(clientsData);
+      
+      // Only attempt to fetch a case if we have an ID and haven't already done so
+      if (id) {
+        const caseItem = await casesApi.getCase(id);
+        if (caseItem) {
+          setSelectedCase(caseItem);
+        } else {
+          toast({
+            title: "Error",
+            description: "Case not found",
+            variant: "destructive",
+          });
+          navigate('/cases');
         }
-      } catch (error) {
-        console.error("Error fetching cases:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load cases. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
+      } else if (searchParams.get('new') === 'true') {
+        setIsCreating(true);
       }
-    };
-
-    fetchData();
+    } catch (error) {
+      console.error("Error fetching cases:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load cases. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }, [id, navigate, toast, searchParams]);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Only run on mount and when dependencies change
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Memoize handlers to prevent unnecessary re-renders
+  const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-  };
+  }, []);
 
-  const filteredCases = cases.filter(
-    (caseItem) =>
-      caseItem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      caseItem.caseNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      caseItem.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleBackToList = () => {
+  const handleBackToList = useCallback(() => {
     setSelectedCase(null);
     navigate('/cases');
-  };
+  }, [navigate]);
 
-  const handleSelectCase = (caseItem: Case) => {
+  const handleSelectCase = useCallback((caseItem: Case) => {
     setSelectedCase(caseItem);
     setIsCreating(false);
     setIsEditing(false);
     navigate(`/cases/${caseItem.id}`);
-  };
+  }, [navigate]);
 
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     setSelectedCase(null);
     setIsCreating(true);
     setIsEditing(false);
     navigate(`/cases/create${clientIdFromURL ? `?clientId=${clientIdFromURL}` : ''}`);
-  };
+  }, [navigate, clientIdFromURL]);
 
-  const handleEditCase = (caseItem: Case) => {
+  const handleEditCase = useCallback((caseItem: Case) => {
     setSelectedCase(caseItem);
     setIsEditing(true);
     navigate(`/cases/${caseItem.id}/edit`);
-  };
+  }, [navigate]);
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = useCallback(() => {
     if (selectedCase) {
       setIsEditing(false);
       navigate(`/cases/${selectedCase.id}`);
@@ -117,9 +115,9 @@ const CaseManagement = () => {
       setIsCreating(false);
       navigate('/cases');
     }
-  };
+  }, [selectedCase, navigate]);
 
-  const handleCaseFormSubmit = async (data: any) => {
+  const handleCaseFormSubmit = useCallback(async (data: any) => {
     try {
       if (isEditing && selectedCase) {
         const updatedCase = await casesApi.updateCase(selectedCase.id, data);
@@ -129,7 +127,7 @@ const CaseManagement = () => {
             description: "Case updated successfully",
           });
           
-          setCases(cases.map(c => c.id === updatedCase.id ? updatedCase : c));
+          setCases(prevCases => prevCases.map(c => c.id === updatedCase.id ? updatedCase : c));
           setSelectedCase(updatedCase);
           setIsEditing(false);
           navigate(`/cases/${updatedCase.id}`);
@@ -142,7 +140,7 @@ const CaseManagement = () => {
             description: "Case created successfully",
           });
           
-          setCases([...cases, newCase]);
+          setCases(prevCases => [...prevCases, newCase]);
           setSelectedCase(newCase);
           setIsCreating(false);
           navigate(`/cases/${newCase.id}`);
@@ -156,19 +154,27 @@ const CaseManagement = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [isEditing, selectedCase, navigate, toast]);
 
-  const handleAddPatient = () => {
+  const handleAddPatient = useCallback(() => {
     setIsAddingPatient(true);
-  };
+  }, []);
 
-  const handlePatientCreated = () => {
+  const handlePatientCreated = useCallback(() => {
     setIsAddingPatient(false);
     toast({
       title: "Success",
       description: "Patient has been created successfully",
     });
-  };
+  }, [toast]);
+
+  // Filter cases here to avoid doing it during render
+  const filteredCases = cases.filter(
+    (caseItem) =>
+      caseItem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      caseItem.caseNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      caseItem.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const renderContent = () => {
     if (isLoading) {
