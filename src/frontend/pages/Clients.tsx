@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { Routes, Route } from 'react-router-dom';
 import PageLayout from '@/frontend/components/layout/PageLayout';
 import ClientManagement from "@/components/client-management/ClientManagement";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { ClientProvider } from '@/contexts/client';
 
 const Clients = () => {
@@ -14,12 +15,16 @@ const Clients = () => {
       </Helmet>
       
       <div className="container mx-auto px-4 py-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white">Client Management</h1>
-          <p className="text-white/70 mt-1">
-            View, add, edit and manage all your clients and their cases
-          </p>
-        </div>
+        <Card className="glass-card backdrop-blur-lg border border-white/20 shadow-lg overflow-hidden rounded-xl mb-6">
+          <CardHeader className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 pb-8 border-b border-white/10">
+            <CardTitle className="flex items-center gap-2 text-2xl text-white">
+              Client Management System
+            </CardTitle>
+            <CardDescription className="text-white/70">
+              View, add, edit and manage all your clients and their cases
+            </CardDescription>
+          </CardHeader>
+        </Card>
         
         <div className="max-w-7xl mx-auto">
           <Routes>

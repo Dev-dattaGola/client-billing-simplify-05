@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MedicalReportsSheet from "./MedicalReportsSheet";
 import ReductionStatementsSheet from "./ReductionStatementsSheet";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
 const ReportsManagement = () => {
   const location = useLocation();
@@ -18,40 +19,63 @@ const ReportsManagement = () => {
   }, [tabFromUrl]);
 
   return (
-    <div className="glass-card backdrop-blur-lg border border-white/20 rounded-lg shadow-sm">
-      <Tabs 
-        value={activeTab} 
-        onValueChange={setActiveTab}
-        className="w-full"
-      >
-        <div className="border-b border-white/10 px-6 py-2">
-          <TabsList className="grid w-full max-w-md grid-cols-2 bg-transparent">
-            <TabsTrigger 
-              value="medical" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-purple-400 data-[state=active]:text-purple-300 data-[state=active]:bg-transparent text-white"
-            >
-              Medical Reports
-            </TabsTrigger>
-            <TabsTrigger 
-              value="reduction" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-cyan-400 data-[state=active]:text-cyan-300 data-[state=active]:bg-transparent text-white"
-            >
-              Reduction Statements
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        
-        <TabsContent value="medical" className="p-6 space-y-4">
-          <MedicalReportsSheet />
-        </TabsContent>
-        
-        <TabsContent value="reduction" className="p-6 space-y-4">
-          <ReductionStatementsSheet />
-        </TabsContent>
-      </Tabs>
-    </div>
+    <Card className="glass-card backdrop-blur-lg border border-white/20 rounded-lg shadow-sm overflow-hidden">
+      <CardHeader className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 pb-8 border-b border-white/10">
+        <CardTitle className="text-xl font-bold text-white">Reports Management System</CardTitle>
+        <CardDescription className="text-white/70">
+          Generate and manage medical reports and reduction statements
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
+          <div className="border-b border-white/10 px-6 py-2">
+            <TabsList className="grid w-full max-w-md grid-cols-2 bg-transparent">
+              <TabsTrigger 
+                value="medical" 
+                color="purple"
+                className="data-[state=active]:bg-purple-500/20"
+              >
+                Medical Reports
+              </TabsTrigger>
+              <TabsTrigger 
+                value="reduction" 
+                color="cyan"
+                className="data-[state=active]:bg-cyan-500/20"
+              >
+                Reduction Statements
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="medical" className="p-6 space-y-4">
+            <Card className="border-purple-500/30 bg-purple-500/5 backdrop-blur-lg">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold text-white">Medical Reports</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MedicalReportsSheet />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="reduction" className="p-6 space-y-4">
+            <Card className="border-cyan-500/30 bg-cyan-500/5 backdrop-blur-lg">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold text-white">Reduction Statements</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ReductionStatementsSheet />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };
 
 export default ReportsManagement;
-

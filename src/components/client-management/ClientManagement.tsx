@@ -3,6 +3,7 @@ import React, { useState, useCallback } from "react";
 import { ClientProvider } from "@/contexts/client";
 import ClientTabs from "./ClientTabs";
 import ClientSearchSheet from "./ClientSearchSheet";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 const ClientManagement = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -22,7 +23,7 @@ const ClientManagement = () => {
   console.log("ClientManagement rendering");
   
   return (
-    <div className="glass-card backdrop-blur-lg border border-white/20 rounded-lg shadow-sm">
+    <Card className="glass-card backdrop-blur-lg border border-white/20 rounded-lg shadow-sm">
       <ClientProvider>
         <ClientTabs onSearchClick={handleSearchClick} />
         <ClientSearchSheet 
@@ -30,7 +31,7 @@ const ClientManagement = () => {
           onOpenChange={handleSearchOpenChange}
         />
       </ClientProvider>
-    </div>
+    </Card>
   );
 };
 

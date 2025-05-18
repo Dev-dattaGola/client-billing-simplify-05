@@ -8,6 +8,7 @@ import { Plus, FileDown, Search, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 const Clients: React.FC = () => {
   const navigate = useNavigate();
@@ -65,46 +66,60 @@ const Clients: React.FC = () => {
       </Helmet>
       
       <div className="container mx-auto px-4 py-6">
-        <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Client Management</h1>
-            <p className="text-white/70 mt-1">
+        <Card className="glass-card backdrop-blur-lg border border-white/20 shadow-lg overflow-hidden rounded-xl mb-6">
+          <CardHeader className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 pb-8 border-b border-white/10">
+            <CardTitle className="flex items-center gap-2 text-2xl text-white">
+              Client Management System
+            </CardTitle>
+            <CardDescription className="text-white/70">
               View, add, edit and manage all your clients and their cases
-            </p>
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-2">
-            {searchForm}
-            
-            <EnhancedButton 
-              variant="outline" 
-              size="sm"
-              actionFn={handleRefresh}
-              loadingText="Refreshing..."
-              successText="Clients refreshed"
-            >
-              <RefreshCw className="h-4 w-4 mr-1" /> Refresh
-            </EnhancedButton>
-            
-            <EnhancedButton 
-              variant="outline" 
-              size="sm"
-              actionFn={handleExportClients}
-              loadingText="Exporting..."
-              successText="Clients exported successfully"
-            >
-              <FileDown className="h-4 w-4 mr-1" /> Export
-            </EnhancedButton>
-            
-            <EnhancedButton 
-              variant="default" 
-              size="sm"
-              onClick={handleAddClient}
-            >
-              <Plus className="h-4 w-4 mr-1" /> Add Client
-            </EnhancedButton>
-          </div>
-        </div>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold text-white">Client Dashboard</h2>
+                <p className="text-white/70 mt-1">
+                  Manage client information, cases, and documents
+                </p>
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-2">
+                {searchForm}
+                
+                <EnhancedButton 
+                  variant="outline" 
+                  size="sm"
+                  actionFn={handleRefresh}
+                  loadingText="Refreshing..."
+                  successText="Clients refreshed"
+                  className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+                >
+                  <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+                </EnhancedButton>
+                
+                <EnhancedButton 
+                  variant="outline" 
+                  size="sm"
+                  actionFn={handleExportClients}
+                  loadingText="Exporting..."
+                  successText="Clients exported successfully"
+                  className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+                >
+                  <FileDown className="h-4 w-4 mr-1" /> Export
+                </EnhancedButton>
+                
+                <EnhancedButton 
+                  variant="default" 
+                  size="sm"
+                  onClick={handleAddClient}
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Add Client
+                </EnhancedButton>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         
         <div className="max-w-7xl mx-auto">
           <ClientManagement />
