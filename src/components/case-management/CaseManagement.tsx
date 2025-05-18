@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { Plus, Search, Filter, SlidersHorizontal, Loader2, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -31,53 +31,55 @@ const CaseManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddingPatient, setIsAddingPatient] = useState(false);
 
-  const clientIdFromURL = searchParams.get('clientId');
+  const clientIdFromURL = useMemo(() => searchParams.get('clientId'), [searchParams]);
+  const isNewFromURL = useMemo(() => searchParams.get('new') === 'true', [searchParams]);
 
-  // Memoized fetch function to prevent re-renders
-  const fetchData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      
-      const casesData = await casesApi.getCases();
-      setCases(casesData);
-      
-      const clientsData = await clientsApi.getClients();
-      setClients(clientsData);
-      
-      // Only attempt to fetch a case if we have an ID and haven't already done so
-      if (id) {
-        const caseItem = await casesApi.getCase(id);
-        if (caseItem) {
-          setSelectedCase(caseItem);
-        } else {
-          toast({
-            title: "Error",
-            description: "Case not found",
-            variant: "destructive",
-          });
-          navigate('/cases');
-        }
-      } else if (searchParams.get('new') === 'true') {
-        setIsCreating(true);
-      }
-    } catch (error) {
-      console.error("Error fetching cases:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load cases. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id, navigate, toast, searchParams]);
-
-  // Only run on mount and when dependencies change
+  // Fetch data only when component mounts or when specific dependencies change
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        
+        const [casesData, clientsData] = await Promise.all([
+          casesApi.getCases(),
+          clientsApi.getClients()
+        ]);
+        
+        setCases(casesData);
+        setClients(clientsData);
+        
+        // Only attempt to fetch a case if we have an ID
+        if (id) {
+          const caseItem = await casesApi.getCase(id);
+          if (caseItem) {
+            setSelectedCase(caseItem);
+          } else {
+            toast({
+              title: "Error",
+              description: "Case not found",
+              variant: "destructive",
+            });
+            navigate('/cases');
+          }
+        } else if (isNewFromURL) {
+          setIsCreating(true);
+        }
+      } catch (error) {
+        console.error("Error fetching cases:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load cases. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Memoize handlers to prevent unnecessary re-renders
+    fetchData();
+  }, [id, navigate, toast, isNewFromURL]);
+
+  // Memoized handlers to prevent unnecessary re-renders
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   }, []);
@@ -168,13 +170,15 @@ const CaseManagement = () => {
     });
   }, [toast]);
 
-  // Filter cases here to avoid doing it during render
-  const filteredCases = cases.filter(
-    (caseItem) =>
-      caseItem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      caseItem.caseNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      caseItem.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Memoize filtered cases to avoid recalculating on every render
+  const filteredCases = useMemo(() => {
+    return cases.filter(
+      (caseItem) =>
+        caseItem.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        caseItem.caseNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        caseItem.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [cases, searchQuery]);
 
   const renderContent = () => {
     if (isLoading) {
