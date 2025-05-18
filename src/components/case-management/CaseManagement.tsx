@@ -31,6 +31,7 @@ const CaseManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddingPatient, setIsAddingPatient] = useState(false);
 
+  // Memoize values derived from searchParams to prevent unnecessary re-renders
   const clientIdFromURL = useMemo(() => searchParams.get('clientId'), [searchParams]);
   const isNewFromURL = useMemo(() => searchParams.get('new') === 'true', [searchParams]);
 
@@ -40,6 +41,7 @@ const CaseManagement = () => {
       try {
         setIsLoading(true);
         
+        // Use Promise.all to fetch data in parallel
         const [casesData, clientsData] = await Promise.all([
           casesApi.getCases(),
           clientsApi.getClients()
@@ -180,7 +182,8 @@ const CaseManagement = () => {
     );
   }, [cases, searchQuery]);
 
-  const renderContent = () => {
+  // Move render content into a memoized component to prevent unnecessary re-renders
+  const renderContent = useCallback(() => {
     if (isLoading) {
       return (
         <div className="flex items-center justify-center h-64">
@@ -307,8 +310,28 @@ const CaseManagement = () => {
         </Tabs>
       </div>
     );
-  };
+  }, [
+    isLoading, 
+    isCreating, 
+    isEditing, 
+    selectedCase, 
+    clients, 
+    filteredCases, 
+    searchQuery, 
+    clientIdFromURL, 
+    isAddingPatient,
+    handleSearch, 
+    handleBackToList, 
+    handleSelectCase, 
+    handleCreateNew, 
+    handleEditCase, 
+    handleCancelEdit, 
+    handleCaseFormSubmit, 
+    handleAddPatient, 
+    handlePatientCreated
+  ]);
 
+  // Return the memoized content directly
   return renderContent();
 };
 
