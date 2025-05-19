@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -27,8 +27,20 @@ import ClientBillingInfo from "./client-specific/ClientBillingInfo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { messagingApi } from "@/backend/messaging-api";
 
-// Create a StatsCard component for metrics
-const StatsCard = ({ icon: Icon, title, value, trend, color = "blue" }) => {
+// Create a StatsCard component for metrics with proper TypeScript props
+const StatsCard = ({ 
+  icon: Icon, 
+  title, 
+  value, 
+  trend, 
+  color = "blue" 
+}: { 
+  icon: React.ElementType; 
+  title: string; 
+  value: string | number; 
+  trend?: string; 
+  color?: string;
+}) => {
   return (
     <Card className="border border-white/20">
       <CardContent className="p-6 flex items-center justify-between">
@@ -58,30 +70,31 @@ const DashboardOverview = () => {
   const { toast } = useToast();
   const { currentUser } = useAuth();
 
-  // Use useEffect with proper dependency array to prevent infinite re-renders
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const fetchedClients = await clientsApi.getClients();
-        const fetchedMessages = await messagingApi.getMessages();
-        
-        setClients(fetchedClients);
-        setMessages(fetchedMessages);
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load dashboard data. Please try again later.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Using useCallback to memoize the fetchData function
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const fetchedClients = await clientsApi.getClients();
+      const fetchedMessages = await messagingApi.getMessages();
+      
+      setClients(fetchedClients);
+      setMessages(fetchedMessages);
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
 
+  // Use useEffect with proper dependency array
+  useEffect(() => {
     fetchData();
-  }, [toast]); // Only re-run if toast changes
+  }, [fetchData]); // Dependency on memoized fetchData function
 
   // Calculate stats using useMemo to prevent recalculation on every render
   const stats = useMemo(() => {
