@@ -32,7 +32,7 @@ const StatsCard = ({
   icon: Icon, 
   title, 
   value, 
-  trend, 
+  trend = "", // Default empty string to prevent undefined issue
   color = "blue" 
 }: { 
   icon: React.ElementType; 
@@ -70,6 +70,19 @@ const DashboardOverview = () => {
   const { toast } = useToast();
   const { currentUser } = useAuth();
 
+  // Define stats outside of render using useMemo to prevent recalculation
+  const stats = useMemo(() => {
+    return {
+      totalClients: clients.length,
+      activeClients: clients.filter(c => !c.isDropped).length,
+      totalRevenue: "$37,842.50",
+      monthlyRevenue: "$4,250.00",
+      revenueGrowth: "+12.5% from last month",
+      unreadMessages: messages.filter(m => !m.isRead).length,
+      upcomingEvents: 5,
+    };
+  }, [clients, messages]);
+
   // Using useCallback to memoize the fetchData function
   const fetchData = useCallback(async () => {
     try {
@@ -93,21 +106,10 @@ const DashboardOverview = () => {
 
   // Use useEffect with proper dependency array
   useEffect(() => {
+    console.log("Dashboard: Fetching data");
     fetchData();
-  }, [fetchData]); // Dependency on memoized fetchData function
-
-  // Calculate stats using useMemo to prevent recalculation on every render
-  const stats = useMemo(() => {
-    return {
-      totalClients: clients.length,
-      activeClients: clients.filter(c => !c.isDropped).length,
-      totalRevenue: "$37,842.50",
-      monthlyRevenue: "$4,250.00",
-      revenueGrowth: "+12.5% from last month",
-      unreadMessages: messages.filter(m => !m.isRead).length,
-      upcomingEvents: 5,
-    };
-  }, [clients, messages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount - fetchData depends on toast which is stable
 
   // If user is a client, show specific client dashboard
   if (currentUser?.role === 'client') {
