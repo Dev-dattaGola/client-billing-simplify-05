@@ -32,8 +32,6 @@ const Login = () => {
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, from, authLoading]);
-
-  // Remove duplicate redirect to prevent loops
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,17 +84,16 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-purple-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-lawfirm-dark-purple via-lawfirm-purple to-lawfirm-dark-purple px-4">
       <Card className="w-full max-w-md bg-violet-600">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
             <img 
-                src="/lovable-uploads/1d5c7458-1307-40b3-93c7-a63e609301c6.png" 
+                src="/lovable-uploads/95aedfb9-41e5-41c6-bee8-6700070cd286.png" 
                 alt="LAWerp500 Logo" 
                 className="h-44"
               />
           </div>
-          {/* <CardTitle className="text-2xl font-bold text-center">LAWerp500</CardTitle> */}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">

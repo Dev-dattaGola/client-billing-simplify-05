@@ -18,11 +18,11 @@ const HeroSection: React.FC = () => {
   };
   
   return (
-    <section className="bg-gradient-to-br from-lawfirm-purple-dark via-lawfirm-purple to-lawfirm-purple-light pt-16 lg:pt-24 pb-24 px-4 text-white">
+    <section className="bg-gradient-to-br from-lawfirm-purple-dark via-lawfirm-purple to-lawfirm-purple-light pt-8 lg:pt-16 pb-24 px-4 text-white">
       <div className="container mx-auto max-w-7xl">
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="md:w-1/2 mb-8 md:mb-0 md:pr-8 text-left">
-            <div className="mb-6">
+            <div className="mb-4">
               <img 
                 src="/lovable-uploads/f821edb6-2ada-465d-a812-7f4c9e81f81d.png" 
                 alt="LAWerp500 Logo" 
