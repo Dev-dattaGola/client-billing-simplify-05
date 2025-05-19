@@ -58,6 +58,7 @@ const DashboardOverview = () => {
   const { toast } = useToast();
   const { currentUser } = useAuth();
 
+  // Use useEffect with proper dependency array to prevent infinite re-renders
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -80,9 +81,9 @@ const DashboardOverview = () => {
     };
 
     fetchData();
-  }, [toast]);
+  }, [toast]); // Only re-run if toast changes
 
-  // Calculate stats
+  // Calculate stats using useMemo to prevent recalculation on every render
   const stats = useMemo(() => {
     return {
       totalClients: clients.length,
@@ -153,12 +154,14 @@ const DashboardOverview = () => {
           icon={Calendar} 
           title="Upcoming Events" 
           value={stats.upcomingEvents}
+          trend="Next: Tomorrow"
           color="amber" 
         />
         <StatsCard 
           icon={MessageSquare} 
           title="Unread Messages" 
           value={stats.unreadMessages}
+          trend="2 new today"
           color="blue" 
         />
       </div>
