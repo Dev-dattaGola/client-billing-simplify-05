@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo } from 'react';
 import { useClientActions } from './useClientActions';
 import { ClientContextType } from './types';
 
@@ -9,19 +9,28 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const clientActions = useClientActions();
   const [initialized, setInitialized] = useState(false);
   
-  // Use effect to load clients on mount
+  // Use effect to load clients on mount - only once
   useEffect(() => {
-    console.log("ClientProvider: Loading clients");
-    clientActions.refreshClients();
-    setInitialized(true);
-    // We only want to run this once when the component mounts
-  }, []);
+    if (!initialized) {
+      console.log("ClientProvider: Loading clients");
+      clientActions.refreshClients();
+      setInitialized(true);
+    }
+  }, [initialized]);
   
-  // Avoid creating a new context value on each render by storing clientActions directly
-  // Note: We're not using useMemo here because it's causing the hooks error
+  // Memoize the context value to prevent unnecessary renders
+  const contextValue = useMemo(() => clientActions, [
+    clientActions.clients,
+    clientActions.droppedClients,
+    clientActions.selectedClient,
+    clientActions.clientToEdit,
+    clientActions.loading,
+    clientActions.activeTab,
+    clientActions.activeDetailTab
+  ]);
   
   return (
-    <ClientContext.Provider value={clientActions}>
+    <ClientContext.Provider value={contextValue}>
       {children}
     </ClientContext.Provider>
   );

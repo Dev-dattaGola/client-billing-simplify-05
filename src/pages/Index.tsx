@@ -1,11 +1,11 @@
 
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import LandingPage from "./LandingPage";
+import React from 'react';
+import LandingPage from './LandingPage';
 
 const Index = () => {
-  // Remove auto-redirect logic to prevent loops
+  // Render the landing page directly without any conditional logic
+  // that might cause re-renders
   return <LandingPage />;
 };
 
-export default Index;
+export default React.memo(Index);
