@@ -1,11 +1,16 @@
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import ClientTabs from "./ClientTabs";
 import ClientSearchSheet from "./ClientSearchSheet";
 import { Card } from "@/components/ui/card";
+import { useLocation } from "react-router-dom";
 
 const ClientManagement = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const location = useLocation();
+
+  // Check if we're on the /clients/new route
+  const isNewClientRoute = location.pathname === "/clients/new";
 
   // Memoize handlers to prevent re-renders
   const handleSearchClick = useCallback(() => {
@@ -20,7 +25,10 @@ const ClientManagement = () => {
 
   return (
     <Card className="glass-card backdrop-blur-lg border border-white/20 rounded-lg shadow-sm">
-      <ClientTabs onSearchClick={handleSearchClick} />
+      <ClientTabs 
+        onSearchClick={handleSearchClick}
+        initialTab={isNewClientRoute ? "add" : "view"}
+      />
       <ClientSearchSheet 
         isOpen={isSearchOpen}
         onOpenChange={handleSearchOpenChange}

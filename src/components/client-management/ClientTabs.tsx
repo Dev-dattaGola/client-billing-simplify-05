@@ -1,5 +1,4 @@
-
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClient } from "@/contexts/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,9 +12,10 @@ import { Separator } from "@/components/ui/separator";
 
 interface ClientTabsProps {
   onSearchClick?: () => void;
+  initialTab?: string;
 }
 
-const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
+const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "view" }) => {
   const { 
     clients,
     droppedClients,
@@ -36,6 +36,14 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
   
   const { hasPermission, currentUser } = useAuth();
 
+  // Set initial tab if provided
+  useEffect(() => {
+    if (initialTab && initialTab !== activeTab) {
+      console.log("Setting initial tab to:", initialTab);
+      setActiveTab(initialTab);
+    }
+  }, [initialTab, setActiveTab, activeTab]);
+
   // Memoize handlers to prevent unnecessary re-renders
   const handleRefreshClick = useCallback(() => {
     console.log("Refreshing clients");
@@ -43,6 +51,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
   }, [refreshClients]);
   
   const handleTabChange = useCallback((value: string) => {
+    console.log("Tab changing to:", value);
     setActiveTab(value);
   }, [setActiveTab]);
 
@@ -78,6 +87,16 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
     }
     return Promise.resolve(false);
   }, [hasPermission, handleDeleteClient]);
+
+  // Memoize form submit handler to prevent infinite loops
+  const handleFormSubmit = useCallback((formData) => {
+    console.log("Form submit handler called", formData);
+    if (clientToEdit) {
+      return handleEditClient(formData);
+    } else {
+      return handleAddClient(formData);
+    }
+  }, [clientToEdit, handleEditClient, handleAddClient]);
 
   return (
     <Tabs 
@@ -149,7 +168,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
         {shouldShowAddTab ? (
           <ClientForm 
             initialData={clientToEdit} 
-            onSubmit={clientToEdit ? handleEditClient : handleAddClient} 
+            onSubmit={handleFormSubmit}
             onCancel={handleCancel}
           />
         ) : (

@@ -18,7 +18,7 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       await clientActions.refreshClients();
       setInitialized(true);
     }
-  }, [isAuthenticated, initialized, clientActions.refreshClients]);
+  }, [isAuthenticated, initialized, clientActions]);
   
   // Use effect to load clients on mount or when authentication state changes
   useEffect(() => {
