@@ -27,31 +27,32 @@ interface ClientFormProps {
   onCancel: () => void;
 }
 
-const formSchema = z.object({
-  fullName: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  phone: z.string().min(7, {
-    message: "Please enter a valid phone number.",
-  }),
-  companyName: z.string().optional(),
-  address: z.string().optional(),
-  notes: z.string().optional(),
-  password: initialData ? z.string().optional() : z.string().min(8, { 
-    message: "Password must be at least 8 characters"
-  }),
-  assignedAttorneyId: z.string().optional(),
-});
-
 const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [currentTag, setCurrentTag] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { currentUser } = useAuth();
   const isAdmin = currentUser?.role === 'admin';
+
+  // Create the form schema based on whether we have initialData or not
+  const formSchema = z.object({
+    fullName: z.string().min(2, {
+      message: "Name must be at least 2 characters.",
+    }),
+    email: z.string().email({
+      message: "Please enter a valid email address.",
+    }),
+    phone: z.string().min(7, {
+      message: "Please enter a valid phone number.",
+    }),
+    companyName: z.string().optional(),
+    address: z.string().optional(),
+    notes: z.string().optional(),
+    password: initialData 
+      ? z.string().min(8, { message: "Password must be at least 8 characters" }).optional().or(z.literal(''))
+      : z.string().min(8, { message: "Password must be at least 8 characters" }),
+    assignedAttorneyId: z.string().optional(),
+  });
 
   // Mock attorneys data (in a real app, this would come from an API)
   const attorneys = [

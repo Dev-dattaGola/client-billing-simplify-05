@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useMemo } from 'react';
-import { Client } from '@/types/client';
+import { Client, mapDbClientToClient, mapClientToDbClient } from '@/types/client';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -28,9 +28,12 @@ export const useClientActions = () => {
       
       if (error) throw error;
       
+      // Map database objects to client objects with proper camelCase properties
+      const mappedClients = fetchedClients?.map(mapDbClientToClient) || [];
+      
       // Separate active and dropped clients
-      const active = fetchedClients?.filter(client => !client.is_dropped) || [];
-      const dropped = fetchedClients?.filter(client => client.is_dropped) || [];
+      const active = mappedClients.filter(client => !client.isDropped);
+      const dropped = mappedClients.filter(client => client.isDropped);
       
       setClients(active);
       setDroppedClients(dropped);
@@ -47,55 +50,74 @@ export const useClientActions = () => {
   }, [toast]);
 
   // Add client with password creation - memoized
-  const handleAddClient = useCallback(async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleAddClient = useCallback(async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client | null> => {
     try {
-      // First, create auth user with email and password
+      // Extract password for auth user creation
       const password = clientData.password as string;
-      delete (clientData as any).password;
+      if (!password) {
+        throw new Error("Password is required for new client accounts");
+      }
       
-      // Create the auth user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: clientData.email,
-        password: password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: clientData.fullName,
-          role: 'client'
+      // Create auth user using the edge function
+      const { data: authData, error: authError } = await supabase.functions.invoke('client-management', {
+        body: {
+          action: 'create_client_user',
+          data: {
+            email: clientData.email,
+            password: password,
+            fullName: clientData.fullName
+          }
         }
       });
       
-      if (authError) throw authError;
+      if (authError || !authData?.success) {
+        throw new Error(authError?.message || authData?.error || "Failed to create client user");
+      }
       
-      // Then, create the client record with reference to user
-      const clientToInsert = {
-        ...clientData,
-        user_id: authData.user.id,
+      // Convert client data to database format
+      const dbClientData = {
+        full_name: clientData.fullName,
+        email: clientData.email,
+        phone: clientData.phone,
+        company_name: clientData.companyName,
+        address: clientData.address,
+        tags: clientData.tags,
+        notes: clientData.notes,
+        assigned_attorney_id: clientData.assignedAttorneyId,
+        user_id: authData.user.user.id,
       };
       
-      const { data: newClient, error } = await supabase
+      // Insert client record in database
+      const { data: newDbClient, error } = await supabase
         .from('clients')
-        .insert(clientToInsert)
+        .insert(dbClientData)
         .select('*')
         .single();
       
       if (error) throw error;
       
-      if (newClient) {
+      if (newDbClient) {
+        // Convert DB client back to frontend client model
+        const newClient = mapDbClientToClient(newDbClient);
+        
+        // Update state
         setClients(prevClients => [newClient, ...prevClients]);
         setActiveTab("view");
+        
         toast({
           title: "Client Added",
-          description: `${newClient.full_name} has been added to your clients.`,
+          description: `${newClient.fullName} has been added to your clients.`,
         });
+        
         return newClient;
       } else {
         throw new Error("Failed to create client");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding client:", error);
       toast({
         title: "Error",
-        description: "Failed to add client. Please try again.",
+        description: error.message || "Failed to add client. Please try again.",
         variant: "destructive",
       });
       return null;
@@ -103,30 +125,58 @@ export const useClientActions = () => {
   }, [toast]);
 
   // Edit client - memoized
-  const handleEditClient = useCallback(async (clientData: Client) => {
+  const handleEditClient = useCallback(async (clientData: Client): Promise<Client | null> => {
     try {
-      // Update client record in Supabase
-      const { data: updatedClient, error } = await supabase
+      // Check if password update is requested
+      if (clientData.password && clientData.user_id) {
+        // Update password using edge function
+        const { data: passwordUpdateData, error: passwordUpdateError } = await supabase.functions.invoke('client-management', {
+          body: {
+            action: 'update_client_password',
+            data: {
+              userId: clientData.user_id,
+              password: clientData.password
+            }
+          }
+        });
+        
+        if (passwordUpdateError || !passwordUpdateData?.success) {
+          toast({
+            title: "Warning",
+            description: "Client data was updated but password change failed.",
+            variant: "warning",
+          });
+        }
+      }
+      
+      // Convert to db format
+      const dbClientData = {
+        full_name: clientData.fullName,
+        email: clientData.email,
+        phone: clientData.phone,
+        company_name: clientData.companyName,
+        address: clientData.address,
+        tags: clientData.tags,
+        notes: clientData.notes,
+        assigned_attorney_id: clientData.assignedAttorneyId,
+      };
+      
+      // Update client record in database
+      const { data: updatedDbClient, error } = await supabase
         .from('clients')
-        .update({
-          full_name: clientData.fullName,
-          email: clientData.email,
-          phone: clientData.phone,
-          company_name: clientData.companyName,
-          address: clientData.address,
-          tags: clientData.tags,
-          notes: clientData.notes,
-          assigned_attorney_id: clientData.assignedAttorneyId,
-        })
+        .update(dbClientData)
         .eq('id', clientData.id)
         .select('*')
         .single();
       
       if (error) throw error;
       
-      if (updatedClient) {
+      if (updatedDbClient) {
+        // Convert DB client back to frontend client model
+        const updatedClient = mapDbClientToClient(updatedDbClient);
+        
         // Update the appropriate list based on dropped status
-        if (updatedClient.is_dropped) {
+        if (updatedClient.isDropped) {
           setClients(prevClients => prevClients.filter(client => client.id !== clientData.id));
           setDroppedClients(prevDropped => [...prevDropped.filter(client => client.id !== clientData.id), updatedClient]);
         } else {
@@ -146,18 +196,18 @@ export const useClientActions = () => {
         setClientToEdit(null);
         toast({
           title: "Client Updated",
-          description: `${updatedClient.full_name}'s information has been updated.`,
+          description: `${updatedClient.fullName}'s information has been updated.`,
         });
         
         return updatedClient;
       } else {
         throw new Error("Failed to update client");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating client:", error);
       toast({
         title: "Error",
-        description: "Failed to update client. Please try again.",
+        description: error.message || "Failed to update client. Please try again.",
         variant: "destructive",
       });
       return null;
@@ -165,14 +215,14 @@ export const useClientActions = () => {
   }, [selectedClient, toast]);
 
   // Drop client - memoized
-  const handleDropClient = useCallback(async (clientId: string, reason: string) => {
+  const handleDropClient = useCallback(async (clientId: string, reason: string): Promise<Client | null> => {
     try {
       const clientToDrop = clients.find(c => c.id === clientId);
       if (!clientToDrop) {
         throw new Error("Client not found");
       }
       
-      const { data: updatedClient, error } = await supabase
+      const { data: updatedDbClient, error } = await supabase
         .from('clients')
         .update({
           is_dropped: true,
@@ -185,7 +235,10 @@ export const useClientActions = () => {
       
       if (error) throw error;
       
-      if (updatedClient) {
+      if (updatedDbClient) {
+        // Convert DB client back to frontend client model
+        const updatedClient = mapDbClientToClient(updatedDbClient);
+        
         // Move client from active to dropped list
         setClients(prevClients => prevClients.filter(client => client.id !== clientId));
         setDroppedClients(prevDropped => [...prevDropped, updatedClient]);
@@ -198,18 +251,18 @@ export const useClientActions = () => {
         
         toast({
           title: "Client Dropped",
-          description: `${updatedClient.full_name} has been marked as dropped.`,
+          description: `${updatedClient.fullName} has been marked as dropped.`,
         });
         
         return updatedClient;
       } else {
         throw new Error("Failed to drop client");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error dropping client:", error);
       toast({
         title: "Error",
-        description: "Failed to drop client. Please try again.",
+        description: error.message || "Failed to drop client. Please try again.",
         variant: "destructive",
       });
       return null;
@@ -217,7 +270,7 @@ export const useClientActions = () => {
   }, [clients, selectedClient, toast]);
 
   // Delete client - memoized
-  const handleDeleteClient = useCallback(async (clientId: string) => {
+  const handleDeleteClient = useCallback(async (clientId: string): Promise<boolean> => {
     try {
       const clientToDelete = clients.find(c => c.id === clientId) || 
                            droppedClients.find(c => c.id === clientId);
@@ -226,14 +279,19 @@ export const useClientActions = () => {
         throw new Error("Client not found");
       }
       
-      // If client has a user account, disable it
+      // If client has a user account, delete it
       if (clientToDelete.user_id) {
-        const { error: authError } = await supabase.auth.admin.deleteUser(
-          clientToDelete.user_id
-        );
+        const { data: authData, error: authError } = await supabase.functions.invoke('client-management', {
+          body: {
+            action: 'delete_client_user',
+            data: {
+              userId: clientToDelete.user_id,
+            }
+          }
+        });
         
-        if (authError) {
-          console.error("Error disabling client user account:", authError);
+        if (authError || !authData?.success) {
+          console.error("Error deleting client user account:", authError || authData?.error);
         }
       }
       
@@ -257,15 +315,15 @@ export const useClientActions = () => {
       
       toast({
         title: "Client Deleted",
-        description: `${clientToDelete.fullName || clientToDelete.full_name} has been permanently removed.`,
+        description: `${clientToDelete.fullName} has been permanently removed.`,
       });
       
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting client:", error);
       toast({
         title: "Error",
-        description: "Failed to delete client. Please try again.",
+        description: error.message || "Failed to delete client. Please try again.",
         variant: "destructive",
       });
       return false;

@@ -11,10 +11,10 @@ export interface ClientContextType {
   activeDetailTab: string;
   setActiveTab: (tab: string) => void;
   setActiveDetailTab: (tab: string) => void;
-  handleAddClient: (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  handleEditClient: (clientData: Client) => Promise<void>;
-  handleDeleteClient: (clientId: string) => Promise<void>;
-  handleDropClient: (clientId: string, reason: string) => Promise<void>;
+  handleAddClient: (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Client | null>;
+  handleEditClient: (clientData: Client) => Promise<Client | null>;
+  handleDeleteClient: (clientId: string) => Promise<boolean>;
+  handleDropClient: (clientId: string, reason: string) => Promise<Client | null>;
   handleViewClient: (client: Client) => void;
   startEditClient: (client: Client) => void;
   clearClientToEdit: () => void;
