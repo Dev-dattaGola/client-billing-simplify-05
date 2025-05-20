@@ -13,26 +13,24 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   
   // Use effect to load clients on mount or when authentication state changes
   useEffect(() => {
-    // Only refresh clients if authenticated and not yet initialized
-    if (isAuthenticated && !initialized) {
-      console.log("ClientProvider: Loading clients");
-      // Wrap in a function to avoid directly calling in the render phase
-      const loadClients = async () => {
+    const handleInitialization = async () => {
+      // Only refresh clients if authenticated and not yet initialized
+      if (isAuthenticated && !initialized) {
+        console.log("ClientProvider: Loading clients");
         await clientActions.refreshClients();
         setInitialized(true);
-      };
-      
-      loadClients();
-    }
+      } else if (!isAuthenticated && initialized) {
+        // Reset initialized state when auth changes
+        setInitialized(false);
+      }
+    };
     
-    // Reset initialized state when auth changes
-    if (!isAuthenticated && initialized) {
-      setInitialized(false);
-    }
-  }, [isAuthenticated, initialized, clientActions]);
+    handleInitialization();
+    // This effect should only run when auth state or initialized state changes
+  }, [isAuthenticated, initialized]);
   
   // Memoize the context value to prevent unnecessary renders
-  const contextValue: ClientContextType = useMemo(() => ({
+  const contextValue = useMemo(() => ({
     clients: clientActions.clients,
     droppedClients: clientActions.droppedClients,
     selectedClient: clientActions.selectedClient,
@@ -58,8 +56,6 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     clientActions.loading,
     clientActions.activeTab,
     clientActions.activeDetailTab,
-    clientActions.setActiveTab,
-    clientActions.setActiveDetailTab,
     clientActions.handleAddClient,
     clientActions.handleEditClient,
     clientActions.handleDeleteClient,

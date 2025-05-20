@@ -93,6 +93,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
               size="sm" 
               className="gap-1"
               onClick={handleRefreshClick}
+              type="button"
             >
               <RefreshCw className="h-4 w-4" />
               Refresh
@@ -139,6 +140,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
               variant="outline" 
               className="mt-4" 
               onClick={handleCancel}
+              type="button"
             >
               Back to Client List
             </Button>

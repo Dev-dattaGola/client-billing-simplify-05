@@ -1,9 +1,9 @@
 
 import React, { useState, useCallback } from "react";
-import { ClientProvider } from "@/contexts/client";
 import ClientTabs from "./ClientTabs";
 import ClientSearchSheet from "./ClientSearchSheet";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { ClientProvider } from "@/contexts/client";
 
 const ClientManagement = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);

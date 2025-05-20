@@ -1,6 +1,5 @@
-
 import { useState, useCallback, useMemo } from 'react';
-import { Client, mapDbClientToClient, mapClientToDbClient } from '@/types/client';
+import { Client, mapDbClientToClient } from '@/types/client';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -10,7 +9,7 @@ export const useClientActions = () => {
   const [droppedClients, setDroppedClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("view");
   const [activeDetailTab, setActiveDetailTab] = useState("overview");
   const { toast } = useToast();
@@ -19,6 +18,7 @@ export const useClientActions = () => {
   const refreshClients = useCallback(async () => {
     try {
       setLoading(true);
+      console.log("Fetching clients from Supabase");
       
       // Fetch from Supabase
       const { data: fetchedClients, error } = await supabase
@@ -37,6 +37,7 @@ export const useClientActions = () => {
       
       setClients(active);
       setDroppedClients(dropped);
+      console.log(`Loaded ${active.length} active clients and ${dropped.length} dropped clients`);
     } catch (error) {
       console.error("Failed to fetch clients:", error);
       toast({
@@ -144,7 +145,7 @@ export const useClientActions = () => {
           toast({
             title: "Warning",
             description: "Client data was updated but password change failed.",
-            variant: "default", // Changed from "warning" to "default"
+            variant: "default",
           });
         }
       }
@@ -380,6 +381,8 @@ export const useClientActions = () => {
     loading, 
     activeTab, 
     activeDetailTab,
+    setActiveTab,
+    setActiveDetailTab,
     handleAddClient,
     handleEditClient, 
     handleDeleteClient, 
