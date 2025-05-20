@@ -3,7 +3,6 @@ import React, { useState, useCallback, useEffect } from "react";
 import ClientTabs from "./ClientTabs";
 import ClientSearchSheet from "./ClientSearchSheet";
 import { Card } from "@/components/ui/card";
-import { ClientProvider } from "@/contexts/client";
 
 const ClientManagement = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);

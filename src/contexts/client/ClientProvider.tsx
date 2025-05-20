@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useClientActions } from './useClientActions';
 import { ClientContextType } from './types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,22 +11,29 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [initialized, setInitialized] = useState(false);
   const { isAuthenticated } = useAuth();
   
-  // Use effect to load clients on mount or when authentication state changes
-  useEffect(() => {
-    // Only load clients when user is authenticated and not yet initialized
+  // Use callback to prevent dependency changes causing re-renders
+  const initializeClients = useCallback(async () => {
     if (isAuthenticated && !initialized) {
       console.log("ClientProvider: Loading clients");
-      const loadClients = async () => {
-        await clientActions.refreshClients();
-        setInitialized(true);
-      };
-      
-      loadClients();
-    } else if (!isAuthenticated && initialized) {
-      // Reset initialized state when auth changes
-      setInitialized(false);
+      await clientActions.refreshClients();
+      setInitialized(true);
     }
   }, [isAuthenticated, initialized, clientActions.refreshClients]);
+  
+  // Use effect to load clients on mount or when authentication state changes
+  useEffect(() => {
+    console.log("ClientProvider effect running, auth:", isAuthenticated, "initialized:", initialized);
+    
+    if (!isAuthenticated && initialized) {
+      // Reset initialized state when auth changes
+      setInitialized(false);
+      return;
+    }
+    
+    if (isAuthenticated && !initialized) {
+      initializeClients();
+    }
+  }, [isAuthenticated, initialized, initializeClients]);
   
   // Memoize the context value to prevent unnecessary renders
   const contextValue = useMemo(() => ({
@@ -66,6 +73,8 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     clientActions.clearClientToEdit,
     clientActions.refreshClients
   ]);
+
+  console.log("ClientProvider rendering, initialized:", initialized);
   
   return (
     <ClientContext.Provider value={contextValue}>

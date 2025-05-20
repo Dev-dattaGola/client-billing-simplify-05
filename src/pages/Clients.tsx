@@ -3,13 +3,13 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import PageLayout from '@/frontend/components/layout/PageLayout';
 import ClientManagement from "@/components/client-management/ClientManagement";
+import { ClientProvider } from '@/contexts/client';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Plus, FileDown, Search, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { ClientProvider } from '@/contexts/client';
 
 const Clients: React.FC = () => {
   const navigate = useNavigate();
@@ -95,6 +95,7 @@ const Clients: React.FC = () => {
                   loadingText="Refreshing..."
                   successText="Clients refreshed"
                   className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+                  type="button"
                 >
                   <RefreshCw className="h-4 w-4 mr-1" /> Refresh
                 </EnhancedButton>
@@ -106,6 +107,7 @@ const Clients: React.FC = () => {
                   loadingText="Exporting..."
                   successText="Clients exported successfully"
                   className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+                  type="button"
                 >
                   <FileDown className="h-4 w-4 mr-1" /> Export
                 </EnhancedButton>

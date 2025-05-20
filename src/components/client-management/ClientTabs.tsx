@@ -57,6 +57,28 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
 
   console.log("ClientTabs rendering, active tab:", activeTab);
 
+  // Wrap handlers in useCallback to prevent re-renders
+  const handleOnEditClient = useCallback((client) => {
+    if (hasPermission && hasPermission('edit:clients')) {
+      startEditClient(client);
+    }
+    return null;
+  }, [hasPermission, startEditClient]);
+
+  const handleOnDropClient = useCallback((clientId, reason) => {
+    if (hasPermission && hasPermission('edit:clients')) {
+      return handleDropClient(clientId, reason);
+    }
+    return Promise.resolve(null);
+  }, [hasPermission, handleDropClient]);
+
+  const handleOnDeleteClient = useCallback((clientId) => {
+    if (hasPermission && hasPermission('delete:clients')) {
+      return handleDeleteClient(clientId);
+    }
+    return Promise.resolve(false);
+  }, [hasPermission, handleDeleteClient]);
+
   return (
     <Tabs 
       value={activeTab} 
@@ -104,9 +126,9 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
         
         <ClientList 
           clients={clients} 
-          onEditClient={(client) => hasPermission && hasPermission('edit:clients') ? startEditClient(client) : null}
+          onEditClient={handleOnEditClient}
           onViewClient={handleViewClient}
-          onDropClient={(clientId, reason) => hasPermission && hasPermission('edit:clients') ? handleDropClient(clientId, reason) : Promise.resolve(null)}
+          onDropClient={handleOnDropClient}
           loading={loading}
         />
         
@@ -116,7 +138,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
             <DroppedClientsList
               clients={droppedClients}
               onViewClient={handleViewClient}
-              onDeleteClient={(clientId) => hasPermission && hasPermission('delete:clients') ? handleDeleteClient(clientId) : Promise.resolve(false)}
+              onDeleteClient={handleOnDeleteClient}
               loading={loading}
             />
           </>
