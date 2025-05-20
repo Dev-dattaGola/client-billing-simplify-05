@@ -15,8 +15,13 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const initializeClients = useCallback(async () => {
     if (isAuthenticated && !initialized) {
       console.log("ClientProvider: Loading clients");
-      await clientActions.refreshClients();
-      setInitialized(true);
+      try {
+        await clientActions.refreshClients();
+        setInitialized(true);
+        console.log("ClientProvider: Clients loaded successfully");
+      } catch (error) {
+        console.error("ClientProvider: Error loading clients:", error);
+      }
     }
   }, [isAuthenticated, initialized, clientActions]);
   

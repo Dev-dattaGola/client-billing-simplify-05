@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClient } from "@/contexts/client";
@@ -9,6 +10,7 @@ import DroppedClientsList from "./DroppedClientsList";
 import ClientForm from "./ClientForm";
 import ClientDetailsView from "./ClientDetailsView";
 import { Separator } from "@/components/ui/separator";
+import { toast } from 'sonner';
 
 interface ClientTabsProps {
   onSearchClick?: () => void;
@@ -88,15 +90,40 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
     return Promise.resolve(false);
   }, [hasPermission, handleDeleteClient]);
 
-  // Memoize form submit handler to prevent infinite loops
-  const handleFormSubmit = useCallback((formData) => {
+  // Memoize form submit handler with explicit navigation
+  const handleFormSubmit = useCallback(async (formData) => {
     console.log("Form submit handler called", formData);
-    if (clientToEdit) {
-      return handleEditClient(formData);
-    } else {
-      return handleAddClient(formData);
+    try {
+      let result;
+      
+      if (clientToEdit) {
+        console.log("Editing existing client");
+        result = await handleEditClient(formData);
+      } else {
+        console.log("Adding new client");
+        result = await handleAddClient(formData);
+      }
+      
+      if (result) {
+        console.log("Client saved successfully, navigating to view tab");
+        toast.success(`Client ${clientToEdit ? 'updated' : 'added'} successfully`);
+        
+        // Ensure we clear the edit state
+        clearClientToEdit();
+        
+        // Force a tab change after a short delay to ensure state is updated
+        setTimeout(() => {
+          setActiveTab("view");
+        }, 100);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error("Error saving client:", error);
+      toast.error("Failed to save client data");
+      return null;
     }
-  }, [clientToEdit, handleEditClient, handleAddClient]);
+  }, [clientToEdit, handleEditClient, handleAddClient, clearClientToEdit, setActiveTab]);
 
   return (
     <Tabs 

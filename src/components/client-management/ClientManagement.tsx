@@ -4,13 +4,17 @@ import ClientTabs from "./ClientTabs";
 import ClientSearchSheet from "./ClientSearchSheet";
 import { Card } from "@/components/ui/card";
 import { useLocation } from "react-router-dom";
+import { useClient } from "@/contexts/client";
 
 const ClientManagement = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
+  const { activeTab } = useClient();
 
   // Check if we're on the /clients/new route
   const isNewClientRoute = location.pathname === "/clients/new";
+  
+  console.log("ClientManagement rendering, location:", location.pathname, "isNewClientRoute:", isNewClientRoute, "activeTab:", activeTab);
 
   // Memoize handlers to prevent re-renders
   const handleSearchClick = useCallback(() => {
