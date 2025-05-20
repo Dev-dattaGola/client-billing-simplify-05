@@ -144,7 +144,7 @@ export const useClientActions = () => {
           toast({
             title: "Warning",
             description: "Client data was updated but password change failed.",
-            variant: "warning",
+            variant: "default", // Changed from "warning" to "default"
           });
         }
       }

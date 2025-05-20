@@ -36,11 +36,21 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
   
   const { hasPermission, currentUser } = useAuth();
 
-  // Memoize handlers
+  // Memoize handlers to prevent unnecessary re-renders
   const handleRefreshClick = useCallback(() => {
     console.log("Refreshing clients");
     refreshClients();
   }, [refreshClients]);
+  
+  const handleTabChange = useCallback((value: string) => {
+    setActiveTab(value);
+  }, [setActiveTab]);
+
+  // Memoize the cancel handler
+  const handleCancel = useCallback(() => {
+    clearClientToEdit();
+    setActiveTab("view");
+  }, [clearClientToEdit, setActiveTab]);
 
   // Determine which tabs should be visible based on user role
   const shouldShowAddTab = currentUser && ['admin'].includes(currentUser.role);
@@ -50,7 +60,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
   return (
     <Tabs 
       value={activeTab} 
-      onValueChange={setActiveTab}
+      onValueChange={handleTabChange}
       className="w-full text-white"
     >
       <div className="border-b border-white/20 px-6 py-2">
@@ -94,7 +104,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
           clients={clients} 
           onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
           onViewClient={handleViewClient}
-          onDropClient={(clientId, reason) => hasPermission('edit:clients') ? handleDropClient(clientId, reason) : undefined}
+          onDropClient={(clientId, reason) => hasPermission('edit:clients') ? handleDropClient(clientId, reason) : Promise.resolve(null)}
           loading={loading}
         />
         
@@ -104,7 +114,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
             <DroppedClientsList
               clients={droppedClients}
               onViewClient={handleViewClient}
-              onDeleteClient={(clientId) => hasPermission('delete:clients') ? handleDeleteClient(clientId) : null}
+              onDeleteClient={(clientId) => hasPermission('delete:clients') ? handleDeleteClient(clientId) : Promise.resolve(false)}
               loading={loading}
             />
           </>
@@ -116,10 +126,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
           <ClientForm 
             initialData={clientToEdit} 
             onSubmit={clientToEdit ? handleEditClient : handleAddClient} 
-            onCancel={() => {
-              clearClientToEdit();
-              setActiveTab("view");
-            }}
+            onCancel={handleCancel}
           />
         ) : (
           <div className="glass-card p-6 rounded-lg border border-white/20 flex flex-col items-center justify-center text-white">
@@ -131,7 +138,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
             <Button 
               variant="outline" 
               className="mt-4" 
-              onClick={() => setActiveTab("view")}
+              onClick={handleCancel}
             >
               Back to Client List
             </Button>

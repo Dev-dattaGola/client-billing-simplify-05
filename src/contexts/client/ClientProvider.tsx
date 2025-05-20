@@ -13,10 +13,21 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   
   // Use effect to load clients on mount or when authentication state changes
   useEffect(() => {
+    // Only refresh clients if authenticated and not yet initialized
     if (isAuthenticated && !initialized) {
       console.log("ClientProvider: Loading clients");
-      clientActions.refreshClients();
-      setInitialized(true);
+      // Wrap in a function to avoid directly calling in the render phase
+      const loadClients = async () => {
+        await clientActions.refreshClients();
+        setInitialized(true);
+      };
+      
+      loadClients();
+    }
+    
+    // Reset initialized state when auth changes
+    if (!isAuthenticated && initialized) {
+      setInitialized(false);
     }
   }, [isAuthenticated, initialized, clientActions]);
   

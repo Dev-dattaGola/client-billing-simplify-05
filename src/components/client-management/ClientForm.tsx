@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -75,6 +74,23 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
     },
   });
 
+  // Update form when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        fullName: initialData.fullName || "",
+        email: initialData.email || "",
+        phone: initialData.phone || "",
+        companyName: initialData.companyName || "",
+        address: initialData.address || "",
+        notes: initialData.notes || "",
+        password: "", // Always start with empty password on edit
+        assignedAttorneyId: initialData.assignedAttorneyId || "",
+      });
+      setTags(initialData.tags || []);
+    }
+  }, [initialData, form]);
+
   const handleAddTag = () => {
     if (currentTag.trim() && !tags.includes(currentTag.trim())) {
       setTags([...tags, currentTag.trim().toLowerCase()]);
@@ -97,7 +113,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+  const handleSubmitForm = (values: z.infer<typeof formSchema>) => {
     if (initialData) {
       // If updating existing client, only include password if it was provided
       const dataToSubmit = {
@@ -123,7 +139,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 text-white">
+      <form onSubmit={form.handleSubmit(handleSubmitForm)} className="space-y-6 text-white">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
