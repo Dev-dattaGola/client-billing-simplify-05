@@ -83,6 +83,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
                 size="sm" 
                 className="gap-1"
                 onClick={onSearchClick}
+                type="button"
               >
                 <Search className="h-4 w-4" />
                 Search
@@ -103,9 +104,9 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
         
         <ClientList 
           clients={clients} 
-          onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
+          onEditClient={(client) => hasPermission && hasPermission('edit:clients') ? startEditClient(client) : null}
           onViewClient={handleViewClient}
-          onDropClient={(clientId, reason) => hasPermission('edit:clients') ? handleDropClient(clientId, reason) : Promise.resolve(null)}
+          onDropClient={(clientId, reason) => hasPermission && hasPermission('edit:clients') ? handleDropClient(clientId, reason) : Promise.resolve(null)}
           loading={loading}
         />
         
@@ -115,7 +116,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick }) => {
             <DroppedClientsList
               clients={droppedClients}
               onViewClient={handleViewClient}
-              onDeleteClient={(clientId) => hasPermission('delete:clients') ? handleDeleteClient(clientId) : Promise.resolve(false)}
+              onDeleteClient={(clientId) => hasPermission && hasPermission('delete:clients') ? handleDeleteClient(clientId) : Promise.resolve(false)}
               loading={loading}
             />
           </>

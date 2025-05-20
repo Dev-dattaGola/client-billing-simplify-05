@@ -4,10 +4,11 @@ import { Helmet } from 'react-helmet-async';
 import { Routes, Route } from 'react-router-dom';
 import PageLayout from '@/frontend/components/layout/PageLayout';
 import ClientManagement from "@/components/client-management/ClientManagement";
+import { ClientProvider } from '@/contexts/client';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 const Clients = () => {
-  console.log("Clients page rendering");
+  console.log("Clients frontend page rendering");
   
   return (
     <PageLayout>
@@ -28,10 +29,12 @@ const Clients = () => {
         </Card>
         
         <div className="max-w-7xl mx-auto">
-          <Routes>
-            <Route index element={<ClientManagement />} />
-            <Route path="*" element={<ClientManagement />} />
-          </Routes>
+          <ClientProvider>
+            <Routes>
+              <Route index element={<ClientManagement />} />
+              <Route path="*" element={<ClientManagement />} />
+            </Routes>
+          </ClientProvider>
         </div>
       </div>
       

@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { ClientProvider } from '@/contexts/client';
 
 const Clients: React.FC = () => {
   const navigate = useNavigate();
@@ -113,6 +114,7 @@ const Clients: React.FC = () => {
                   variant="default" 
                   size="sm"
                   onClick={handleAddClient}
+                  type="button"
                 >
                   <Plus className="h-4 w-4 mr-1" /> Add Client
                 </EnhancedButton>
@@ -122,7 +124,9 @@ const Clients: React.FC = () => {
         </Card>
         
         <div className="max-w-7xl mx-auto">
-          <ClientManagement />
+          <ClientProvider>
+            <ClientManagement />
+          </ClientProvider>
         </div>
       </div>
       

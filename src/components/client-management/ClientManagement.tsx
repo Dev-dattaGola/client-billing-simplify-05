@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import ClientTabs from "./ClientTabs";
 import ClientSearchSheet from "./ClientSearchSheet";
 import { Card } from "@/components/ui/card";
@@ -19,18 +19,13 @@ const ClientManagement = () => {
     setIsSearchOpen(open);
   }, []);
 
-  // Debugging
-  console.log("ClientManagement rendering");
-  
   return (
     <Card className="glass-card backdrop-blur-lg border border-white/20 rounded-lg shadow-sm">
-      <ClientProvider>
-        <ClientTabs onSearchClick={handleSearchClick} />
-        <ClientSearchSheet 
-          isOpen={isSearchOpen}
-          onOpenChange={handleSearchOpenChange}
-        />
-      </ClientProvider>
+      <ClientTabs onSearchClick={handleSearchClick} />
+      <ClientSearchSheet 
+        isOpen={isSearchOpen}
+        onOpenChange={handleSearchOpenChange}
+      />
     </Card>
   );
 };
