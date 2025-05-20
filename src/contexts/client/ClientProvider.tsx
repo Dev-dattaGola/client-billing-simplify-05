@@ -2,21 +2,23 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo } from 'react';
 import { useClientActions } from './useClientActions';
 import { ClientContextType } from './types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const ClientContext = createContext<ClientContextType | undefined>(undefined);
 
 export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const clientActions = useClientActions();
   const [initialized, setInitialized] = useState(false);
+  const { isAuthenticated } = useAuth();
   
-  // Use effect to load clients on mount - only once
+  // Use effect to load clients on mount or when authentication state changes
   useEffect(() => {
-    if (!initialized) {
+    if (isAuthenticated && !initialized) {
       console.log("ClientProvider: Loading clients");
       clientActions.refreshClients();
       setInitialized(true);
     }
-  }, [initialized]);
+  }, [isAuthenticated, initialized, clientActions]);
   
   // Memoize the context value to prevent unnecessary renders
   const contextValue = useMemo(() => clientActions, [

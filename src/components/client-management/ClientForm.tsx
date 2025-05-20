@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { X, Save, Plus } from "lucide-react";
+import { X, Save, Plus, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,12 +40,16 @@ const formSchema = z.object({
   companyName: z.string().optional(),
   address: z.string().optional(),
   notes: z.string().optional(),
+  password: initialData ? z.string().optional() : z.string().min(8, { 
+    message: "Password must be at least 8 characters"
+  }),
   assignedAttorneyId: z.string().optional(),
 });
 
 const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [currentTag, setCurrentTag] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const { currentUser } = useAuth();
   const isAdmin = currentUser?.role === 'admin';
 
@@ -65,6 +69,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
       companyName: initialData?.companyName || "",
       address: initialData?.address || "",
       notes: initialData?.notes || "",
+      password: "",
       assignedAttorneyId: initialData?.assignedAttorneyId || "",
     },
   });
@@ -87,14 +92,27 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
     }
   };
 
+  const toggleShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     if (initialData) {
-      onSubmit({
+      // If updating existing client, only include password if it was provided
+      const dataToSubmit = {
         ...initialData,
         ...values,
         tags,
-      });
+      };
+      
+      // Only include password if it's not empty
+      if (!values.password) {
+        delete dataToSubmit.password;
+      }
+      
+      onSubmit(dataToSubmit);
     } else {
+      // For new client, always include the password
       onSubmit({
         ...values,
         tags,
@@ -129,6 +147,43 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
                 <FormControl>
                   <Input placeholder="john.doe@example.com" type="email" {...field} className="bg-white/10 text-white border-white/20" />
                 </FormControl>
+                <FormMessage />
+                <FormDescription className="text-white/70">This will be used as the login username</FormDescription>
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white">
+                  {initialData ? "New Password (optional)" : "Password *"}
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Input 
+                      type={showPassword ? "text" : "password"} 
+                      placeholder={initialData ? "Leave blank to keep current" : "Set client account password"} 
+                      {...field} 
+                      className="bg-white/10 text-white border-white/20 pr-10" 
+                    />
+                    <button 
+                      type="button"
+                      onClick={toggleShowPassword}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormDescription className="text-white/70">
+                  {initialData 
+                    ? "Enter a new password only if you want to change it" 
+                    : "Minimum 8 characters required"
+                  }
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

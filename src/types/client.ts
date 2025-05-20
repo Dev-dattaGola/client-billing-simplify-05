@@ -24,10 +24,22 @@ export interface Client {
   insurancePolicyNumber?: string;
   insuranceAdjusterName?: string;
   dateRegistered?: string;
+  // Auth fields
+  password?: string; // Used when creating a new client with auth
+  user_id?: string; // Reference to the auth.users record
   // Dropped client fields
   isDropped?: boolean;
   droppedDate?: string;
   droppedReason?: string;
+  // Database field naming compatibility (camelCase/snake_case)
+  full_name?: string;
+  company_name?: string;
+  is_dropped?: boolean;
+  dropped_date?: string;
+  dropped_reason?: string;
+  assigned_attorney_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export type ClientFormData = Omit<Client, 'id' | 'createdAt' | 'updatedAt'>;
