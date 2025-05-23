@@ -1,26 +1,16 @@
 
-import { useState, useEffect } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { X, Save, Plus, Eye, EyeOff } from "lucide-react";
+import React from "react";
+import { Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Client } from "@/types/client";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { useClientForm } from "./hooks/useClientForm";
+import PasswordField from "./form-components/PasswordField";
+import TagsField from "./form-components/TagsField";
+import AttorneySelect from "./form-components/AttorneySelect";
 
 interface ClientFormProps {
   initialData: Client | null;
@@ -29,33 +19,9 @@ interface ClientFormProps {
 }
 
 const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
-  const [tags, setTags] = useState<string[]>(initialData?.tags || []);
-  const [currentTag, setCurrentTag] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { currentUser } = useAuth();
   const isAdmin = currentUser?.role === 'admin';
-
-  // Create the form schema based on whether we have initialData or not
-  const formSchema = z.object({
-    fullName: z.string().min(2, {
-      message: "Name must be at least 2 characters.",
-    }),
-    email: z.string().email({
-      message: "Please enter a valid email address.",
-    }),
-    phone: z.string().min(7, {
-      message: "Please enter a valid phone number.",
-    }),
-    companyName: z.string().optional(),
-    address: z.string().optional(),
-    notes: z.string().optional(),
-    password: initialData 
-      ? z.string().min(8, { message: "Password must be at least 8 characters" }).optional().or(z.literal(''))
-      : z.string().min(8, { message: "Password must be at least 8 characters" }),
-    assignedAttorneyId: z.string().optional(),
-  });
-
+  
   // Mock attorneys data (in a real app, this would come from an API)
   const attorneys = [
     { id: 'attorney1', name: 'Jane Doelawyer' },
@@ -63,97 +29,19 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
     { id: 'attorney3', name: 'Sarah Johnson' },
   ];
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      fullName: initialData?.fullName || "",
-      email: initialData?.email || "",
-      phone: initialData?.phone || "",
-      companyName: initialData?.companyName || "",
-      address: initialData?.address || "",
-      notes: initialData?.notes || "",
-      password: "",
-      assignedAttorneyId: initialData?.assignedAttorneyId || "",
-    },
-  });
-
-  // Update form when initialData changes
-  useEffect(() => {
-    if (initialData) {
-      console.log("ClientForm: Setting initial data", initialData);
-      form.reset({
-        fullName: initialData.fullName || "",
-        email: initialData.email || "",
-        phone: initialData.phone || "",
-        companyName: initialData.companyName || "",
-        address: initialData.address || "",
-        notes: initialData.notes || "",
-        password: "", // Always start with empty password on edit
-        assignedAttorneyId: initialData.assignedAttorneyId || "",
-      });
-      setTags(initialData.tags || []);
-    }
-  }, [initialData, form]);
-
-  const handleAddTag = () => {
-    if (currentTag.trim() && !tags.includes(currentTag.trim())) {
-      setTags([...tags, currentTag.trim().toLowerCase()]);
-      setCurrentTag("");
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      handleAddTag();
-    }
-  };
-
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const handleSubmitForm = async (values: z.infer<typeof formSchema>) => {
-    console.log("ClientForm: Submitting form", values);
-    try {
-      setIsSubmitting(true);
-      
-      if (initialData) {
-        // If updating existing client, only include password if it was provided
-        const dataToSubmit = {
-          ...initialData,
-          ...values,
-          tags,
-        };
-        
-        // Only include password if it's not empty
-        if (!values.password) {
-          delete dataToSubmit.password;
-        }
-        
-        console.log("ClientForm: Updating existing client");
-        await onSubmit(dataToSubmit);
-      } else {
-        // For new client, always include the password
-        console.log("ClientForm: Creating new client");
-        await onSubmit({
-          ...values,
-          tags,
-        });
-      }
-
-      toast.success(`Client ${initialData ? 'updated' : 'created'} successfully`);
-    } catch (error) {
-      console.error("Error in form submission:", error);
-      toast.error(`Failed to ${initialData ? 'update' : 'create'} client. Please try again.`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const { 
+    form,
+    tags,
+    currentTag,
+    setCurrentTag,
+    showPassword,
+    isSubmitting,
+    handleAddTag,
+    handleRemoveTag,
+    handleKeyPress,
+    toggleShowPassword,
+    handleSubmitForm
+  } = useClientForm(initialData, onSubmit);
 
   return (
     <Form {...form}>
@@ -188,40 +76,11 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
             )}
           />
           
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-white">
-                  {initialData ? "New Password (optional)" : "Password *"}
-                </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input 
-                      type={showPassword ? "text" : "password"} 
-                      placeholder={initialData ? "Leave blank to keep current" : "Set client account password"} 
-                      {...field} 
-                      className="bg-white/10 text-white border-white/20 pr-10" 
-                    />
-                    <button 
-                      type="button"
-                      onClick={toggleShowPassword}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </FormControl>
-                <FormDescription className="text-white/70">
-                  {initialData 
-                    ? "Enter a new password only if you want to change it" 
-                    : "Minimum 8 characters required"
-                  }
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
+          <PasswordField 
+            form={form} 
+            showPassword={showPassword} 
+            toggleShowPassword={toggleShowPassword}
+            isEditing={!!initialData}
           />
           
           <FormField
@@ -253,35 +112,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
           />
           
           {isAdmin && (
-            <FormField
-              control={form.control}
-              name="assignedAttorneyId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">Assigned Attorney</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="bg-white/10 text-white border-white/20">
-                        <SelectValue placeholder="Select an attorney" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="bg-white/90 backdrop-blur-lg text-black">
-                      {attorneys.map(attorney => (
-                        <SelectItem key={attorney.id} value={attorney.id}>
-                          {attorney.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription className="text-white/70">
-                    Attorney responsible for this client's cases
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
+            <AttorneySelect form={form} attorneys={attorneys} />
           )}
           
           <FormField
@@ -298,39 +129,14 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
             )}
           />
           
-          <div className="md:col-span-2">
-            <FormLabel className="text-white">Tags</FormLabel>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map(tag => (
-                <Badge key={tag} variant="secondary" className="gap-1 bg-white/20 text-white">
-                  {tag}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => handleRemoveTag(tag)}
-                  />
-                </Badge>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add tags (e.g., commercial, personal injury)"
-                value={currentTag}
-                onChange={(e) => setCurrentTag(e.target.value)}
-                onKeyDown={handleKeyPress}
-                className="bg-white/10 text-white border-white/20"
-              />
-              <Button 
-                type="button" 
-                size="icon" 
-                onClick={handleAddTag}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-sm text-white/70 mt-2">
-              Press Enter or click + to add a tag
-            </p>
-          </div>
+          <TagsField 
+            tags={tags}
+            currentTag={currentTag}
+            setCurrentTag={setCurrentTag}
+            handleAddTag={handleAddTag}
+            handleRemoveTag={handleRemoveTag}
+            handleKeyPress={handleKeyPress}
+          />
           
           <FormField
             control={form.control}
