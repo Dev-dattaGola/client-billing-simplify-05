@@ -61,9 +61,15 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
     
     // Update URL when tab changes
     if (value === "add") {
-      navigate('/clients/new');
+      const timeout = setTimeout(() => {
+        navigate('/clients/new');
+      }, 0);
+      return () => clearTimeout(timeout);
     } else if (value === "view") {
-      navigate('/clients');
+      const timeout = setTimeout(() => {
+        navigate('/clients');
+      }, 0);
+      return () => clearTimeout(timeout);
     }
     
     setActiveTab(value);
@@ -73,7 +79,10 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
   const handleCancel = useCallback(() => {
     clearClientToEdit();
     // Navigate back to client list
-    navigate('/clients');
+    const timeout = setTimeout(() => {
+      navigate('/clients');
+    }, 0);
+    return () => clearTimeout(timeout);
   }, [clearClientToEdit, navigate]);
 
   // Determine which tabs should be visible based on user role
@@ -86,7 +95,10 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
     if (hasPermission && hasPermission('edit:clients')) {
       startEditClient(client);
       // Update URL to reflect edit mode
-      navigate('/clients/new');
+      const timeout = setTimeout(() => {
+        navigate('/clients/new');
+      }, 0);
+      return () => clearTimeout(timeout);
     }
     return null;
   }, [hasPermission, startEditClient, navigate]);
@@ -121,15 +133,18 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
       
       if (result) {
         console.log("Client saved successfully, navigating to view tab");
-        toast.success(`Client ${clientToEdit ? 'updated' : 'added'} successfully`);
         
         // Ensure we clear the edit state
         clearClientToEdit();
         
         // Schedule navigation for next tick to avoid render-during-render issues
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
+          console.log("Navigating to client list after successful save");
           navigate('/clients');
+          setActiveTab("view");
         }, 0);
+        
+        return result;
       }
       
       return result;
@@ -138,7 +153,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
       toast.error("Failed to save client data");
       return null;
     }
-  }, [clientToEdit, handleEditClient, handleAddClient, clearClientToEdit, navigate]);
+  }, [clientToEdit, handleEditClient, handleAddClient, clearClientToEdit, navigate, setActiveTab]);
 
   return (
     <Tabs 

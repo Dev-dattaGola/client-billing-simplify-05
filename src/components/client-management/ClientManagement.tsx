@@ -25,7 +25,7 @@ const ClientManagement = () => {
       setActiveTab("add");
     } else if (!isNewClientRoute && activeTab === "add") {
       console.log("Tab is add but route is not /clients/new, updating route");
-      // Using a ref to prevent navigation during render
+      // Using setTimeout to prevent navigation during render
       const timeout = setTimeout(() => {
         navigate("/clients/new");
       }, 0);

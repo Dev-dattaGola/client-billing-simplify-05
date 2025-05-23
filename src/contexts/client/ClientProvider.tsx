@@ -67,25 +67,7 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     startEditClient: clientActions.startEditClient,
     clearClientToEdit: clientActions.clearClientToEdit,
     refreshClients: clientActions.refreshClients
-  }), [
-    clientActions.clients,
-    clientActions.droppedClients,
-    clientActions.selectedClient,
-    clientActions.clientToEdit,
-    clientActions.loading,
-    clientActions.activeTab,
-    clientActions.activeDetailTab,
-    clientActions.setActiveTab,
-    clientActions.setActiveDetailTab,
-    clientActions.handleAddClient,
-    clientActions.handleEditClient,
-    clientActions.handleDeleteClient,
-    clientActions.handleDropClient,
-    clientActions.handleViewClient,
-    clientActions.startEditClient,
-    clientActions.clearClientToEdit,
-    clientActions.refreshClients
-  ]);
+  }), [clientActions]);
 
   console.log("ClientProvider rendering, initialized:", initialized, "activeTab:", clientActions.activeTab);
   

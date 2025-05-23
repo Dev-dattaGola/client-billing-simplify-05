@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -19,6 +20,7 @@ import {
 import { Client } from "@/types/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface ClientFormProps {
   initialData: Client | null;
@@ -30,6 +32,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [currentTag, setCurrentTag] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { currentUser } = useAuth();
   const isAdmin = currentUser?.role === 'admin';
 
@@ -117,6 +120,8 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   const handleSubmitForm = async (values: z.infer<typeof formSchema>) => {
     console.log("ClientForm: Submitting form", values);
     try {
+      setIsSubmitting(true);
+      
       if (initialData) {
         // If updating existing client, only include password if it was provided
         const dataToSubmit = {
@@ -140,8 +145,13 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
           tags,
         });
       }
+
+      toast.success(`Client ${initialData ? 'updated' : 'created'} successfully`);
     } catch (error) {
       console.error("Error in form submission:", error);
+      toast.error(`Failed to ${initialData ? 'update' : 'create'} client. Please try again.`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -346,12 +356,26 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
             type="button" 
             variant="outline"
             onClick={onCancel}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button type="submit" className="gap-2">
-            <Save className="h-4 w-4" />
-            {initialData ? "Update Client" : "Save Client"}
+          <Button 
+            type="submit" 
+            className="gap-2"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <span className="animate-spin">⌛</span>
+                {initialData ? "Updating..." : "Saving..."}
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                {initialData ? "Update Client" : "Save Client"}
+              </>
+            )}
           </Button>
         </div>
       </form>
