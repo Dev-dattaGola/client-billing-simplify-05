@@ -77,6 +77,7 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   // Update form when initialData changes
   useEffect(() => {
     if (initialData) {
+      console.log("ClientForm: Setting initial data", initialData);
       form.reset({
         fullName: initialData.fullName || "",
         email: initialData.email || "",
@@ -113,27 +114,34 @@ const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmitForm = (values: z.infer<typeof formSchema>) => {
-    if (initialData) {
-      // If updating existing client, only include password if it was provided
-      const dataToSubmit = {
-        ...initialData,
-        ...values,
-        tags,
-      };
-      
-      // Only include password if it's not empty
-      if (!values.password) {
-        delete dataToSubmit.password;
+  const handleSubmitForm = async (values: z.infer<typeof formSchema>) => {
+    console.log("ClientForm: Submitting form", values);
+    try {
+      if (initialData) {
+        // If updating existing client, only include password if it was provided
+        const dataToSubmit = {
+          ...initialData,
+          ...values,
+          tags,
+        };
+        
+        // Only include password if it's not empty
+        if (!values.password) {
+          delete dataToSubmit.password;
+        }
+        
+        console.log("ClientForm: Updating existing client");
+        await onSubmit(dataToSubmit);
+      } else {
+        // For new client, always include the password
+        console.log("ClientForm: Creating new client");
+        await onSubmit({
+          ...values,
+          tags,
+        });
       }
-      
-      onSubmit(dataToSubmit);
-    } else {
-      // For new client, always include the password
-      onSubmit({
-        ...values,
-        tags,
-      });
+    } catch (error) {
+      console.error("Error in form submission:", error);
     }
   };
 

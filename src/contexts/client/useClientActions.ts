@@ -26,7 +26,12 @@ export const useClientActions = () => {
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching clients:", error);
+        throw error;
+      }
+      
+      console.log("Raw clients data from Supabase:", fetchedClients);
       
       // Map database objects to client objects with proper camelCase properties
       const mappedClients = fetchedClients?.map(mapDbClientToClient) || [];
@@ -38,6 +43,8 @@ export const useClientActions = () => {
       setClients(active);
       setDroppedClients(dropped);
       console.log(`Loaded ${active.length} active clients and ${dropped.length} dropped clients`);
+      
+      return true;
     } catch (error) {
       console.error("Failed to fetch clients:", error);
       toast({
@@ -45,6 +52,7 @@ export const useClientActions = () => {
         description: "Failed to load client data. Please try again later.",
         variant: "destructive",
       });
+      return false;
     } finally {
       setLoading(false);
     }
@@ -53,26 +61,42 @@ export const useClientActions = () => {
   // Add client with password creation - memoized
   const handleAddClient = useCallback(async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client | null> => {
     try {
+      setLoading(true);
+      console.log("Adding client:", clientData);
+      
       // Extract password for auth user creation
       const password = clientData.password as string;
-      if (!password) {
-        throw new Error("Password is required for new client accounts");
+      if (!password && !clientData.user_id) {
+        console.log("Creating client without password or user account");
       }
       
-      // Create auth user using the edge function
-      const { data: authData, error: authError } = await supabase.functions.invoke('client-management', {
-        body: {
-          action: 'create_client_user',
-          data: {
-            email: clientData.email,
-            password: password,
-            fullName: clientData.fullName
+      // Create auth user if password is provided
+      let userId = clientData.user_id;
+      if (password && !userId) {
+        console.log("Creating auth user for client");
+        const { data: authData, error: authError } = await supabase.functions.invoke('client-management', {
+          body: {
+            action: 'create_client_user',
+            data: {
+              email: clientData.email,
+              password: password,
+              fullName: clientData.fullName
+            }
           }
+        });
+        
+        if (authError) {
+          console.error("Auth error:", authError);
+          throw new Error(authError.message || "Failed to create client user");
         }
-      });
-      
-      if (authError || !authData?.success) {
-        throw new Error(authError?.message || authData?.error || "Failed to create client user");
+        
+        if (!authData?.success) {
+          console.error("Auth API error:", authData?.error);
+          throw new Error(authData?.error || "Failed to create client user");
+        }
+        
+        userId = authData.user?.user?.id;
+        console.log("Created auth user with ID:", userId);
       }
       
       // Convert client data to database format
@@ -82,11 +106,13 @@ export const useClientActions = () => {
         phone: clientData.phone,
         company_name: clientData.companyName,
         address: clientData.address,
-        tags: clientData.tags,
+        tags: clientData.tags || [],
         notes: clientData.notes,
         assigned_attorney_id: clientData.assignedAttorneyId,
-        user_id: authData.user.user.id,
+        user_id: userId,
       };
+      
+      console.log("Inserting client to database:", dbClientData);
       
       // Insert client record in database
       const { data: newDbClient, error } = await supabase
@@ -95,7 +121,12 @@ export const useClientActions = () => {
         .select('*')
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("DB error:", error);
+        throw error;
+      }
+      
+      console.log("Client saved successfully:", newDbClient);
       
       if (newDbClient) {
         // Convert DB client back to frontend client model
@@ -103,7 +134,6 @@ export const useClientActions = () => {
         
         // Update state
         setClients(prevClients => [newClient, ...prevClients]);
-        setActiveTab("view");
         
         toast({
           title: "Client Added",
@@ -112,7 +142,7 @@ export const useClientActions = () => {
         
         return newClient;
       } else {
-        throw new Error("Failed to create client");
+        throw new Error("Failed to create client - no data returned");
       }
     } catch (error: any) {
       console.error("Error adding client:", error);
@@ -122,15 +152,21 @@ export const useClientActions = () => {
         variant: "destructive",
       });
       return null;
+    } finally {
+      setLoading(false);
     }
   }, [toast]);
 
   // Edit client - memoized
   const handleEditClient = useCallback(async (clientData: Client): Promise<Client | null> => {
     try {
+      setLoading(true);
+      console.log("Editing client:", clientData);
+      
       // Check if password update is requested
       if (clientData.password && clientData.user_id) {
         // Update password using edge function
+        console.log("Updating password for user:", clientData.user_id);
         const { data: passwordUpdateData, error: passwordUpdateError } = await supabase.functions.invoke('client-management', {
           body: {
             action: 'update_client_password',
@@ -141,12 +177,22 @@ export const useClientActions = () => {
           }
         });
         
-        if (passwordUpdateError || !passwordUpdateData?.success) {
+        if (passwordUpdateError) {
+          console.error("Password update error:", passwordUpdateError);
           toast({
             title: "Warning",
             description: "Client data was updated but password change failed.",
             variant: "default",
           });
+        } else if (!passwordUpdateData?.success) {
+          console.error("Password API error:", passwordUpdateData?.error);
+          toast({
+            title: "Warning",
+            description: "Client data was updated but password change failed.",
+            variant: "default",
+          });
+        } else {
+          console.log("Password updated successfully");
         }
       }
       
@@ -157,10 +203,12 @@ export const useClientActions = () => {
         phone: clientData.phone,
         company_name: clientData.companyName,
         address: clientData.address,
-        tags: clientData.tags,
+        tags: clientData.tags || [],
         notes: clientData.notes,
         assigned_attorney_id: clientData.assignedAttorneyId,
       };
+      
+      console.log("Updating client in database:", dbClientData);
       
       // Update client record in database
       const { data: updatedDbClient, error } = await supabase
@@ -170,7 +218,12 @@ export const useClientActions = () => {
         .select('*')
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("DB update error:", error);
+        throw error;
+      }
+      
+      console.log("Client updated successfully:", updatedDbClient);
       
       if (updatedDbClient) {
         // Convert DB client back to frontend client model
@@ -189,9 +242,6 @@ export const useClientActions = () => {
         // If we're editing from the details view, update the selected client too
         if (selectedClient && selectedClient.id === updatedClient.id) {
           setSelectedClient(updatedClient);
-          setActiveTab("details");
-        } else {
-          setActiveTab("view");
         }
         
         setClientToEdit(null);
@@ -202,7 +252,7 @@ export const useClientActions = () => {
         
         return updatedClient;
       } else {
-        throw new Error("Failed to update client");
+        throw new Error("Failed to update client - no data returned");
       }
     } catch (error: any) {
       console.error("Error updating client:", error);
@@ -212,6 +262,8 @@ export const useClientActions = () => {
         variant: "destructive",
       });
       return null;
+    } finally {
+      setLoading(false);
     }
   }, [selectedClient, toast]);
 

@@ -11,6 +11,7 @@ import ClientForm from "./ClientForm";
 import ClientDetailsView from "./ClientDetailsView";
 import { Separator } from "@/components/ui/separator";
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface ClientTabsProps {
   onSearchClick?: () => void;
@@ -36,6 +37,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
     refreshClients
   } = useClient();
   
+  const navigate = useNavigate();
   const { hasPermission, currentUser } = useAuth();
 
   // Set initial tab if provided
@@ -54,14 +56,23 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
   
   const handleTabChange = useCallback((value: string) => {
     console.log("Tab changing to:", value);
+    
+    // Update URL when tab changes
+    if (value === "add") {
+      navigate('/clients/new');
+    } else if (value === "view") {
+      navigate('/clients');
+    }
+    
     setActiveTab(value);
-  }, [setActiveTab]);
+  }, [setActiveTab, navigate]);
 
   // Memoize the cancel handler
   const handleCancel = useCallback(() => {
     clearClientToEdit();
-    setActiveTab("view");
-  }, [clearClientToEdit, setActiveTab]);
+    // Navigate back to client list
+    navigate('/clients');
+  }, [clearClientToEdit, navigate]);
 
   // Determine which tabs should be visible based on user role
   const shouldShowAddTab = currentUser && ['admin'].includes(currentUser.role);
@@ -72,9 +83,11 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
   const handleOnEditClient = useCallback((client) => {
     if (hasPermission && hasPermission('edit:clients')) {
       startEditClient(client);
+      // Update URL to reflect edit mode
+      navigate('/clients/new');
     }
     return null;
-  }, [hasPermission, startEditClient]);
+  }, [hasPermission, startEditClient, navigate]);
 
   const handleOnDropClient = useCallback((clientId, reason) => {
     if (hasPermission && hasPermission('edit:clients')) {
@@ -111,10 +124,8 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
         // Ensure we clear the edit state
         clearClientToEdit();
         
-        // Force a tab change after a short delay to ensure state is updated
-        setTimeout(() => {
-          setActiveTab("view");
-        }, 100);
+        // Navigate back to the client list view
+        navigate('/clients');
       }
       
       return result;
@@ -123,7 +134,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
       toast.error("Failed to save client data");
       return null;
     }
-  }, [clientToEdit, handleEditClient, handleAddClient, clearClientToEdit, setActiveTab]);
+  }, [clientToEdit, handleEditClient, handleAddClient, clearClientToEdit, navigate]);
 
   return (
     <Tabs 

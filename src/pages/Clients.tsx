@@ -6,7 +6,7 @@ import ClientManagement from "@/components/client-management/ClientManagement";
 import { ClientProvider } from '@/contexts/client';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Plus, FileDown, Search, RefreshCw } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Routes, Route, Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -127,7 +127,11 @@ const Clients: React.FC = () => {
         
         <div className="max-w-7xl mx-auto">
           <ClientProvider>
-            <ClientManagement />
+            <Routes>
+              <Route index element={<ClientManagement />} />
+              <Route path="new" element={<ClientManagement />} />
+              <Route path="*" element={<Navigate to="/clients" replace />} />
+            </Routes>
           </ClientProvider>
         </div>
       </div>

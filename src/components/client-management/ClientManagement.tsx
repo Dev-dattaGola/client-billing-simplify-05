@@ -1,20 +1,32 @@
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import ClientTabs from "./ClientTabs";
 import ClientSearchSheet from "./ClientSearchSheet";
 import { Card } from "@/components/ui/card";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useClient } from "@/contexts/client";
 
 const ClientManagement = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
-  const { activeTab } = useClient();
+  const navigate = useNavigate();
+  const { activeTab, setActiveTab } = useClient();
 
   // Check if we're on the /clients/new route
   const isNewClientRoute = location.pathname === "/clients/new";
   
   console.log("ClientManagement rendering, location:", location.pathname, "isNewClientRoute:", isNewClientRoute, "activeTab:", activeTab);
+
+  // Effect to sync route with active tab
+  useEffect(() => {
+    if (isNewClientRoute && activeTab !== "add") {
+      console.log("Route is /clients/new but tab is not add, updating tab");
+      setActiveTab("add");
+    } else if (!isNewClientRoute && activeTab === "add") {
+      console.log("Tab is add but route is not /clients/new, updating route");
+      navigate("/clients/new");
+    }
+  }, [isNewClientRoute, activeTab, setActiveTab, navigate]);
 
   // Memoize handlers to prevent re-renders
   const handleSearchClick = useCallback(() => {

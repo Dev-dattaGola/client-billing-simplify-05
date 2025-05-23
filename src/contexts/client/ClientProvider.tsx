@@ -16,9 +16,13 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (isAuthenticated && !initialized) {
       console.log("ClientProvider: Loading clients");
       try {
-        await clientActions.refreshClients();
-        setInitialized(true);
-        console.log("ClientProvider: Clients loaded successfully");
+        const result = await clientActions.refreshClients();
+        if (result) {
+          setInitialized(true);
+          console.log("ClientProvider: Clients loaded successfully");
+        } else {
+          console.error("ClientProvider: Failed to load clients");
+        }
       } catch (error) {
         console.error("ClientProvider: Error loading clients:", error);
       }
@@ -79,7 +83,7 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     clientActions.refreshClients
   ]);
 
-  console.log("ClientProvider rendering, initialized:", initialized);
+  console.log("ClientProvider rendering, initialized:", initialized, "activeTab:", clientActions.activeTab);
   
   return (
     <ClientContext.Provider value={contextValue}>

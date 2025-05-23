@@ -1,5 +1,5 @@
 
-import { Client } from '@/types/client';
+import { Client } from "@/types/client";
 
 export interface ClientContextType {
   clients: Client[];
@@ -11,12 +11,12 @@ export interface ClientContextType {
   activeDetailTab: string;
   setActiveTab: (tab: string) => void;
   setActiveDetailTab: (tab: string) => void;
-  handleAddClient: (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Client | null>;
-  handleEditClient: (clientData: Client) => Promise<Client | null>;
-  handleDeleteClient: (clientId: string) => Promise<boolean>;
-  handleDropClient: (clientId: string, reason: string) => Promise<Client | null>;
+  handleAddClient: (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Client | null>;
+  handleEditClient: (client: Client) => Promise<Client | null>;
+  handleDeleteClient: (id: string) => Promise<boolean>;
+  handleDropClient: (id: string, reason: string) => Promise<Client | null>;
   handleViewClient: (client: Client) => void;
   startEditClient: (client: Client) => void;
   clearClientToEdit: () => void;
-  refreshClients: () => Promise<void>;
+  refreshClients: () => Promise<boolean>;
 }
