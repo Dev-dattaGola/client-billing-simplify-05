@@ -40,7 +40,11 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
     
     if (isAuthenticated && !initialized) {
-      initializeClients();
+      // Using setTimeout to avoid potential render-during-render issues
+      const timeout = setTimeout(() => {
+        initializeClients();
+      }, 0);
+      return () => clearTimeout(timeout);
     }
   }, [isAuthenticated, initialized, initializeClients]);
   

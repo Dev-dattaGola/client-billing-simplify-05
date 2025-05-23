@@ -1,5 +1,5 @@
 
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClient } from "@/contexts/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -39,11 +39,13 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
   
   const navigate = useNavigate();
   const { hasPermission, currentUser } = useAuth();
+  const initialRender = useRef(true);
 
-  // Set initial tab if provided
+  // Set initial tab if provided, but only on initial render
   useEffect(() => {
-    if (initialTab && initialTab !== activeTab) {
+    if (initialRender.current && initialTab && initialTab !== activeTab) {
       console.log("Setting initial tab to:", initialTab);
+      initialRender.current = false;
       setActiveTab(initialTab);
     }
   }, [initialTab, setActiveTab, activeTab]);
@@ -124,8 +126,10 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
         // Ensure we clear the edit state
         clearClientToEdit();
         
-        // Navigate back to the client list view
-        navigate('/clients');
+        // Schedule navigation for next tick to avoid render-during-render issues
+        setTimeout(() => {
+          navigate('/clients');
+        }, 0);
       }
       
       return result;

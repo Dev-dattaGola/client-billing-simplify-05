@@ -17,14 +17,19 @@ const ClientManagement = () => {
   
   console.log("ClientManagement rendering, location:", location.pathname, "isNewClientRoute:", isNewClientRoute, "activeTab:", activeTab);
 
-  // Effect to sync route with active tab
+  // Effect to sync route with active tab - with proper dependency tracking
   useEffect(() => {
+    // Only update when there's a mismatch between route and tab state
     if (isNewClientRoute && activeTab !== "add") {
       console.log("Route is /clients/new but tab is not add, updating tab");
       setActiveTab("add");
     } else if (!isNewClientRoute && activeTab === "add") {
       console.log("Tab is add but route is not /clients/new, updating route");
-      navigate("/clients/new");
+      // Using a ref to prevent navigation during render
+      const timeout = setTimeout(() => {
+        navigate("/clients/new");
+      }, 0);
+      return () => clearTimeout(timeout);
     }
   }, [isNewClientRoute, activeTab, setActiveTab, navigate]);
 
@@ -39,11 +44,14 @@ const ClientManagement = () => {
     setIsSearchOpen(open);
   }, []);
 
+  const initialTab = isNewClientRoute ? "add" : "view";
+  console.log("Setting initial tab to:", initialTab);
+
   return (
     <Card className="glass-card backdrop-blur-lg border border-white/20 rounded-lg shadow-sm">
       <ClientTabs 
         onSearchClick={handleSearchClick}
-        initialTab={isNewClientRoute ? "add" : "view"}
+        initialTab={initialTab}
       />
       <ClientSearchSheet 
         isOpen={isSearchOpen}
