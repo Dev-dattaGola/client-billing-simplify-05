@@ -1,5 +1,4 @@
-
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Client } from '@/types/client';
 import { clientService, CreateClientData, UpdateClientData } from '@/services/clientService';
 
@@ -42,7 +41,12 @@ export const useClientManagement = () => {
       const newClient = await clientService.createClient(clientData);
       
       // Add to state immediately
-      setClients(prevClients => [newClient, ...prevClients]);
+      setClients(prevClients => {
+        console.log("useClientManagement: Adding client to state, previous count:", prevClients.length);
+        const updated = [newClient, ...prevClients];
+        console.log("useClientManagement: New client count:", updated.length);
+        return updated;
+      });
       
       console.log("useClientManagement: Client created and added to state");
       return newClient;

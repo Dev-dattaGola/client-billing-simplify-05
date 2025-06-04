@@ -71,16 +71,54 @@ class ClientService {
 
   async getAllClients(): Promise<{ active: Client[]; dropped: Client[] }> {
     try {
-      console.log("ClientService: Fetching all clients");
+      console.log("ClientService: Fetching all clients from clients table");
       
+      // First, let's check if we have data in the clients table
       const { data: fetchedClients, error } = await supabase
         .from('clients')
         .select('*')
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error("ClientService: Error fetching clients:", error);
-        throw error;
+        console.error("ClientService: Error fetching from clients table:", error);
+        
+        // If clients table fails, try profiles table as fallback
+        console.log("ClientService: Trying profiles table as fallback");
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', 'client')
+          .order('created_at', { ascending: false });
+          
+        if (profilesError) {
+          console.error("ClientService: Error fetching from profiles table:", profilesError);
+          throw profilesError;
+        }
+        
+        // Convert profiles data to client format
+        const convertedClients = profilesData?.map(profile => ({
+          id: profile.id,
+          user_id: profile.id,
+          full_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+          email: profile.email,
+          phone: profile.phone || '',
+          company_name: '',
+          address: '',
+          tags: [],
+          notes: '',
+          assigned_attorney_id: null,
+          is_dropped: false,
+          dropped_date: null,
+          dropped_reason: '',
+          created_at: profile.created_at,
+          updated_at: profile.updated_at
+        })) || [];
+        
+        const mappedClients = convertedClients.map(client => this.mapDbClientToClient(client));
+        
+        console.log("ClientService: Mapped clients from profiles:", mappedClients);
+        
+        return { active: mappedClients, dropped: [] };
       }
       
       console.log("ClientService: Raw clients data:", fetchedClients);
@@ -110,22 +148,24 @@ class ClientService {
       // Try to create auth user if password is provided
       if (clientData.password) {
         try {
-          const { data: authData, error: authError } = await supabase.functions.invoke('client-management', {
-            body: {
-              action: 'create_client_user',
+          console.log("ClientService: Creating auth user");
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: clientData.email,
+            password: clientData.password,
+            options: {
               data: {
-                email: clientData.email,
-                password: clientData.password,
-                fullName: clientData.fullName
+                first_name: clientData.fullName.split(' ')[0] || '',
+                last_name: clientData.fullName.split(' ').slice(1).join(' ') || '',
+                role: 'client'
               }
             }
           });
           
-          if (authData?.success) {
-            userId = authData.user?.user?.id;
+          if (authData?.user) {
+            userId = authData.user.id;
             console.log("ClientService: Created auth user with ID:", userId);
           } else {
-            console.warn("ClientService: Auth user creation failed (continuing anyway):", authData?.error);
+            console.warn("ClientService: Auth user creation failed:", authError);
           }
         } catch (authError) {
           console.warn("ClientService: Auth user creation failed (continuing anyway):", authError);
