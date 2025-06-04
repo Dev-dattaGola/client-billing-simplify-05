@@ -23,6 +23,10 @@ interface ClientContextType {
   viewClient: (client: Client) => void;
   editClient: (client: Client) => void;
   clearEditState: () => void;
+  // Add missing methods
+  startEditClient: (client: Client) => void;
+  handleViewClient: (client: Client) => void;
+  handleDropClient: (id: string, reason: string) => Promise<Client | null>;
 }
 
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
@@ -40,7 +44,11 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [isAuthenticated, clientManagement.loadClients]);
 
   const contextValue: ClientContextType = {
-    ...clientManagement
+    ...clientManagement,
+    // Add missing method aliases
+    startEditClient: clientManagement.editClient,
+    handleViewClient: clientManagement.viewClient,
+    handleDropClient: clientManagement.dropClient,
   };
 
   return (
