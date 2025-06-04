@@ -1,5 +1,6 @@
+
 import { useState, useCallback, useMemo } from 'react';
-import { Client, mapDbClientToClient } from '@/types/client';
+import { Client } from '@/types/client';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -13,6 +14,25 @@ export const useClientActions = () => {
   const [activeTab, setActiveTab] = useState("view");
   const [activeDetailTab, setActiveDetailTab] = useState("overview");
   const { toast } = useToast();
+
+  // Helper function to convert database client to frontend client
+  const mapDbClientToClient = (dbClient: any): Client => ({
+    id: dbClient.id,
+    user_id: dbClient.user_id,
+    fullName: dbClient.full_name,
+    email: dbClient.email,
+    phone: dbClient.phone || '',
+    companyName: dbClient.company_name || '',
+    address: dbClient.address || '',
+    tags: dbClient.tags || [],
+    notes: dbClient.notes || '',
+    assignedAttorneyId: dbClient.assigned_attorney_id || '',
+    isDropped: dbClient.is_dropped || false,
+    droppedDate: dbClient.dropped_date,
+    droppedReason: dbClient.dropped_reason || '',
+    createdAt: dbClient.created_at,
+    updatedAt: dbClient.updated_at
+  });
 
   // Refresh clients - memoized
   const refreshClients = useCallback(async () => {
@@ -66,12 +86,9 @@ export const useClientActions = () => {
       
       // Extract password for auth user creation
       const password = clientData.password as string;
-      if (!password && !clientData.user_id) {
-        console.log("Creating client without password or user account");
-      }
+      let userId = clientData.user_id;
       
       // Create auth user if password is provided
-      let userId = clientData.user_id;
       if (password && !userId) {
         console.log("Creating auth user for client");
         const { data: authData, error: authError } = await supabase.functions.invoke('client-management', {
