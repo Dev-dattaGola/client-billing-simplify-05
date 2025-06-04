@@ -1,10 +1,8 @@
-
 import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo, useCallback } from 'react';
 import { useClientActions } from './useClientActions';
-import { ClientContextType } from './types';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const ClientContext = createContext<ClientContextType | undefined>(undefined);
+export const ClientContext = createContext<any | undefined>(undefined);
 
 export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const clientActions = useClientActions();
