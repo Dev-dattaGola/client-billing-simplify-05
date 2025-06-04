@@ -43,7 +43,7 @@ export interface Communication {
   actionRequired: boolean;
 }
 
-// Mock clients data for fallback
+// Mock clients data for fallback with all required properties
 const mockClients: Client[] = [
   {
     id: 'client1',
@@ -259,12 +259,12 @@ export const clientsApi = {
       console.error('Error creating client:', error);
       console.warn('Falling back to mock data');
       
-      // For mock data fallback
       const newClient: Client = {
         ...clientData,
         id: uuidv4(),
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        accountNumber: clientData.accountNumber || `A${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
       };
       
       mockClients.push(newClient);
@@ -280,7 +280,6 @@ export const clientsApi = {
       console.error('Error updating client:', error);
       console.warn('Falling back to mock data');
       
-      // For mock data fallback
       const index = mockClients.findIndex(c => c.id === id);
       if (index === -1) return null;
       
@@ -302,7 +301,6 @@ export const clientsApi = {
       console.error('Error deleting client:', error);
       console.warn('Falling back to mock data');
       
-      // For mock data fallback
       const index = mockClients.findIndex(c => c.id === id);
       if (index === -1) return false;
       
@@ -364,7 +362,6 @@ export const clientsApi = {
       console.error('Error marking communication as read:', error);
       console.warn('Falling back to mock data');
       
-      // For mock data fallback
       const index = mockCommunications.findIndex(comm => comm.id === communicationId);
       if (index !== -1) {
         mockCommunications[index].read = true;
@@ -396,13 +393,11 @@ export const clientsApi = {
   getSmartNotifications: async (clientId: string): Promise<string[]> => {
     const notifications: string[] = [];
     
-    // Check for missed appointments
     const missedCount = await clientsApi.getMissedAppointmentsCount(clientId);
     if (missedCount > 0) {
       notifications.push(`Client has missed ${missedCount} appointment(s). Please contact to reschedule.`);
     }
     
-    // Check for upcoming appointments
     const upcomingAppointment = await clientsApi.getUpcomingAppointment(clientId);
     if (upcomingAppointment) {
       const appointmentDate = new Date(upcomingAppointment.visitDate);

@@ -1,380 +1,166 @@
-import { useState } from "react";
-import { Search, Filter, UserMinus, Edit, Tags, Loader2, Eye, FileText } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Client, ClientFilterParams } from "@/types/client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { format, isAfter, isBefore, isValid } from "date-fns";
-import { cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import React, { useState, useMemo } from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { MoreHorizontal, Eye, Edit, Trash2, UserX } from 'lucide-react';
+import { Client, ClientFilterParams } from '@/types/client';
 
 interface ClientListProps {
   clients: Client[];
-  onEditClient: (client: Client) => void;
-  onViewClient: (client: Client) => void;
-  onDropClient?: (clientId: string, reason: string) => void;
-  loading?: boolean;
+  onView: (client: Client) => void;
+  onEdit: (client: Client) => void;
+  onDelete: (clientId: string) => void;
+  onDrop: (clientId: string, reason: string) => void;
+  searchQuery?: string;
+  filters?: ClientFilterParams;
 }
 
-const ClientList = ({ 
-  clients, 
-  onEditClient, 
-  onViewClient, 
-  onDropClient, 
-  loading = false 
-}: ClientListProps) => {
-  const [filterParams, setFilterParams] = useState<ClientFilterParams>({
-    search: "",
-    tag: undefined,
-    dateRange: undefined
-  });
-  const [showFilters, setShowFilters] = useState(false);
-  const [clientToDrop, setClientToDrop] = useState<Client | null>(null);
-  const [dropReason, setDropReason] = useState<string>("");
-  
-  const uniqueTags = [...new Set(clients.flatMap(client => client.tags || []))];
-  
-  const filteredClients = clients.filter(client => {
-    const searchMatch = !filterParams.search || 
-      client.fullName.toLowerCase().includes(filterParams.search.toLowerCase()) ||
-      client.email.toLowerCase().includes(filterParams.search.toLowerCase()) ||
-      client.companyName?.toLowerCase().includes(filterParams.search.toLowerCase()) ||
-      false;
-    
-    const tagMatch = !filterParams.tag || 
-      client.tags?.includes(filterParams.tag) || 
-      false;
-    
-    let dateMatch = true;
-    if (filterParams.dateRange?.from || filterParams.dateRange?.to) {
-      const createdDate = new Date(client.createdAt);
-      
-      if (filterParams.dateRange.from && isValid(filterParams.dateRange.from)) {
-        dateMatch = dateMatch && isAfter(createdDate, filterParams.dateRange.from);
-      }
-      
-      if (filterParams.dateRange.to && isValid(filterParams.dateRange.to)) {
-        dateMatch = dateMatch && isBefore(createdDate, filterParams.dateRange.to);
-      }
-    }
-    
-    return searchMatch && tagMatch && dateMatch;
-  });
+const ClientList: React.FC<ClientListProps> = ({
+  clients,
+  onView,
+  onEdit,
+  onDelete,
+  onDrop,
+  searchQuery = '',
+  filters = {}
+}) => {
+  const [dropReason, setDropReason] = useState('');
+  const [clientToDrop, setClientToDrop] = useState<string | null>(null);
 
-  const handleConfirmDrop = () => {
-    if (clientToDrop && onDropClient) {
-      onDropClient(clientToDrop.id, dropReason);
+  const filteredClients = useMemo(() => {
+    return clients.filter(client => {
+      const matchesSearch = searchQuery === '' || 
+        client.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (client.phone && client.phone.includes(searchQuery));
+      
+      const matchesTag = !filters.tag || 
+        (client.tags && client.tags.includes(filters.tag));
+      
+      return matchesSearch && matchesTag;
+    });
+  }, [clients, searchQuery, filters]);
+
+  const handleDropClient = (clientId: string) => {
+    if (dropReason.trim()) {
+      onDrop(clientId, dropReason);
       setClientToDrop(null);
-      setDropReason("");
+      setDropReason('');
     }
   };
 
+  const getStatusBadge = (client: Client) => {
+    if (client.isDropped) {
+      return <Badge variant="destructive">Dropped</Badge>;
+    }
+    return <Badge variant="secondary">Active</Badge>;
+  };
+
   return (
-    <>
-      <div className="flex flex-col gap-4 text-white">
-        <div className="flex flex-wrap gap-2">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/70" />
-            <Input
-              placeholder="Search clients..."
-              className="pl-9 bg-white/10 text-white border-white/20"
-              value={filterParams.search}
-              onChange={(e) => setFilterParams({...filterParams, search: e.target.value})}
-            />
-          </div>
-          
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="h-4 w-4" />
-            Filters
-          </Button>
+    <div className="space-y-4">
+      <div className="rounded-md border border-white/20">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-white/20">
+              <TableHead className="text-white">Name</TableHead>
+              <TableHead className="text-white">Email</TableHead>
+              <TableHead className="text-white">Phone</TableHead>
+              <TableHead className="text-white">Company</TableHead>
+              <TableHead className="text-white">Status</TableHead>
+              <TableHead className="text-white">Created</TableHead>
+              <TableHead className="text-white">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredClients.map((client) => (
+              <TableRow key={client.id} className="border-white/20">
+                <TableCell className="text-white">{client.fullName}</TableCell>
+                <TableCell className="text-white">{client.email}</TableCell>
+                <TableCell className="text-white">{client.phone}</TableCell>
+                <TableCell className="text-white">{client.companyName || '-'}</TableCell>
+                <TableCell>{getStatusBadge(client)}</TableCell>
+                <TableCell className="text-white">
+                  {new Date(client.createdAt).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onView(client)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(client)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    {!client.isDropped && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setClientToDrop(client.id)}
+                      >
+                        <UserX className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(client.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {filteredClients.length === 0 && (
+        <div className="text-center py-8 text-white/70">
+          No clients found matching your criteria.
         </div>
-        
-        {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 glass-card rounded-lg">
-            <div>
-              <p className="text-sm font-medium mb-2 text-white">Filter by Tag</p>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start gap-2">
-                    <Tags className="h-4 w-4" />
-                    {filterParams.tag || "Select Tag"}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="glass-card bg-white/20 backdrop-blur-lg text-white border border-white/20">
-                  <DropdownMenuItem onClick={() => setFilterParams({...filterParams, tag: undefined})} className="hover:bg-white/20">
-                    All Tags
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-white/20" />
-                  {uniqueTags.map(tag => (
-                    <DropdownMenuItem 
-                      key={tag}
-                      onClick={() => setFilterParams({...filterParams, tag})}
-                      className="hover:bg-white/20"
-                    >
-                      {tag}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-            
-            <div>
-              <p className="text-sm font-medium mb-2 text-white">Created Date Range</p>
-              <div className="grid grid-cols-2 gap-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "justify-start text-left font-normal",
-                        !filterParams.dateRange?.from && "text-white/70"
-                      )}
-                    >
-                      {filterParams.dateRange?.from ? (
-                        format(filterParams.dateRange.from, "PPP")
-                      ) : (
-                        "From date"
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="glass-card bg-white/20 backdrop-blur-lg text-white border border-white/20 p-0">
-                    <Calendar
-                      mode="single"
-                      selected={filterParams.dateRange?.from}
-                      onSelect={(date) =>
-                        setFilterParams({
-                          ...filterParams,
-                          dateRange: { 
-                            ...filterParams.dateRange,
-                            from: date
-                          }
-                        })
-                      }
-                      initialFocus
-                      className="bg-transparent text-white"
-                    />
-                  </PopoverContent>
-                </Popover>
-                
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "justify-start text-left font-normal",
-                        !filterParams.dateRange?.to && "text-white/70"
-                      )}
-                    >
-                      {filterParams.dateRange?.to ? (
-                        format(filterParams.dateRange.to, "PPP")
-                      ) : (
-                        "To date"
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="glass-card bg-white/20 backdrop-blur-lg text-white border border-white/20 p-0">
-                    <Calendar
-                      mode="single"
-                      selected={filterParams.dateRange?.to}
-                      onSelect={(date) =>
-                        setFilterParams({
-                          ...filterParams,
-                          dateRange: {
-                            ...filterParams.dateRange,
-                            to: date
-                          }
-                        })
-                      }
-                      initialFocus
-                      className="bg-transparent text-white"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-            
-            <div className="flex items-end">
-              <Button 
-                variant="ghost" 
-                onClick={() => setFilterParams({ search: "" })}
+      )}
+
+      {clientToDrop && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h3 className="text-lg font-semibold mb-4">Drop Client</h3>
+            <textarea
+              value={dropReason}
+              onChange={(e) => setDropReason(e.target.value)}
+              placeholder="Reason for dropping client..."
+              className="w-full p-3 border rounded-md mb-4"
+              rows={3}
+            />
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setClientToDrop(null);
+                  setDropReason('');
+                }}
               >
-                Reset Filters
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => handleDropClient(clientToDrop)}
+                disabled={!dropReason.trim()}
+              >
+                Drop Client
               </Button>
             </div>
           </div>
-        )}
-        
-        {loading ? (
-          <div className="text-center py-12 glass-card rounded-lg">
-            <Loader2 className="mx-auto h-12 w-12 text-white/50 opacity-50 animate-spin" />
-            <h3 className="mt-4 text-lg font-medium text-white">Loading clients...</h3>
-            <p className="mt-2 text-sm text-white/70">
-              Please wait while we fetch client data
-            </p>
-          </div>
-        ) : filteredClients.length === 0 ? (
-          <div className="text-center py-12 glass-card rounded-lg">
-            <FileText className="mx-auto h-12 w-12 text-white/50 opacity-50" />
-            <h3 className="mt-4 text-lg font-medium text-white">No clients found</h3>
-            <p className="mt-2 text-sm text-white/70">
-              Try adjusting your search or filter criteria
-            </p>
-          </div>
-        ) : (
-          <div className="glass-card rounded-md border border-white/20">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-white/20 hover:bg-white/5">
-                  <TableHead className="text-white">Name</TableHead>
-                  <TableHead className="hidden md:table-cell text-white">Email</TableHead>
-                  <TableHead className="hidden md:table-cell text-white">Phone</TableHead>
-                  <TableHead className="hidden md:table-cell text-white">Company</TableHead>
-                  <TableHead className="hidden lg:table-cell text-white">Tags</TableHead>
-                  <TableHead className="text-white">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredClients.map((client) => (
-                  <TableRow key={client.id} className="border-white/20 hover:bg-white/10">
-                    <TableCell className="font-medium text-white">
-                      {client.fullName}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-white">
-                      {client.email}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-white">
-                      {client.phone}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-white">
-                      {client.companyName || "-"}
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <div className="flex flex-wrap gap-1">
-                        {client.tags?.map(tag => (
-                          <Badge key={tag} variant="outline" className="text-white border-white/30 bg-white/10">{tag}</Badge>
-                        ))}
-                        {!client.tags?.length && <span className="text-white/50">-</span>}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => onViewClient(client)}
-                          className="hover:bg-white/10"
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="sr-only">View</span>
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => onEditClient(client)}
-                          className="hover:bg-white/10"
-                        >
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => {
-                            setClientToDrop(client);
-                            setDropReason("");
-                          }}
-                          className="hover:bg-white/10"
-                        >
-                          <UserMinus className="h-4 w-4" />
-                          <span className="sr-only">Drop Client</span>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </div>
-      
-      <Dialog 
-        open={!!clientToDrop} 
-        onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setClientToDrop(null);
-            setDropReason("");
-          }
-        }}
-      >
-        <DialogContent className="glass-card bg-white/10 backdrop-blur-lg border border-white/20 text-white">
-          <DialogHeader>
-            <DialogTitle className="text-white">Drop this client?</DialogTitle>
-            <DialogDescription className="text-white/70">
-              This will move the client to the dropped clients list. They will no longer appear in your active clients.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <Label htmlFor="drop-reason" className="mb-2 block text-white">Reason for dropping</Label>
-            <Textarea
-              id="drop-reason"
-              placeholder="Please provide a reason for dropping this client..."
-              value={dropReason}
-              onChange={(e) => setDropReason(e.target.value)}
-              className="min-h-[100px] bg-white/10 text-white border-white/20"
-            />
-          </div>
-          
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button
-              variant="default"
-              onClick={handleConfirmDrop}
-            >
-              Drop Client
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+        </div>
+      )}
+    </div>
   );
 };
 
