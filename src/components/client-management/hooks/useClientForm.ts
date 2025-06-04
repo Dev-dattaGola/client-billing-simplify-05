@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 export const useClientForm = (
   initialData: Client | null,
-  onSubmit: (data: any) => void,
+  onSubmit: (data: any) => Promise<Client | null>,
 ) => {
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [currentTag, setCurrentTag] = useState("");
@@ -71,8 +71,10 @@ export const useClientForm = (
 
   const handleSubmitForm = async (values: ClientFormValues) => {
     console.log("ClientForm: Submitting form", values);
+    setIsSubmitting(true);
+    
     try {
-      setIsSubmitting(true);
+      let result;
       
       if (initialData) {
         // If updating existing client, only include password if it was provided
@@ -88,20 +90,27 @@ export const useClientForm = (
         }
         
         console.log("ClientForm: Updating existing client");
-        await onSubmit(dataToSubmit);
+        result = await onSubmit(dataToSubmit);
       } else {
         // For new client, always include the password
         console.log("ClientForm: Creating new client");
-        await onSubmit({
+        result = await onSubmit({
           ...values,
           tags,
         });
       }
 
-      toast.success(`Client ${initialData ? 'updated' : 'created'} successfully`);
+      if (result) {
+        console.log("Client saved successfully:", result);
+        toast.success(`Client ${initialData ? 'updated' : 'created'} successfully`);
+        return result;
+      } else {
+        throw new Error("Failed to save client");
+      }
     } catch (error) {
       console.error("Error in form submission:", error);
       toast.error(`Failed to ${initialData ? 'update' : 'create'} client. Please try again.`);
+      throw error;
     } finally {
       setIsSubmitting(false);
     }

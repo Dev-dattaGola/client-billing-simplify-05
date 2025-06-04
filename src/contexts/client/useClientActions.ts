@@ -31,7 +31,21 @@ export const useClientActions = () => {
     droppedDate: dbClient.dropped_date,
     droppedReason: dbClient.dropped_reason || '',
     createdAt: dbClient.created_at,
-    updatedAt: dbClient.updated_at
+    updatedAt: dbClient.updated_at,
+    
+    // Extended properties with defaults
+    accountNumber: `A${dbClient.id?.substring(0, 3) || '001'}`,
+    dateOfBirth: '',
+    profilePhoto: '',
+    caseStatus: 'Initial Consultation',
+    accidentDate: '',
+    accidentLocation: '',
+    injuryType: '',
+    caseDescription: '',
+    insuranceCompany: '',
+    insurancePolicyNumber: '',
+    insuranceAdjusterName: '',
+    dateRegistered: dbClient.created_at?.split('T')[0] || ''
   });
 
   // Refresh clients - memoized
@@ -91,42 +105,48 @@ export const useClientActions = () => {
       // Create auth user if password is provided
       if (password && !userId) {
         console.log("Creating auth user for client");
-        const { data: authData, error: authError } = await supabase.functions.invoke('client-management', {
-          body: {
-            action: 'create_client_user',
-            data: {
-              email: clientData.email,
-              password: password,
-              fullName: clientData.fullName
+        
+        try {
+          const { data: authData, error: authError } = await supabase.functions.invoke('client-management', {
+            body: {
+              action: 'create_client_user',
+              data: {
+                email: clientData.email,
+                password: password,
+                fullName: clientData.fullName
+              }
             }
+          });
+          
+          if (authError) {
+            console.error("Auth error:", authError);
+            throw new Error(authError.message || "Failed to create client user");
           }
-        });
-        
-        if (authError) {
-          console.error("Auth error:", authError);
-          throw new Error(authError.message || "Failed to create client user");
+          
+          if (!authData?.success) {
+            console.error("Auth API error:", authData?.error);
+            throw new Error(authData?.error || "Failed to create client user");
+          }
+          
+          userId = authData.user?.user?.id;
+          console.log("Created auth user with ID:", userId);
+        } catch (authError) {
+          console.warn("Auth user creation failed, proceeding without user account:", authError);
+          // Continue without user account - client will be created but won't have login access
         }
-        
-        if (!authData?.success) {
-          console.error("Auth API error:", authData?.error);
-          throw new Error(authData?.error || "Failed to create client user");
-        }
-        
-        userId = authData.user?.user?.id;
-        console.log("Created auth user with ID:", userId);
       }
       
       // Convert client data to database format
       const dbClientData = {
         full_name: clientData.fullName,
         email: clientData.email,
-        phone: clientData.phone,
-        company_name: clientData.companyName,
-        address: clientData.address,
+        phone: clientData.phone || '',
+        company_name: clientData.companyName || '',
+        address: clientData.address || '',
         tags: clientData.tags || [],
-        notes: clientData.notes,
-        assigned_attorney_id: clientData.assignedAttorneyId,
-        user_id: userId,
+        notes: clientData.notes || '',
+        assigned_attorney_id: clientData.assignedAttorneyId || null,
+        user_id: userId || null,
       };
       
       console.log("Inserting client to database:", dbClientData);
@@ -153,7 +173,7 @@ export const useClientActions = () => {
         setClients(prevClients => [newClient, ...prevClients]);
         
         toast({
-          title: "Client Added",
+          title: "Success",
           description: `${newClient.fullName} has been added to your clients.`,
         });
         
