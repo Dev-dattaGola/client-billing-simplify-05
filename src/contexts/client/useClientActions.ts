@@ -99,7 +99,7 @@ export const useClientActions = () => {
   const handleAddClient = useCallback(async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client | null> => {
     try {
       setLoading(true);
-      console.log("Adding client:", clientData);
+      console.log("Adding client with data:", clientData);
       
       // Extract password for auth user creation
       const password = clientData.password as string;
@@ -135,7 +135,7 @@ export const useClientActions = () => {
         }
       }
       
-      // Convert client data to database format
+      // Convert client data to database format with proper snake_case field names
       const dbClientData = {
         full_name: clientData.fullName,
         email: clientData.email,
@@ -148,7 +148,7 @@ export const useClientActions = () => {
         user_id: userId || null,
       };
       
-      console.log("Inserting client to database:", dbClientData);
+      console.log("Inserting client to database with mapped data:", dbClientData);
       
       // Insert client record in database
       const { data: newDbClient, error } = await supabase
@@ -162,12 +162,12 @@ export const useClientActions = () => {
         throw error;
       }
       
-      console.log("Client saved successfully:", newDbClient);
+      console.log("Client saved successfully to database:", newDbClient);
       
       if (newDbClient) {
         // Convert DB client back to frontend client model
         const newClient = mapDbClientToClient(newDbClient);
-        console.log("Mapped new client:", newClient);
+        console.log("Mapped new client for frontend:", newClient);
         
         // Add to state immediately for better UX
         setClients(prevClients => {
@@ -238,7 +238,7 @@ export const useClientActions = () => {
         }
       }
       
-      // Convert to db format
+      // Convert to db format with proper snake_case field names
       const dbClientData = {
         full_name: clientData.fullName,
         email: clientData.email,
@@ -250,7 +250,7 @@ export const useClientActions = () => {
         assigned_attorney_id: clientData.assignedAttorneyId,
       };
       
-      console.log("Updating client in database:", dbClientData);
+      console.log("Updating client in database with mapped data:", dbClientData);
       
       // Update client record in database
       const { data: updatedDbClient, error } = await supabase
