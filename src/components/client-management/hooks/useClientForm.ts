@@ -70,10 +70,10 @@ export const useClientForm = (
   };
 
   const handleSubmitForm = async (values: ClientFormValues) => {
-    console.log("ClientForm: Submitting form with values:", values);
+    console.log("useClientForm: Submitting form with values:", values);
     
     if (isSubmitting) {
-      console.log("ClientForm: Already submitting, ignoring");
+      console.log("useClientForm: Already submitting, ignoring");
       return;
     }
     
@@ -95,33 +95,34 @@ export const useClientForm = (
           delete dataToSubmit.password;
         }
         
-        console.log("ClientForm: Updating existing client with data:", dataToSubmit);
+        console.log("useClientForm: Updating existing client with data:", dataToSubmit);
       } else {
         // For new client, always include the password
         dataToSubmit = {
           ...values,
           tags,
         };
-        console.log("ClientForm: Creating new client with data:", dataToSubmit);
+        console.log("useClientForm: Creating new client with data:", dataToSubmit);
       }
 
-      console.log("ClientForm: Calling onSubmit with data:", dataToSubmit);
+      console.log("useClientForm: Calling onSubmit with data:", dataToSubmit);
       const result = await onSubmit(dataToSubmit);
       
-      console.log("ClientForm: onSubmit returned:", result);
+      console.log("useClientForm: onSubmit returned:", result);
 
       if (result) {
-        console.log("Client saved successfully:", result);
+        console.log("useClientForm: Client saved successfully:", result);
         toast.success(`Client ${initialData ? 'updated' : 'created'} successfully`);
         return result;
       } else {
-        console.error("onSubmit returned null/undefined result");
-        throw new Error("Failed to save client - no result returned");
+        console.error("useClientForm: onSubmit returned null/undefined result");
+        toast.error(`Failed to ${initialData ? 'update' : 'create'} client. Please try again.`);
+        return null;
       }
     } catch (error) {
-      console.error("Error in form submission:", error);
+      console.error("useClientForm: Error in form submission:", error);
       toast.error(`Failed to ${initialData ? 'update' : 'create'} client. Please try again.`);
-      throw error;
+      return null;
     } finally {
       setIsSubmitting(false);
     }

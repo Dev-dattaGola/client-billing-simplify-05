@@ -111,38 +111,43 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
     return Promise.resolve(false);
   }, [hasPermission, handleDeleteClient]);
 
-  // Memoize form submit handler with explicit navigation
+  // Fixed form submit handler - ensure it properly returns the result
   const handleFormSubmit = useCallback(async (formData) => {
-    console.log("Form submit handler called", formData);
+    console.log("ClientTabs: Form submit handler called", formData);
     try {
       let result;
       
       if (clientToEdit) {
-        console.log("Editing existing client");
+        console.log("ClientTabs: Editing existing client");
         result = await handleEditClient(formData);
       } else {
-        console.log("Adding new client");
+        console.log("ClientTabs: Adding new client");
         result = await handleAddClient(formData);
       }
       
+      console.log("ClientTabs: Operation result:", result);
+      
       if (result) {
-        console.log("Client saved successfully, navigating to view tab");
+        console.log("ClientTabs: Client saved successfully, navigating to view tab");
         
-        // Ensure we clear the edit state
+        // Clear the edit state
         clearClientToEdit();
         
         // Navigate back to client list
         setActiveTab("view");
         navigate('/clients', { replace: true });
         
+        // Return the result so useClientForm knows it was successful
         return result;
+      } else {
+        console.error("ClientTabs: No result returned from save operation");
+        toast.error("Failed to save client data");
+        return null;
       }
-      
-      return result;
     } catch (error) {
-      console.error("Error saving client:", error);
+      console.error("ClientTabs: Error saving client:", error);
       toast.error("Failed to save client data");
-      return null;
+      throw error; // Re-throw so useClientForm can handle it
     }
   }, [clientToEdit, handleEditClient, handleAddClient, clearClientToEdit, navigate, setActiveTab]);
 
