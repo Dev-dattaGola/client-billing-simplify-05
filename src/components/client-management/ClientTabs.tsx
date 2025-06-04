@@ -57,33 +57,30 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
   }, [refreshClients]);
   
   const handleTabChange = useCallback((value: string) => {
-    console.log("Tab changing to:", value);
+    console.log("Tab changing to:", value, "from:", activeTab);
     
-    // Update URL when tab changes
-    if (value === "add") {
-      const timeout = setTimeout(() => {
-        navigate('/clients/new');
-      }, 0);
-      return () => clearTimeout(timeout);
-    } else if (value === "view") {
-      const timeout = setTimeout(() => {
-        navigate('/clients');
-      }, 0);
-      return () => clearTimeout(timeout);
+    // Always update the active tab first
+    setActiveTab(value);
+    
+    // Clear any edit state when switching tabs
+    if (value === "view" && clientToEdit) {
+      clearClientToEdit();
     }
     
-    setActiveTab(value);
-  }, [setActiveTab, navigate]);
+    // Update URL to match the tab
+    if (value === "add") {
+      navigate('/clients/new', { replace: true });
+    } else if (value === "view") {
+      navigate('/clients', { replace: true });
+    }
+  }, [setActiveTab, navigate, clientToEdit, clearClientToEdit, activeTab]);
 
   // Memoize the cancel handler
   const handleCancel = useCallback(() => {
     clearClientToEdit();
-    // Navigate back to client list
-    const timeout = setTimeout(() => {
-      navigate('/clients');
-    }, 0);
-    return () => clearTimeout(timeout);
-  }, [clearClientToEdit, navigate]);
+    setActiveTab("view");
+    navigate('/clients', { replace: true });
+  }, [clearClientToEdit, setActiveTab, navigate]);
 
   // Determine which tabs should be visible based on user role
   const shouldShowAddTab = currentUser && ['admin'].includes(currentUser.role);
@@ -94,14 +91,11 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
   const handleOnEditClient = useCallback((client) => {
     if (hasPermission && hasPermission('edit:clients')) {
       startEditClient(client);
-      // Update URL to reflect edit mode
-      const timeout = setTimeout(() => {
-        navigate('/clients/new');
-      }, 0);
-      return () => clearTimeout(timeout);
+      setActiveTab("add");
+      navigate('/clients/new', { replace: true });
     }
     return null;
-  }, [hasPermission, startEditClient, navigate]);
+  }, [hasPermission, startEditClient, setActiveTab, navigate]);
 
   const handleOnDropClient = useCallback((clientId, reason) => {
     if (hasPermission && hasPermission('edit:clients')) {
@@ -137,12 +131,9 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
         // Ensure we clear the edit state
         clearClientToEdit();
         
-        // Schedule navigation for next tick to avoid render-during-render issues
-        const timeout = setTimeout(() => {
-          console.log("Navigating to client list after successful save");
-          navigate('/clients');
-          setActiveTab("view");
-        }, 0);
+        // Navigate back to client list
+        setActiveTab("view");
+        navigate('/clients', { replace: true });
         
         return result;
       }
