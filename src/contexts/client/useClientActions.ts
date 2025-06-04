@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import { Client } from '@/types/client';
 import { useToast } from '@/hooks/use-toast';
@@ -92,7 +91,7 @@ export const useClientActions = () => {
     }
   }, [toast]);
 
-  // Add client with password creation - memoized
+  // Add client with optional auth user creation - memoized
   const handleAddClient = useCallback(async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client | null> => {
     try {
       setLoading(true);
@@ -102,9 +101,9 @@ export const useClientActions = () => {
       const password = clientData.password as string;
       let userId = clientData.user_id;
       
-      // Create auth user if password is provided
+      // Try to create auth user if password is provided, but don't fail if it already exists
       if (password && !userId) {
-        console.log("Creating auth user for client");
+        console.log("Attempting to create auth user for client");
         
         try {
           const { data: authData, error: authError } = await supabase.functions.invoke('client-management', {
@@ -119,19 +118,15 @@ export const useClientActions = () => {
           });
           
           if (authError) {
-            console.error("Auth error:", authError);
-            throw new Error(authError.message || "Failed to create client user");
+            console.warn("Auth error (continuing anyway):", authError);
+          } else if (authData?.success) {
+            userId = authData.user?.user?.id;
+            console.log("Created auth user with ID:", userId);
+          } else {
+            console.warn("Auth API returned no success (continuing anyway):", authData?.error);
           }
-          
-          if (!authData?.success) {
-            console.error("Auth API error:", authData?.error);
-            throw new Error(authData?.error || "Failed to create client user");
-          }
-          
-          userId = authData.user?.user?.id;
-          console.log("Created auth user with ID:", userId);
         } catch (authError) {
-          console.warn("Auth user creation failed, proceeding without user account:", authError);
+          console.warn("Auth user creation failed (continuing anyway):", authError);
           // Continue without user account - client will be created but won't have login access
         }
       }
@@ -172,6 +167,9 @@ export const useClientActions = () => {
         // Update state
         setClients(prevClients => [newClient, ...prevClients]);
         
+        // Refresh the client list to ensure we have the latest data
+        await refreshClients();
+        
         toast({
           title: "Success",
           description: `${newClient.fullName} has been added to your clients.`,
@@ -192,7 +190,7 @@ export const useClientActions = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, refreshClients]);
 
   // Edit client - memoized
   const handleEditClient = useCallback(async (clientData: Client): Promise<Client | null> => {

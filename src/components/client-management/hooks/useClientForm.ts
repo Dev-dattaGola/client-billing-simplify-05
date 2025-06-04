@@ -70,15 +70,21 @@ export const useClientForm = (
   };
 
   const handleSubmitForm = async (values: ClientFormValues) => {
-    console.log("ClientForm: Submitting form", values);
+    console.log("ClientForm: Submitting form with values:", values);
+    
+    if (isSubmitting) {
+      console.log("ClientForm: Already submitting, ignoring");
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      let result;
+      let dataToSubmit;
       
       if (initialData) {
         // If updating existing client, only include password if it was provided
-        const dataToSubmit = {
+        dataToSubmit = {
           ...initialData,
           ...values,
           tags,
@@ -89,23 +95,28 @@ export const useClientForm = (
           delete dataToSubmit.password;
         }
         
-        console.log("ClientForm: Updating existing client");
-        result = await onSubmit(dataToSubmit);
+        console.log("ClientForm: Updating existing client with data:", dataToSubmit);
       } else {
         // For new client, always include the password
-        console.log("ClientForm: Creating new client");
-        result = await onSubmit({
+        dataToSubmit = {
           ...values,
           tags,
-        });
+        };
+        console.log("ClientForm: Creating new client with data:", dataToSubmit);
       }
+
+      console.log("ClientForm: Calling onSubmit with data:", dataToSubmit);
+      const result = await onSubmit(dataToSubmit);
+      
+      console.log("ClientForm: onSubmit returned:", result);
 
       if (result) {
         console.log("Client saved successfully:", result);
         toast.success(`Client ${initialData ? 'updated' : 'created'} successfully`);
         return result;
       } else {
-        throw new Error("Failed to save client");
+        console.error("onSubmit returned null/undefined result");
+        throw new Error("Failed to save client - no result returned");
       }
     } catch (error) {
       console.error("Error in form submission:", error);
