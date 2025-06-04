@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -14,7 +13,7 @@ import AttorneySelect from "./form-components/AttorneySelect";
 
 interface ClientFormProps {
   initialData: Client | null;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: any) => Promise<Client | null>;
   onCancel: () => void;
 }
 
