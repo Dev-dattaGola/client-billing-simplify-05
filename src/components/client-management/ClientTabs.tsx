@@ -41,6 +41,8 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
   const { hasPermission, currentUser } = useAuth();
   const initialRender = useRef(true);
 
+  console.log("ClientTabs rendering with clients:", clients.length);
+
   // Set initial tab if provided, but only on initial render
   useEffect(() => {
     if (initialRender.current && initialTab && initialTab !== activeTab) {
@@ -137,6 +139,11 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
         setActiveTab("view");
         navigate('/clients', { replace: true });
         
+        // Force refresh to ensure we see the latest data
+        setTimeout(() => {
+          refreshClients();
+        }, 100);
+        
         // Return the result so useClientForm knows it was successful
         return result;
       } else {
@@ -149,7 +156,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
       toast.error("Failed to save client data");
       throw error; // Re-throw so useClientForm can handle it
     }
-  }, [clientToEdit, handleEditClient, handleAddClient, clearClientToEdit, navigate, setActiveTab]);
+  }, [clientToEdit, handleEditClient, handleAddClient, clearClientToEdit, navigate, setActiveTab, refreshClients]);
 
   return (
     <Tabs 
@@ -169,7 +176,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
       
       <TabsContent value="view" className="p-6 space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-white">Active Clients</h2>
+          <h2 className="text-xl font-bold text-white">Active Clients ({clients.length})</h2>
           <div className="flex gap-2">
             {onSearchClick && (
               <Button 

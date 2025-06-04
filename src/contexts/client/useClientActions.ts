@@ -15,37 +15,40 @@ export const useClientActions = () => {
   const { toast } = useToast();
 
   // Helper function to convert database client to frontend client
-  const mapDbClientToClient = (dbClient: any): Client => ({
-    id: dbClient.id,
-    user_id: dbClient.user_id,
-    fullName: dbClient.full_name,
-    email: dbClient.email,
-    phone: dbClient.phone || '',
-    companyName: dbClient.company_name || '',
-    address: dbClient.address || '',
-    tags: dbClient.tags || [],
-    notes: dbClient.notes || '',
-    assignedAttorneyId: dbClient.assigned_attorney_id || '',
-    isDropped: dbClient.is_dropped || false,
-    droppedDate: dbClient.dropped_date,
-    droppedReason: dbClient.dropped_reason || '',
-    createdAt: dbClient.created_at,
-    updatedAt: dbClient.updated_at,
-    
-    // Extended properties with defaults
-    accountNumber: `A${dbClient.id?.substring(0, 3) || '001'}`,
-    dateOfBirth: '',
-    profilePhoto: '',
-    caseStatus: 'Initial Consultation',
-    accidentDate: '',
-    accidentLocation: '',
-    injuryType: '',
-    caseDescription: '',
-    insuranceCompany: '',
-    insurancePolicyNumber: '',
-    insuranceAdjusterName: '',
-    dateRegistered: dbClient.created_at?.split('T')[0] || ''
-  });
+  const mapDbClientToClient = (dbClient: any): Client => {
+    console.log("Mapping DB client:", dbClient);
+    return {
+      id: dbClient.id,
+      user_id: dbClient.user_id,
+      fullName: dbClient.full_name || '',
+      email: dbClient.email || '',
+      phone: dbClient.phone || '',
+      companyName: dbClient.company_name || '',
+      address: dbClient.address || '',
+      tags: dbClient.tags || [],
+      notes: dbClient.notes || '',
+      assignedAttorneyId: dbClient.assigned_attorney_id || '',
+      isDropped: dbClient.is_dropped || false,
+      droppedDate: dbClient.dropped_date,
+      droppedReason: dbClient.dropped_reason || '',
+      createdAt: dbClient.created_at,
+      updatedAt: dbClient.updated_at,
+      
+      // Extended properties with defaults
+      accountNumber: `A${dbClient.id?.substring(0, 3) || '001'}`,
+      dateOfBirth: '',
+      profilePhoto: '',
+      caseStatus: 'Initial Consultation',
+      accidentDate: '',
+      accidentLocation: '',
+      injuryType: '',
+      caseDescription: '',
+      insuranceCompany: '',
+      insurancePolicyNumber: '',
+      insuranceAdjusterName: '',
+      dateRegistered: dbClient.created_at?.split('T')[0] || ''
+    };
+  };
 
   // Refresh clients - memoized
   const refreshClients = useCallback(async () => {
@@ -68,14 +71,15 @@ export const useClientActions = () => {
       
       // Map database objects to client objects with proper camelCase properties
       const mappedClients = fetchedClients?.map(mapDbClientToClient) || [];
+      console.log("Mapped clients:", mappedClients);
       
       // Separate active and dropped clients
       const active = mappedClients.filter(client => !client.isDropped);
       const dropped = mappedClients.filter(client => client.isDropped);
       
+      console.log(`Setting ${active.length} active clients and ${dropped.length} dropped clients`);
       setClients(active);
       setDroppedClients(dropped);
-      console.log(`Loaded ${active.length} active clients and ${dropped.length} dropped clients`);
       
       return true;
     } catch (error) {
@@ -163,12 +167,15 @@ export const useClientActions = () => {
       if (newDbClient) {
         // Convert DB client back to frontend client model
         const newClient = mapDbClientToClient(newDbClient);
+        console.log("Mapped new client:", newClient);
         
-        // Update state
-        setClients(prevClients => [newClient, ...prevClients]);
-        
-        // Refresh the client list to ensure we have the latest data
-        await refreshClients();
+        // Add to state immediately for better UX
+        setClients(prevClients => {
+          console.log("Adding client to state, previous count:", prevClients.length);
+          const updated = [newClient, ...prevClients];
+          console.log("New client count:", updated.length);
+          return updated;
+        });
         
         toast({
           title: "Success",
@@ -190,7 +197,7 @@ export const useClientActions = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, refreshClients]);
+  }, [toast]);
 
   // Edit client - memoized
   const handleEditClient = useCallback(async (clientData: Client): Promise<Client | null> => {
