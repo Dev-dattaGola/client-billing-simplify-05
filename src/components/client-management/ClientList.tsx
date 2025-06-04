@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -7,22 +8,24 @@ import { Client, ClientFilterParams } from '@/types/client';
 
 interface ClientListProps {
   clients: Client[];
-  onView: (client: Client) => void;
-  onEdit: (client: Client) => void;
-  onDelete: (clientId: string) => void;
-  onDrop: (clientId: string, reason: string) => void;
+  onViewClient: (client: Client) => void;
+  onEditClient: (client: Client) => void;
+  onDeleteClient?: (clientId: string) => void;
+  onDropClient: (clientId: string, reason: string) => void;
   searchQuery?: string;
   filters?: ClientFilterParams;
+  loading?: boolean;
 }
 
 const ClientList: React.FC<ClientListProps> = ({
   clients,
-  onView,
-  onEdit,
-  onDelete,
-  onDrop,
+  onViewClient,
+  onEditClient,
+  onDeleteClient,
+  onDropClient,
   searchQuery = '',
-  filters = {}
+  filters = {},
+  loading = false
 }) => {
   const [dropReason, setDropReason] = useState('');
   const [clientToDrop, setClientToDrop] = useState<string | null>(null);
@@ -43,7 +46,7 @@ const ClientList: React.FC<ClientListProps> = ({
 
   const handleDropClient = (clientId: string) => {
     if (dropReason.trim()) {
-      onDrop(clientId, dropReason);
+      onDropClient(clientId, dropReason);
       setClientToDrop(null);
       setDropReason('');
     }
@@ -55,6 +58,14 @@ const ClientList: React.FC<ClientListProps> = ({
     }
     return <Badge variant="secondary">Active</Badge>;
   };
+
+  if (loading) {
+    return (
+      <div className="text-center py-8 text-white/70">
+        Loading clients...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -87,14 +98,14 @@ const ClientList: React.FC<ClientListProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onView(client)}
+                      onClick={() => onViewClient(client)}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onEdit(client)}
+                      onClick={() => onEditClient(client)}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -107,13 +118,15 @@ const ClientList: React.FC<ClientListProps> = ({
                         <UserX className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onDelete(client.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {onDeleteClient && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDeleteClient(client.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
