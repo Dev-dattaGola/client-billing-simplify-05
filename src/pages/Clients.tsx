@@ -1,9 +1,8 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import PageLayout from '@/frontend/components/layout/PageLayout';
 import ClientManagement from "@/components/client-management/ClientManagement";
-import { ClientProvider } from '@/contexts/client';
+import { ClientProvider } from '@/contexts/client/ClientContext';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Plus, FileDown, Search, RefreshCw } from 'lucide-react';
 import { useNavigate, Routes, Route, Navigate } from 'react-router-dom';
@@ -17,7 +16,6 @@ const Clients: React.FC = () => {
   
   console.log("Clients page rendering");
 
-  // Memoize handlers to prevent unnecessary re-renders
   const handleExportClients = useCallback(async () => {
     // Simulate export functionality
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -148,5 +146,4 @@ const Clients: React.FC = () => {
   );
 };
 
-// Use memo to prevent unnecessary re-renders
 export default React.memo(Clients);

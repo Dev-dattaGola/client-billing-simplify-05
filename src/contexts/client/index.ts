@@ -1,4 +1,3 @@
 
-export * from './ClientProvider';
+export * from './ClientContext';
 export * from './types';
-export * from './useClientActions';

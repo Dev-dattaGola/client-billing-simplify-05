@@ -1,7 +1,7 @@
 
 import React, { useCallback, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useClient } from "@/contexts/client";
+import { useClient } from "@/contexts/client/ClientContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertTriangle, RefreshCw, Search } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -27,14 +27,14 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
     loading,
     activeTab,
     setActiveTab,
-    handleDropClient,
-    handleDeleteClient,
-    handleViewClient,
-    startEditClient,
-    clearClientToEdit,
-    handleAddClient,
-    handleEditClient,
-    refreshClients
+    dropClient,
+    deleteClient,
+    viewClient,
+    editClient,
+    clearEditState,
+    createClient,
+    updateClient,
+    loadClients
   } = useClient();
   
   const navigate = useNavigate();
@@ -53,67 +53,61 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
   }, [initialTab, setActiveTab, activeTab]);
 
   // Memoize handlers to prevent unnecessary re-renders
-  const handleRefreshClick = useCallback(() => {
+  const handleRefreshClick = useCallback(async () => {
     console.log("Refreshing clients");
-    refreshClients();
-  }, [refreshClients]);
+    await loadClients();
+    toast.success("Client data refreshed");
+  }, [loadClients]);
   
   const handleTabChange = useCallback((value: string) => {
     console.log("Tab changing to:", value, "from:", activeTab);
     
-    // Always update the active tab first
     setActiveTab(value);
     
-    // Clear any edit state when switching tabs
     if (value === "view" && clientToEdit) {
-      clearClientToEdit();
+      clearEditState();
     }
     
-    // Update URL to match the tab
     if (value === "add") {
       navigate('/clients/new', { replace: true });
     } else if (value === "view") {
       navigate('/clients', { replace: true });
     }
-  }, [setActiveTab, navigate, clientToEdit, clearClientToEdit, activeTab]);
+  }, [setActiveTab, navigate, clientToEdit, clearEditState, activeTab]);
 
-  // Memoize the cancel handler
   const handleCancel = useCallback(() => {
-    clearClientToEdit();
+    clearEditState();
     setActiveTab("view");
     navigate('/clients', { replace: true });
-  }, [clearClientToEdit, setActiveTab, navigate]);
+  }, [clearEditState, setActiveTab, navigate]);
 
-  // Determine which tabs should be visible based on user role
   const shouldShowAddTab = currentUser && ['admin'].includes(currentUser.role);
 
   console.log("ClientTabs rendering, active tab:", activeTab);
 
-  // Wrap handlers in useCallback to prevent re-renders
   const handleOnEditClient = useCallback((client) => {
     if (hasPermission && hasPermission('edit:clients')) {
-      startEditClient(client);
+      editClient(client);
       setActiveTab("add");
       navigate('/clients/new', { replace: true });
     }
     return null;
-  }, [hasPermission, startEditClient, setActiveTab, navigate]);
+  }, [hasPermission, editClient, setActiveTab, navigate]);
 
   const handleOnDropClient = useCallback((clientId, reason) => {
     if (hasPermission && hasPermission('edit:clients')) {
-      return handleDropClient(clientId, reason);
+      return dropClient(clientId, reason);
     }
     return Promise.resolve(null);
-  }, [hasPermission, handleDropClient]);
+  }, [hasPermission, dropClient]);
 
   const handleOnDeleteClient = useCallback((clientId) => {
     if (hasPermission && hasPermission('delete:clients')) {
-      return handleDeleteClient(clientId);
+      return deleteClient(clientId);
     }
     return Promise.resolve(false);
-  }, [hasPermission, handleDeleteClient]);
+  }, [hasPermission, deleteClient]);
 
-  // Fixed form submit handler - ensure it properly returns the result
   const handleFormSubmit = useCallback(async (formData) => {
     console.log("ClientTabs: Form submit handler called", formData);
     try {
@@ -121,10 +115,10 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
       
       if (clientToEdit) {
         console.log("ClientTabs: Editing existing client");
-        result = await handleEditClient(formData);
+        result = await updateClient(formData);
       } else {
         console.log("ClientTabs: Adding new client");
-        result = await handleAddClient(formData);
+        result = await createClient(formData);
       }
       
       console.log("ClientTabs: Operation result:", result);
@@ -132,31 +126,20 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
       if (result) {
         console.log("ClientTabs: Client saved successfully, navigating to view tab");
         
-        // Clear the edit state
-        clearClientToEdit();
-        
-        // Navigate back to client list
+        clearEditState();
         setActiveTab("view");
         navigate('/clients', { replace: true });
         
-        // Force refresh to ensure we see the latest data
-        setTimeout(() => {
-          refreshClients();
-        }, 100);
-        
-        // Return the result so useClientForm knows it was successful
         return result;
       } else {
         console.error("ClientTabs: No result returned from save operation");
-        toast.error("Failed to save client data");
         return null;
       }
     } catch (error) {
       console.error("ClientTabs: Error saving client:", error);
-      toast.error("Failed to save client data");
-      throw error; // Re-throw so useClientForm can handle it
+      throw error;
     }
-  }, [clientToEdit, handleEditClient, handleAddClient, clearClientToEdit, navigate, setActiveTab, refreshClients]);
+  }, [clientToEdit, updateClient, createClient, clearEditState, navigate, setActiveTab]);
 
   return (
     <Tabs 
@@ -206,7 +189,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
         <ClientList 
           clients={clients} 
           onEditClient={handleOnEditClient}
-          onViewClient={handleViewClient}
+          onViewClient={viewClient}
           onDropClient={handleOnDropClient}
           loading={loading}
         />
@@ -216,7 +199,7 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
             <Separator className="my-8 bg-white/20" />
             <DroppedClientsList
               clients={droppedClients}
-              onViewClient={handleViewClient}
+              onViewClient={viewClient}
               onDeleteClient={handleOnDeleteClient}
               loading={loading}
             />
@@ -257,5 +240,4 @@ const ClientTabs: React.FC<ClientTabsProps> = ({ onSearchClick, initialTab = "vi
   );
 };
 
-// Memoize the component to prevent unnecessary re-renders
 export default React.memo(ClientTabs);

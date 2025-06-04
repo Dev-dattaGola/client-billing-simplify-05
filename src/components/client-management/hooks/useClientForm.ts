@@ -5,10 +5,11 @@ import { useForm } from "react-hook-form";
 import { Client } from "@/types/client";
 import { getClientFormSchema, ClientFormValues } from "../form-schema";
 import { toast } from "sonner";
+import { CreateClientData, UpdateClientData } from "@/services/clientService";
 
 export const useClientForm = (
   initialData: Client | null,
-  onSubmit: (data: any) => Promise<Client | null>,
+  onSubmit: (data: CreateClientData | UpdateClientData) => Promise<Client | null>,
 ) => {
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [currentTag, setCurrentTag] = useState("");
@@ -32,7 +33,7 @@ export const useClientForm = (
   // Update form when initialData changes
   useEffect(() => {
     if (initialData) {
-      console.log("ClientForm: Setting initial data", initialData);
+      console.log("useClientForm: Setting initial data", initialData);
       form.reset({
         fullName: initialData.fullName || "",
         email: initialData.email || "",
@@ -40,7 +41,7 @@ export const useClientForm = (
         companyName: initialData.companyName || "",
         address: initialData.address || "",
         notes: initialData.notes || "",
-        password: "", // Always start with empty password on edit
+        password: "",
         assignedAttorneyId: initialData.assignedAttorneyId || "",
       });
       setTags(initialData.tags || []);
@@ -80,26 +81,39 @@ export const useClientForm = (
     setIsSubmitting(true);
     
     try {
-      let dataToSubmit;
+      let dataToSubmit: CreateClientData | UpdateClientData;
       
       if (initialData) {
-        // If updating existing client, only include password if it was provided
+        // Updating existing client
         dataToSubmit = {
-          ...initialData,
-          ...values,
+          id: initialData.id,
+          fullName: values.fullName,
+          email: values.email,
+          phone: values.phone,
+          companyName: values.companyName,
+          address: values.address,
+          notes: values.notes,
+          assignedAttorneyId: values.assignedAttorneyId,
           tags,
         };
         
-        // Only include password if it's not empty
-        if (!values.password) {
-          delete dataToSubmit.password;
+        // Only include password if provided
+        if (values.password) {
+          dataToSubmit.password = values.password;
         }
         
         console.log("useClientForm: Updating existing client with data:", dataToSubmit);
       } else {
-        // For new client, always include the password
+        // Creating new client
         dataToSubmit = {
-          ...values,
+          fullName: values.fullName,
+          email: values.email,
+          phone: values.phone,
+          companyName: values.companyName,
+          address: values.address,
+          notes: values.notes,
+          assignedAttorneyId: values.assignedAttorneyId,
+          password: values.password,
           tags,
         };
         console.log("useClientForm: Creating new client with data:", dataToSubmit);
