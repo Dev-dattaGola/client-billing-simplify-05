@@ -32,12 +32,15 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const { isAuthenticated } = useAuth();
   const clientManagement = useClientManagement();
 
+  // Extract loadClients to avoid dependency issues
+  const { loadClients } = clientManagement;
+
   useEffect(() => {
     if (isAuthenticated) {
       console.log("ClientProvider: Loading clients on auth change");
-      clientManagement.loadClients();
+      loadClients();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, loadClients]);
 
   const contextValue = {
     ...clientManagement,
