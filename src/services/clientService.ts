@@ -120,9 +120,23 @@ class ClientService {
     try {
       console.log("ClientService: Creating client with data:", clientData);
       
-      let userId = null;
-      
-      // Create auth user if password is provided
+      // Always create a client record, with or without auth user
+      const clientRecord = {
+        user_id: null, // Will be set if auth user is created
+        full_name: clientData.fullName,
+        email: clientData.email,
+        phone: clientData.phone || '',
+        company_name: clientData.companyName || '',
+        address: clientData.address || '',
+        tags: clientData.tags || [],
+        notes: clientData.notes || '',
+        assigned_attorney_id: clientData.assignedAttorneyId || null,
+        is_dropped: false,
+        dropped_date: null,
+        dropped_reason: ''
+      };
+
+      // Try to create auth user if password is provided
       if (clientData.password) {
         try {
           console.log("ClientService: Creating auth user");
@@ -139,34 +153,15 @@ class ClientService {
           });
           
           if (authData?.user) {
-            userId = authData.user.id;
-            console.log("ClientService: Created auth user with ID:", userId);
-            
-            // Wait a moment for the trigger to create the profile
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            clientRecord.user_id = authData.user.id;
+            console.log("ClientService: Created auth user with ID:", authData.user.id);
           } else {
             console.warn("ClientService: Auth user creation failed:", authError);
           }
         } catch (authError) {
-          console.warn("ClientService: Auth user creation failed:", authError);
+          console.warn("ClientService: Auth user creation failed, proceeding without auth:", authError);
         }
       }
-      
-      // Now create the client record in the clients table
-      const clientRecord = {
-        user_id: userId,
-        full_name: clientData.fullName,
-        email: clientData.email,
-        phone: clientData.phone || '',
-        company_name: clientData.companyName || '',
-        address: clientData.address || '',
-        tags: clientData.tags || [],
-        notes: clientData.notes || '',
-        assigned_attorney_id: clientData.assignedAttorneyId || null,
-        is_dropped: false,
-        dropped_date: null,
-        dropped_reason: ''
-      };
       
       console.log("ClientService: Inserting client record:", clientRecord);
       
