@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+
+import { useState, useCallback, useMemo } from 'react';
 import { Client } from '@/types/client';
 import { clientService, CreateClientData, UpdateClientData } from '@/services/clientService';
 
@@ -11,8 +12,8 @@ export const useClientManagement = () => {
   const [activeTab, setActiveTab] = useState("view");
   const [activeDetailTab, setActiveDetailTab] = useState("overview");
 
-  // Load all clients
-  const loadClients = useCallback(async () => {
+  // Memoize the loadClients function to prevent infinite re-renders
+  const loadClients = useCallback(async (): Promise<boolean> => {
     try {
       setLoading(true);
       console.log("useClientManagement: Loading clients");
@@ -30,7 +31,7 @@ export const useClientManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); // Empty dependency array since this function doesn't depend on any external values
 
   // Create client
   const createClient = useCallback(async (clientData: CreateClientData): Promise<Client | null> => {
@@ -82,7 +83,7 @@ export const useClientManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedClient]);
+  }, [selectedClient?.id]);
 
   // Drop client
   const dropClient = useCallback(async (clientId: string, reason: string): Promise<Client | null> => {
@@ -102,7 +103,7 @@ export const useClientManagement = () => {
       console.error("useClientManagement: Failed to drop client:", error);
       return null;
     }
-  }, [selectedClient]);
+  }, [selectedClient?.id]);
 
   // Delete client
   const deleteClient = useCallback(async (clientId: string): Promise<boolean> => {
@@ -122,7 +123,7 @@ export const useClientManagement = () => {
       console.error("useClientManagement: Failed to delete client:", error);
       return false;
     }
-  }, [selectedClient]);
+  }, [selectedClient?.id]);
 
   // View client
   const viewClient = useCallback((client: Client) => {
@@ -142,7 +143,8 @@ export const useClientManagement = () => {
     setClientToEdit(null);
   }, []);
 
-  return {
+  // Memoize the return object to prevent unnecessary re-renders
+  return useMemo(() => ({
     // State
     clients,
     droppedClients,
@@ -163,5 +165,21 @@ export const useClientManagement = () => {
     clearEditState,
     setActiveTab,
     setActiveDetailTab,
-  };
+  }), [
+    clients,
+    droppedClients,
+    selectedClient,
+    clientToEdit,
+    loading,
+    activeTab,
+    activeDetailTab,
+    loadClients,
+    createClient,
+    updateClient,
+    dropClient,
+    deleteClient,
+    viewClient,
+    editClient,
+    clearEditState,
+  ]);
 };

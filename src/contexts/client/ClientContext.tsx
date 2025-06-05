@@ -22,6 +22,7 @@ interface ClientContextType {
   deleteClient: (id: string) => Promise<boolean>;
   viewClient: (client: Client) => void;
   editClient: (client: Client) => void;
+  startEditClient: (client: Client) => void;
   clearEditState: () => void;
 }
 
@@ -33,13 +34,18 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   useEffect(() => {
     if (isAuthenticated) {
-      console.log("ClientProvider: Loading clients");
+      console.log("ClientProvider: Loading clients on auth change");
       clientManagement.loadClients();
     }
-  }, [isAuthenticated, clientManagement.loadClients]);
+  }, [isAuthenticated]);
+
+  const contextValue = {
+    ...clientManagement,
+    startEditClient: clientManagement.editClient, // Alias for backward compatibility
+  };
 
   return (
-    <ClientContext.Provider value={clientManagement}>
+    <ClientContext.Provider value={contextValue}>
       {children}
     </ClientContext.Provider>
   );
