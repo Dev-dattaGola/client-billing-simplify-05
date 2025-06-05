@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { useClientManagement } from '@/hooks/useClientManagement';
 import { useAuth } from '@/contexts/AuthContext';
 import { Client } from '@/types/client';
@@ -32,15 +32,17 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const { isAuthenticated } = useAuth();
   const clientManagement = useClientManagement();
 
-  // Extract loadClients to avoid dependency issues
-  const { loadClients } = clientManagement;
+  // Use useCallback to ensure stable reference for loadClients
+  const stableLoadClients = useCallback(() => {
+    return clientManagement.loadClients();
+  }, [clientManagement.loadClients]);
 
   useEffect(() => {
     if (isAuthenticated) {
       console.log("ClientProvider: Loading clients on auth change");
-      loadClients();
+      stableLoadClients();
     }
-  }, [isAuthenticated, loadClients]);
+  }, [isAuthenticated, stableLoadClients]);
 
   const contextValue = {
     ...clientManagement,
