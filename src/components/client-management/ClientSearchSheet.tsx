@@ -22,20 +22,17 @@ const ClientSearchSheet: React.FC<ClientSearchSheetProps> = ({
   const { 
     clients, 
     loading, 
-    handleViewClient, 
-    handleDropClient, 
-    startEditClient 
+    viewClient, 
+    dropClient, 
+    editClient 
   } = useClient();
   
   const { hasPermission } = useAuth();
 
   const handleViewAndClose = useCallback((client: any) => {
-    console.log("Viewing client and closing sheet");
-    handleViewClient(client);
+    viewClient(client);
     onOpenChange(false);
-  }, [handleViewClient, onOpenChange]);
-
-  console.log("ClientSearchSheet rendering, isOpen:", isOpen);
+  }, [viewClient, onOpenChange]);
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -46,9 +43,9 @@ const ClientSearchSheet: React.FC<ClientSearchSheetProps> = ({
         <div className="mt-4">
           <ClientList 
             clients={clients} 
-            onEditClient={(client) => hasPermission('edit:clients') ? startEditClient(client) : null}
+            onEditClient={(client) => hasPermission('edit:clients') ? editClient(client) : null}
             onViewClient={handleViewAndClose}
-            onDropClient={(clientId, reason) => hasPermission('edit:clients') ? handleDropClient(clientId, reason) : undefined}
+            onDropClient={(clientId, reason) => hasPermission('edit:clients') ? dropClient(clientId, reason) : Promise.resolve(null)}
             loading={loading}
           />
         </div>

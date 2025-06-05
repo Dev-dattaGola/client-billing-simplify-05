@@ -1,2 +1,2 @@
 
-export * from './ClientContext';
+export { ClientProvider, useClient } from './ClientContext';

@@ -23,10 +23,6 @@ interface ClientContextType {
   viewClient: (client: Client) => void;
   editClient: (client: Client) => void;
   clearEditState: () => void;
-  // Add missing methods
-  startEditClient: (client: Client) => void;
-  handleViewClient: (client: Client) => void;
-  handleDropClient: (id: string, reason: string) => Promise<Client | null>;
 }
 
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
@@ -35,24 +31,15 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const { isAuthenticated } = useAuth();
   const clientManagement = useClientManagement();
 
-  // Load clients when authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      console.log("ClientProvider: User authenticated, loading clients");
+      console.log("ClientProvider: Loading clients");
       clientManagement.loadClients();
     }
   }, [isAuthenticated, clientManagement.loadClients]);
 
-  const contextValue: ClientContextType = {
-    ...clientManagement,
-    // Add missing method aliases
-    startEditClient: clientManagement.editClient,
-    handleViewClient: clientManagement.viewClient,
-    handleDropClient: clientManagement.dropClient,
-  };
-
   return (
-    <ClientContext.Provider value={contextValue}>
+    <ClientContext.Provider value={clientManagement}>
       {children}
     </ClientContext.Provider>
   );

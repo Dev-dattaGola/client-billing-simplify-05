@@ -1,63 +1,13 @@
-import React, { useState, useCallback, useMemo } from 'react';
+
+import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import PageLayout from '@/frontend/components/layout/PageLayout';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import PageLayout from '@/components/layout/PageLayout';
 import ClientManagement from "@/components/client-management/ClientManagement";
-import { ClientProvider } from '@/contexts/client/ClientContext';
-import { EnhancedButton } from '@/components/ui/enhanced-button';
-import { Plus, FileDown, Search, RefreshCw } from 'lucide-react';
-import { useNavigate, Routes, Route, Navigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { ClientProvider } from '@/contexts/client';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 const Clients: React.FC = () => {
-  const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  console.log("Clients page rendering");
-
-  const handleExportClients = useCallback(async () => {
-    // Simulate export functionality
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast.success('Client data exported successfully');
-  }, []);
-
-  const handleAddClient = useCallback(() => {
-    navigate('/clients/new');
-  }, [navigate]);
-
-  const handleSearch = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      toast.info(`Searching for "${searchQuery}"...`);
-    }
-  }, [searchQuery]);
-
-  const handleRefresh = useCallback(async () => {
-    // Simulate refresh functionality
-    await new Promise(resolve => setTimeout(resolve, 800));
-    toast.success('Client data refreshed');
-  }, []);
-
-  // Memoize search input change handler
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  }, []);
-
-  // Memoize the search form
-  const searchForm = useMemo(() => (
-    <form onSubmit={handleSearch} className="relative">
-      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/70" />
-      <Input
-        type="search"
-        placeholder="Search clients..."
-        value={searchQuery}
-        onChange={handleSearchChange}
-        className="w-full pl-8 md:w-[200px] lg:w-[300px] bg-white/10 text-white border-white/20"
-      />
-    </form>
-  ), [searchQuery, handleSearch, handleSearchChange]);
-
   return (
     <PageLayout>
       <Helmet>
@@ -74,53 +24,6 @@ const Clients: React.FC = () => {
               View, add, edit and manage all your clients and their cases
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-white">Client Dashboard</h2>
-                <p className="text-white/70 mt-1">
-                  Manage client information, cases, and documents
-                </p>
-              </div>
-              
-              <div className="flex flex-wrap items-center gap-2">
-                {searchForm}
-                
-                <EnhancedButton 
-                  variant="outline" 
-                  size="sm"
-                  actionFn={handleRefresh}
-                  loadingText="Refreshing..."
-                  successText="Clients refreshed"
-                  className="bg-white/5 border-white/20 text-white hover:bg-white/10"
-                  type="button"
-                >
-                  <RefreshCw className="h-4 w-4 mr-1" /> Refresh
-                </EnhancedButton>
-                
-                <EnhancedButton 
-                  variant="outline" 
-                  size="sm"
-                  actionFn={handleExportClients}
-                  loadingText="Exporting..."
-                  successText="Clients exported successfully"
-                  className="bg-white/5 border-white/20 text-white hover:bg-white/10"
-                  type="button"
-                >
-                  <FileDown className="h-4 w-4 mr-1" /> Export
-                </EnhancedButton>
-                
-                <EnhancedButton 
-                  variant="default" 
-                  size="sm"
-                  onClick={handleAddClient}
-                  type="button"
-                >
-                  <Plus className="h-4 w-4 mr-1" /> Add Client
-                </EnhancedButton>
-              </div>
-            </div>
-          </CardContent>
         </Card>
         
         <div className="max-w-7xl mx-auto">
