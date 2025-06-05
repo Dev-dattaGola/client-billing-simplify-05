@@ -64,7 +64,6 @@ export const useClientManagement = () => {
       setLoading(true);
       const updatedClient = await clientService.updateClient(clientData);
       
-      // Update state
       if (updatedClient.isDropped) {
         setClients(prev => prev.filter(c => c.id !== clientData.id));
         setDroppedClients(prev => [...prev.filter(c => c.id !== clientData.id), updatedClient]);
@@ -72,7 +71,6 @@ export const useClientManagement = () => {
         setClients(prev => prev.map(c => c.id === clientData.id ? updatedClient : c));
       }
       
-      // Update selected client if it's the one being edited
       if (selectedClient?.id === updatedClient.id) {
         setSelectedClient(updatedClient);
       }
@@ -91,11 +89,9 @@ export const useClientManagement = () => {
     try {
       const droppedClient = await clientService.dropClient(clientId, reason);
       
-      // Move from active to dropped
       setClients(prev => prev.filter(c => c.id !== clientId));
       setDroppedClients(prev => [...prev, droppedClient]);
       
-      // Clear selection if this client was selected
       if (selectedClient?.id === clientId) {
         setSelectedClient(null);
         setActiveTab("view");
@@ -113,11 +109,9 @@ export const useClientManagement = () => {
     try {
       await clientService.deleteClient(clientId);
       
-      // Remove from both lists
       setClients(prev => prev.filter(c => c.id !== clientId));
       setDroppedClients(prev => prev.filter(c => c.id !== clientId));
       
-      // Clear selection if this client was selected
       if (selectedClient?.id === clientId) {
         setSelectedClient(null);
         setActiveTab("view");

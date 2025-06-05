@@ -23,7 +23,7 @@ class ClientService {
   private mapDbClientToClient(dbClient: any): Client {
     return {
       id: dbClient.id,
-      user_id: dbClient.user_id,
+      user_id: dbClient.user_id || dbClient.id,
       fullName: dbClient.full_name || `${dbClient.first_name || ''} ${dbClient.last_name || ''}`.trim(),
       email: dbClient.email || '',
       phone: dbClient.phone || '',
@@ -58,13 +58,13 @@ class ClientService {
     try {
       console.log("ClientService: Fetching all clients");
       
-      // Try clients table first
+      // First try to get from clients table
       const { data: clientsData, error: clientsError } = await supabase
         .from('clients')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (!clientsError && clientsData) {
+      if (!clientsError && clientsData && clientsData.length > 0) {
         console.log("ClientService: Found data in clients table:", clientsData);
         const mappedClients = clientsData.map(client => this.mapDbClientToClient(client));
         const active = mappedClients.filter(client => !client.isDropped);
@@ -72,7 +72,7 @@ class ClientService {
         return { active, dropped };
       }
       
-      // Fallback to profiles table
+      // Fallback to profiles table for client role users
       console.log("ClientService: Trying profiles table as fallback");
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
@@ -122,7 +122,7 @@ class ClientService {
       
       let userId = null;
       
-      // Try to create auth user if password is provided
+      // Create auth user if password is provided
       if (clientData.password) {
         try {
           console.log("ClientService: Creating auth user");
@@ -141,86 +141,67 @@ class ClientService {
           if (authData?.user) {
             userId = authData.user.id;
             console.log("ClientService: Created auth user with ID:", userId);
+            
+            // Wait a moment for the trigger to create the profile
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Check if profile was created by trigger
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', userId)
+              .single();
+              
+            if (!profileError && profileData) {
+              console.log("ClientService: Profile created by trigger:", profileData);
+              
+              // Update profile with additional client data
+              const { data: updatedProfile, error: updateError } = await supabase
+                .from('profiles')
+                .update({
+                  phone: clientData.phone || '',
+                  // Add any other fields that exist in profiles table
+                })
+                .eq('id', userId)
+                .select('*')
+                .single();
+                
+              if (!updateError && updatedProfile) {
+                const newClient = this.mapDbClientToClient({
+                  id: updatedProfile.id,
+                  user_id: updatedProfile.id,
+                  full_name: `${updatedProfile.first_name || ''} ${updatedProfile.last_name || ''}`.trim(),
+                  email: updatedProfile.email,
+                  phone: updatedProfile.phone || '',
+                  company_name: clientData.companyName || '',
+                  address: clientData.address || '',
+                  tags: clientData.tags || [],
+                  notes: clientData.notes || '',
+                  assigned_attorney_id: clientData.assignedAttorneyId || null,
+                  is_dropped: false,
+                  dropped_date: null,
+                  dropped_reason: '',
+                  created_at: updatedProfile.created_at,
+                  updated_at: updatedProfile.updated_at
+                });
+                
+                console.log("ClientService: Client created successfully via profiles:", newClient);
+                toast.success(`${newClient.fullName} has been added successfully`);
+                return newClient;
+              }
+            }
           } else {
             console.warn("ClientService: Auth user creation failed:", authError);
           }
         } catch (authError) {
-          console.warn("ClientService: Auth user creation failed (continuing anyway):", authError);
+          console.warn("ClientService: Auth user creation failed:", authError);
         }
       }
       
-      // Try to save to clients table first
-      try {
-        const clientDbData = {
-          full_name: clientData.fullName,
-          email: clientData.email,
-          phone: clientData.phone || '',
-          company_name: clientData.companyName || '',
-          address: clientData.address || '',
-          tags: clientData.tags || [],
-          notes: clientData.notes || '',
-          assigned_attorney_id: clientData.assignedAttorneyId || null,
-          user_id: userId,
-        };
-        
-        console.log("ClientService: Inserting to clients table:", clientDbData);
-        
-        const { data: newDbClient, error } = await supabase
-          .from('clients')
-          .insert(clientDbData)
-          .select('*')
-          .single();
-        
-        if (!error && newDbClient) {
-          console.log("ClientService: Client created successfully in clients table:", newDbClient);
-          const newClient = this.mapDbClientToClient(newDbClient);
-          toast.success(`${newClient.fullName} has been added successfully`);
-          return newClient;
-        }
-        
-        console.warn("ClientService: Failed to save to clients table:", error);
-      } catch (clientsTableError) {
-        console.warn("ClientService: Clients table insert failed:", clientsTableError);
-      }
-      
-      // If clients table fails and we have a userId, the profile should already be created by the auth trigger
-      if (userId) {
-        console.log("ClientService: Fetching created profile for user:", userId);
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', userId)
-          .single();
-          
-        if (!profileError && profileData) {
-          console.log("ClientService: Found created profile:", profileData);
-          const newClient = this.mapDbClientToClient({
-            id: profileData.id,
-            user_id: profileData.id,
-            full_name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim(),
-            email: profileData.email,
-            phone: profileData.phone || '',
-            company_name: '',
-            address: '',
-            tags: [],
-            notes: '',
-            assigned_attorney_id: null,
-            is_dropped: false,
-            dropped_date: null,
-            dropped_reason: '',
-            created_at: profileData.created_at,
-            updated_at: profileData.updated_at
-          });
-          
-          toast.success(`${newClient.fullName} has been added successfully`);
-          return newClient;
-        }
-      }
-      
-      throw new Error("Failed to create client in both clients and profiles tables");
+      throw new Error("Failed to create client - please ensure all required fields are filled");
     } catch (error) {
       console.error("ClientService: Error creating client:", error);
-      toast.error("Failed to create client");
+      toast.error("Failed to create client. Please try again.");
       throw error;
     }
   }
@@ -229,55 +210,57 @@ class ClientService {
     try {
       console.log("ClientService: Updating client:", clientData);
       
-      // Handle password update if provided
-      if (clientData.password && clientData.id) {
-        const client = await this.getClientById(clientData.id);
-        if (client?.user_id) {
-          try {
-            await supabase.functions.invoke('client-management', {
-              body: {
-                action: 'update_client_password',
-                data: {
-                  userId: client.user_id,
-                  password: clientData.password
-                }
-              }
-            });
-          } catch (passwordError) {
-            console.warn("ClientService: Password update failed:", passwordError);
-          }
-        }
+      // Try to update in clients table first
+      const { data: updatedDbClient, error: clientsError } = await supabase
+        .from('clients')
+        .update({
+          full_name: clientData.fullName,
+          email: clientData.email,
+          phone: clientData.phone || '',
+          company_name: clientData.companyName || '',
+          address: clientData.address || '',
+          tags: clientData.tags || [],
+          notes: clientData.notes || '',
+          assigned_attorney_id: clientData.assignedAttorneyId || null,
+        })
+        .eq('id', clientData.id)
+        .select('*')
+        .single();
+      
+      if (!clientsError && updatedDbClient) {
+        const updatedClient = this.mapDbClientToClient(updatedDbClient);
+        toast.success(`${updatedClient.fullName} has been updated successfully`);
+        return updatedClient;
       }
       
-      // Convert to database format
-      const dbClientData = {
-        full_name: clientData.fullName,
-        email: clientData.email,
-        phone: clientData.phone || '',
+      // Fallback to profiles table
+      const { data: updatedProfile, error: profilesError } = await supabase
+        .from('profiles')
+        .update({
+          first_name: clientData.fullName?.split(' ')[0] || '',
+          last_name: clientData.fullName?.split(' ').slice(1).join(' ') || '',
+          email: clientData.email,
+          phone: clientData.phone || '',
+        })
+        .eq('id', clientData.id)
+        .select('*')
+        .single();
+      
+      if (profilesError) {
+        throw profilesError;
+      }
+      
+      const updatedClient = this.mapDbClientToClient({
+        ...updatedProfile,
+        full_name: `${updatedProfile.first_name || ''} ${updatedProfile.last_name || ''}`.trim(),
         company_name: clientData.companyName || '',
         address: clientData.address || '',
         tags: clientData.tags || [],
         notes: clientData.notes || '',
         assigned_attorney_id: clientData.assignedAttorneyId || null,
-      };
+      });
       
-      console.log("ClientService: Updating with mapped data:", dbClientData);
-      
-      const { data: updatedDbClient, error } = await supabase
-        .from('clients')
-        .update(dbClientData)
-        .eq('id', clientData.id)
-        .select('*')
-        .single();
-      
-      if (error) {
-        console.error("ClientService: Update error:", error);
-        throw error;
-      }
-      
-      const updatedClient = this.mapDbClientToClient(updatedDbClient);
       toast.success(`${updatedClient.fullName} has been updated successfully`);
-      
       return updatedClient;
     } catch (error) {
       console.error("ClientService: Error updating client:", error);
@@ -314,10 +297,8 @@ class ClientService {
 
   async deleteClient(clientId: string): Promise<void> {
     try {
-      // Get client info for user deletion
       const client = await this.getClientById(clientId);
       
-      // Delete auth user if exists
       if (client?.user_id) {
         try {
           await supabase.functions.invoke('client-management', {
@@ -331,7 +312,6 @@ class ClientService {
         }
       }
       
-      // Delete client record
       const { error } = await supabase
         .from('clients')
         .delete()
