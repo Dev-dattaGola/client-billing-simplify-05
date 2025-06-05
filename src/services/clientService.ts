@@ -144,52 +144,6 @@ class ClientService {
             
             // Wait a moment for the trigger to create the profile
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Check if profile was created by trigger
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', userId)
-              .single();
-              
-            if (!profileError && profileData) {
-              console.log("ClientService: Profile created by trigger:", profileData);
-              
-              // Update profile with additional client data
-              const { data: updatedProfile, error: updateError } = await supabase
-                .from('profiles')
-                .update({
-                  phone: clientData.phone || '',
-                  // Add any other fields that exist in profiles table
-                })
-                .eq('id', userId)
-                .select('*')
-                .single();
-                
-              if (!updateError && updatedProfile) {
-                const newClient = this.mapDbClientToClient({
-                  id: updatedProfile.id,
-                  user_id: updatedProfile.id,
-                  full_name: `${updatedProfile.first_name || ''} ${updatedProfile.last_name || ''}`.trim(),
-                  email: updatedProfile.email,
-                  phone: updatedProfile.phone || '',
-                  company_name: clientData.companyName || '',
-                  address: clientData.address || '',
-                  tags: clientData.tags || [],
-                  notes: clientData.notes || '',
-                  assigned_attorney_id: clientData.assignedAttorneyId || null,
-                  is_dropped: false,
-                  dropped_date: null,
-                  dropped_reason: '',
-                  created_at: updatedProfile.created_at,
-                  updated_at: updatedProfile.updated_at
-                });
-                
-                console.log("ClientService: Client created successfully via profiles:", newClient);
-                toast.success(`${newClient.fullName} has been added successfully`);
-                return newClient;
-              }
-            }
           } else {
             console.warn("ClientService: Auth user creation failed:", authError);
           }
@@ -198,7 +152,45 @@ class ClientService {
         }
       }
       
-      throw new Error("Failed to create client - please ensure all required fields are filled");
+      // Now create the client record in the clients table
+      const clientRecord = {
+        user_id: userId,
+        full_name: clientData.fullName,
+        email: clientData.email,
+        phone: clientData.phone || '',
+        company_name: clientData.companyName || '',
+        address: clientData.address || '',
+        tags: clientData.tags || [],
+        notes: clientData.notes || '',
+        assigned_attorney_id: clientData.assignedAttorneyId || null,
+        is_dropped: false,
+        dropped_date: null,
+        dropped_reason: ''
+      };
+      
+      console.log("ClientService: Inserting client record:", clientRecord);
+      
+      const { data: newClient, error: insertError } = await supabase
+        .from('clients')
+        .insert(clientRecord)
+        .select('*')
+        .single();
+      
+      if (insertError) {
+        console.error("ClientService: Error inserting client:", insertError);
+        throw insertError;
+      }
+      
+      if (!newClient) {
+        throw new Error("Failed to create client - no data returned");
+      }
+      
+      console.log("ClientService: Client created successfully:", newClient);
+      
+      const mappedClient = this.mapDbClientToClient(newClient);
+      toast.success(`${mappedClient.fullName} has been added successfully`);
+      
+      return mappedClient;
     } catch (error) {
       console.error("ClientService: Error creating client:", error);
       toast.error("Failed to create client. Please try again.");
