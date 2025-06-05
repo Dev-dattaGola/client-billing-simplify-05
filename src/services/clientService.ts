@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Client } from '@/types/client';
 import { toast } from 'sonner';
@@ -25,7 +24,7 @@ class ClientService {
     return {
       id: dbClient.id,
       user_id: dbClient.user_id,
-      fullName: dbClient.full_name || '',
+      fullName: dbClient.full_name || `${dbClient.first_name || ''} ${dbClient.last_name || ''}`.trim(),
       email: dbClient.email || '',
       phone: dbClient.phone || '',
       companyName: dbClient.company_name || '',
@@ -55,83 +54,61 @@ class ClientService {
     };
   }
 
-  // Convert frontend client to database format
-  private mapClientToDbFormat(clientData: CreateClientData | UpdateClientData) {
-    return {
-      full_name: clientData.fullName,
-      email: clientData.email,
-      phone: clientData.phone || '',
-      company_name: clientData.companyName || '',
-      address: clientData.address || '',
-      tags: clientData.tags || [],
-      notes: clientData.notes || '',
-      assigned_attorney_id: clientData.assignedAttorneyId || null,
-    };
-  }
-
   async getAllClients(): Promise<{ active: Client[]; dropped: Client[] }> {
     try {
-      console.log("ClientService: Fetching all clients from clients table");
+      console.log("ClientService: Fetching all clients");
       
-      // First, let's check if we have data in the clients table
-      const { data: fetchedClients, error } = await supabase
+      // Try clients table first
+      const { data: clientsData, error: clientsError } = await supabase
         .from('clients')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) {
-        console.error("ClientService: Error fetching from clients table:", error);
-        
-        // If clients table fails, try profiles table as fallback
-        console.log("ClientService: Trying profiles table as fallback");
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('role', 'client')
-          .order('created_at', { ascending: false });
-          
-        if (profilesError) {
-          console.error("ClientService: Error fetching from profiles table:", profilesError);
-          throw profilesError;
-        }
-        
-        // Convert profiles data to client format
-        const convertedClients = profilesData?.map(profile => ({
-          id: profile.id,
-          user_id: profile.id,
-          full_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
-          email: profile.email,
-          phone: profile.phone || '',
-          company_name: '',
-          address: '',
-          tags: [],
-          notes: '',
-          assigned_attorney_id: null,
-          is_dropped: false,
-          dropped_date: null,
-          dropped_reason: '',
-          created_at: profile.created_at,
-          updated_at: profile.updated_at
-        })) || [];
-        
-        const mappedClients = convertedClients.map(client => this.mapDbClientToClient(client));
-        
-        console.log("ClientService: Mapped clients from profiles:", mappedClients);
-        
-        return { active: mappedClients, dropped: [] };
+      if (!clientsError && clientsData) {
+        console.log("ClientService: Found data in clients table:", clientsData);
+        const mappedClients = clientsData.map(client => this.mapDbClientToClient(client));
+        const active = mappedClients.filter(client => !client.isDropped);
+        const dropped = mappedClients.filter(client => client.isDropped);
+        return { active, dropped };
       }
       
-      console.log("ClientService: Raw clients data:", fetchedClients);
+      // Fallback to profiles table
+      console.log("ClientService: Trying profiles table as fallback");
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'client')
+        .order('created_at', { ascending: false });
+        
+      if (profilesError) {
+        console.error("ClientService: Error fetching from profiles table:", profilesError);
+        throw profilesError;
+      }
       
-      const mappedClients = fetchedClients?.map(client => this.mapDbClientToClient(client)) || [];
-      console.log("ClientService: Mapped clients:", mappedClients);
+      // Convert profiles data to client format
+      const convertedClients = profilesData?.map(profile => ({
+        id: profile.id,
+        user_id: profile.id,
+        full_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+        email: profile.email,
+        phone: profile.phone || '',
+        company_name: '',
+        address: '',
+        tags: [],
+        notes: '',
+        assigned_attorney_id: null,
+        is_dropped: false,
+        dropped_date: null,
+        dropped_reason: '',
+        created_at: profile.created_at,
+        updated_at: profile.updated_at
+      })) || [];
       
-      const active = mappedClients.filter(client => !client.isDropped);
-      const dropped = mappedClients.filter(client => client.isDropped);
+      const mappedClients = convertedClients.map(client => this.mapDbClientToClient(client));
       
-      console.log(`ClientService: Returning ${active.length} active and ${dropped.length} dropped clients`);
+      console.log("ClientService: Mapped clients from profiles:", mappedClients);
       
-      return { active, dropped };
+      return { active: mappedClients, dropped: [] };
     } catch (error) {
       console.error("ClientService: Failed to fetch clients:", error);
       toast.error("Failed to load client data");
@@ -172,31 +149,75 @@ class ClientService {
         }
       }
       
-      // Convert to database format
-      const dbClientData = {
-        ...this.mapClientToDbFormat(clientData),
-        user_id: userId,
-      };
-      
-      console.log("ClientService: Inserting client with mapped data:", dbClientData);
-      
-      const { data: newDbClient, error } = await supabase
-        .from('clients')
-        .insert(dbClientData)
-        .select('*')
-        .single();
-      
-      if (error) {
-        console.error("ClientService: Database error:", error);
-        throw error;
+      // Try to save to clients table first
+      try {
+        const clientDbData = {
+          full_name: clientData.fullName,
+          email: clientData.email,
+          phone: clientData.phone || '',
+          company_name: clientData.companyName || '',
+          address: clientData.address || '',
+          tags: clientData.tags || [],
+          notes: clientData.notes || '',
+          assigned_attorney_id: clientData.assignedAttorneyId || null,
+          user_id: userId,
+        };
+        
+        console.log("ClientService: Inserting to clients table:", clientDbData);
+        
+        const { data: newDbClient, error } = await supabase
+          .from('clients')
+          .insert(clientDbData)
+          .select('*')
+          .single();
+        
+        if (!error && newDbClient) {
+          console.log("ClientService: Client created successfully in clients table:", newDbClient);
+          const newClient = this.mapDbClientToClient(newDbClient);
+          toast.success(`${newClient.fullName} has been added successfully`);
+          return newClient;
+        }
+        
+        console.warn("ClientService: Failed to save to clients table:", error);
+      } catch (clientsTableError) {
+        console.warn("ClientService: Clients table insert failed:", clientsTableError);
       }
       
-      console.log("ClientService: Client created successfully:", newDbClient);
+      // If clients table fails and we have a userId, the profile should already be created by the auth trigger
+      if (userId) {
+        console.log("ClientService: Fetching created profile for user:", userId);
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+          
+        if (!profileError && profileData) {
+          console.log("ClientService: Found created profile:", profileData);
+          const newClient = this.mapDbClientToClient({
+            id: profileData.id,
+            user_id: profileData.id,
+            full_name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim(),
+            email: profileData.email,
+            phone: profileData.phone || '',
+            company_name: '',
+            address: '',
+            tags: [],
+            notes: '',
+            assigned_attorney_id: null,
+            is_dropped: false,
+            dropped_date: null,
+            dropped_reason: '',
+            created_at: profileData.created_at,
+            updated_at: profileData.updated_at
+          });
+          
+          toast.success(`${newClient.fullName} has been added successfully`);
+          return newClient;
+        }
+      }
       
-      const newClient = this.mapDbClientToClient(newDbClient);
-      toast.success(`${newClient.fullName} has been added successfully`);
-      
-      return newClient;
+      throw new Error("Failed to create client in both clients and profiles tables");
     } catch (error) {
       console.error("ClientService: Error creating client:", error);
       toast.error("Failed to create client");
@@ -229,7 +250,16 @@ class ClientService {
       }
       
       // Convert to database format
-      const dbClientData = this.mapClientToDbFormat(clientData);
+      const dbClientData = {
+        full_name: clientData.fullName,
+        email: clientData.email,
+        phone: clientData.phone || '',
+        company_name: clientData.companyName || '',
+        address: clientData.address || '',
+        tags: clientData.tags || [],
+        notes: clientData.notes || '',
+        assigned_attorney_id: clientData.assignedAttorneyId || null,
+      };
       
       console.log("ClientService: Updating with mapped data:", dbClientData);
       
