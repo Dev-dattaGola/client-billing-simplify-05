@@ -31,7 +31,7 @@ export const useClientManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, []); // Empty dependency array since this function doesn't depend on any external values
+  }, []);
 
   // Create client
   const createClient = useCallback(async (clientData: CreateClientData): Promise<Client | null> => {
